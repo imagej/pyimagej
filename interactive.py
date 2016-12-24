@@ -31,12 +31,7 @@ class InteractiveClient(cmd.Cmd):
     def __init__(self):
         cmd.Cmd.__init__(self)
         self.c = Client()
-        try:
-            self.modules = self.c.getModules()
-        except Exception:
-            print('Connection failed. '
-                  'Restart imagej-server and use correct host address.')
-            sys.exit(1)
+
         self.iterIdx = 0
 
         self.parsers = {command: InteractiveParser(prog=command)
