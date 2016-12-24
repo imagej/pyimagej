@@ -22,7 +22,7 @@ class Client(object):
 
     def runModule(self, id, inputs=None, process=True):
         url = urljoin(self.host, 'modules/%s' % id)
-        runSpec = {inputs, process}
+        runSpec = {"inputs": inputs, "process": process}
         r = requests.post(url, json=runSpec)
         r.raise_for_status()
         return r.json()
