@@ -34,6 +34,7 @@ class InteractiveClient(cmd.Cmd):
 
     def __init__(self):
         cmd.Cmd.__init__(self)
+        self.prompt = '(Client) '
         self.c = Client()
 
         self.iterIdx = 0
