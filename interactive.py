@@ -1,3 +1,7 @@
+#! /usr/bin/env python2
+
+"""Interactive client for imagej-server."""
+
 from imagej_client import Client
 import argparse
 import cmd
