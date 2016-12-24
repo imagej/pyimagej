@@ -31,10 +31,10 @@ Use `pip install -r requirements.txt` to install requirements.
             Usage: list [-r PATTERN] [-c NUM]
     
             -r, --regex=PATTERN
-                Only list modules that match PATTERN.
+                only list modules that match PATTERN
     
             -c, --count=[COUNT]
-                List first COUNT modules. Default to 10.
+                list first COUNT modules (default: 10)
     
             Indices in the list could be used in "detail" and "run" commands.
     (Client) help iter
@@ -98,7 +98,7 @@ Use `pip install -r requirements.txt` to install requirements.
             FILENAME
                 filename obtained in "request"
     
-            DESTINATION
+            DEST
                 destination for saving the file (default: current directory)
     (Client) quit
 

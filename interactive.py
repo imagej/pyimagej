@@ -53,8 +53,8 @@ class InteractiveClient(cmd.Cmd):
         p = ps['detail']
         p.description = 'Shows details of a module.'
         p.add_argument('id', metavar='ID',
-                       help='can be the index of a module in the last "list", '
-                       'or its full name')
+                       help='Index of a module in the last "list", '
+                       'or its full name.')
 
         p = ps['iter']
         p.description = 'Iterates modules in last "list."'
@@ -66,8 +66,8 @@ class InteractiveClient(cmd.Cmd):
         p = ps['run']
         p.description = 'Runs a module.'
         p.add_argument('id', metavar='ID',
-                       help='can be the index of a module in the last "list", '
-                       'or its full name')
+                       help='Index of a module in the last "list", '
+                       'or its full name.')
         group = p.add_mutually_exclusive_group(required=True)
         group.add_argument('-i', '--inputs',
                            help='inputs to the module in JSON format')
@@ -92,7 +92,8 @@ class InteractiveClient(cmd.Cmd):
 
         p = ps['retrieve']
         p.description = 'Downloads a file.'
-        p.add_argument('filename', help='filename obtained in "request"')
+        p.add_argument('filename', metavar='FILENAME',
+                       help='filename obtained in "request"')
         p.add_argument('-d', '--dest', default='.')
 
     def do_list(self, arg):
@@ -101,10 +102,10 @@ class InteractiveClient(cmd.Cmd):
         Usage: list [-r PATTERN] [-c NUM]
 
         -r, --regex=PATTERN
-            Only list modules that match PATTERN.
+            only list modules that match PATTERN
 
         -c, --count=[COUNT]
-            List first COUNT modules. Default to 10.
+            List first COUNT modules (default: 10)
 
         Indices in the list could be used in "detail" and "run" commands."""
 
@@ -323,7 +324,7 @@ class InteractiveClient(cmd.Cmd):
         FILENAME
             filename obtained in "request"
 
-        DESTINATION
+        DEST
             destination for saving the file (default: current directory)"""
 
         try:
