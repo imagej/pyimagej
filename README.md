@@ -128,7 +128,7 @@ Use `pip install -r requirements.txt` to install requirements.
     (Client) upload ../../src/test/resources/imgs/about4.tif
     # Upload a test image and obtain its ID in imagej-server
     {
-        "uuid": "_obj_8kg18dwxagwnhwu3"
+        "id": "_obj_8kg18dwxagwnhwu3"
     }
     (Client) list -r Create
     0: command:net.imagej.ops.create.img.CreateImgFromImg
