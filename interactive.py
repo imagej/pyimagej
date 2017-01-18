@@ -85,7 +85,7 @@ class InteractiveClient(cmd.Cmd):
         p.description = 'Requests for downloading an object.'
         p.add_argument('id', metavar='ID',
                        help='object ID obtained from "upload" or "run"')
-        p.add_argument('-e', '--ext', metavar='EXTENSION', required=True,
+        p.add_argument('-f', '--format', metavar='FORMAT', required=True,
                        help='file format to be saved with')
         p.add_argument('-c', '--config',
                        help='configuration for saving the file')
@@ -283,12 +283,12 @@ class InteractiveClient(cmd.Cmd):
     def do_request(self, arg):
         """Requests for downloading an object.
 
-        request -e EXTENSION [-c CONFIG] ID
+        request -f FORMAT [-c CONFIG] ID
 
         ID
             object ID obtained from "upload" or "run"
 
-        -e, --ext=EXTENSION
+        -f, --format=FORMAT
             file format to be saved with
 
         -c, --config=CONFIG
@@ -309,7 +309,7 @@ class InteractiveClient(cmd.Cmd):
                 return
 
         try:
-            rsp = self.c.requestFile(arg['id'], arg['ext'], config)
+            rsp = self.c.requestFile(arg['id'], arg['format'], config)
             print(json.dumps(rsp, indent=4))
         except Exception as e:
             print(e)

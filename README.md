@@ -80,12 +80,12 @@ Use `pip install -r requirements.txt` to install requirements.
     (Client) help request
     Requests for downloading an object.
     
-            request -e EXTENSION [-c CONFIG] ID
+            request -f FORMAT [-c CONFIG] ID
     
             ID
                 object ID obtained from "upload" or "run"
     
-            -e, --ext=EXTENSION
+            -f, --format=FORMAT
                 file format to be saved with
     
             -c, --config=CONFIG
@@ -157,7 +157,7 @@ Use `pip install -r requirements.txt` to install requirements.
     {
         "out": "object:y6ohl5k7lpbi0qvm"
     }
-    (Client) request -e tif object:y6ohl5k7lpbi0qvm
+    (Client) request -f tif object:y6ohl5k7lpbi0qvm
     # Request the imagej-server to prepare the inverted image for download in tif format
     {
         "filename": "al9n2mwy.tif"

@@ -33,9 +33,10 @@ class Client(object):
         r.raise_for_status()
         return r.json()
 
-    def requestFile(self, id, ext, config=None):
+    def requestFile(self, id, format, config=None):
         url = urljoin(self.host, 'io/%s' % id)
-        r = requests.post(url, params={'ext': ext}, json={'config': config})
+        r = requests.post(
+            url, params={'format': format}, json={'config': config})
         r.raise_for_status()
         return r.json()
 
