@@ -37,7 +37,7 @@ class InteractiveClient(cmd.Cmd):
         self.prompt = '(Client) '
         self.c = Client()
 
-        self.iterIdx = 0
+        self.iter_idx = 0
 
         self.parsers = {command: InteractiveParser(prog=command)
                         for command in self.COMMANDS}
@@ -123,7 +123,7 @@ class InteractiveClient(cmd.Cmd):
                 return
 
         try:
-            self.modules = self.c.getModules()
+            self.modules = self.c.get_modules()
         except Exception as e:
             print(e)
             return
@@ -131,7 +131,7 @@ class InteractiveClient(cmd.Cmd):
         if arg['regex'] is not None:
             self.modules = filter(pattern.search, self.modules)
 
-        self.iterIdx = 0
+        self.iter_idx = 0
         self.do_iter(str(arg['count']))
 
     do_ls = do_list
@@ -159,7 +159,7 @@ class InteractiveClient(cmd.Cmd):
             print('Index out of range. Try to call "list" with new query')
             return
         try:
-            rsp = self.c.getWidget(id)
+            rsp = self.c.get_module(id)
             print(json.dumps(rsp, indent=4))
         except Exception as e:
             print(e)
@@ -186,21 +186,21 @@ class InteractiveClient(cmd.Cmd):
         if arg['count'] == 0:
             return
         if not arg['reverse']:
-            end = min(self.iterIdx + arg['count'], len(self.modules))
-            for i in xrange(self.iterIdx, end):
+            end = min(self.iter_idx + arg['count'], len(self.modules))
+            for i in xrange(self.iter_idx, end):
                 print('%d: %s' % (i, self.modules[i]))
             if end == len(self.modules):
-                self.iterIdx = 0
+                self.iter_idx = 0
             else:
-                self.iterIdx = end
+                self.iter_idx = end
                 print('--use "it" to show more--')
         else:
-            if self.iterIdx == 0:
-                self.iterIdx = len(self.modules)
-            start = max(self.iterIdx - arg['count'], 0)
-            for i in reversed(xrange(start, self.iterIdx)):
+            if self.iter_idx == 0:
+                self.iter_idx = len(self.modules)
+            start = max(self.iter_idx - arg['count'], 0)
+            for i in reversed(xrange(start, self.iter_idx)):
                 print('%d: %s' % (i, self.modules[i]))
-            self.iterIdx = start
+            self.iter_idx = start
 
     do_it = do_iter
 
@@ -238,8 +238,8 @@ class InteractiveClient(cmd.Cmd):
 
         if arg['file'] is not None:
             try:
-                with open(arg['file']) as inputFile:
-                    inputs = inputFile.read()
+                with open(arg['file']) as input_file:
+                    inputs = input_file.read()
             except IOError:
                 print('Cannot open file %s' % arg['file'])
                 return
@@ -252,7 +252,7 @@ class InteractiveClient(cmd.Cmd):
             return
 
         try:
-            rsp = self.c.runModule(id, inputs, not arg['no_process'])
+            rsp = self.c.run_module(id, inputs, not arg['no_process'])
             print(json.dumps(rsp, indent=4))
         except Exception as e:
             print(e)
@@ -272,8 +272,8 @@ class InteractiveClient(cmd.Cmd):
             return
 
         try:
-            with open(arg['data']) as dataFile:
-                rsp = self.c.uploadFile(dataFile)
+            with open(arg['data']) as data_file:
+                rsp = self.c.upload_file(data_file)
             print(json.dumps(rsp, indent=4))
         except IOError:
             print('Cannot open file %s' % arg['data'])
@@ -309,7 +309,7 @@ class InteractiveClient(cmd.Cmd):
                 return
 
         try:
-            rsp = self.c.requestFile(arg['id'], arg['format'], config)
+            rsp = self.c.request_file(arg['id'], arg['format'], config)
             print(json.dumps(rsp, indent=4))
         except Exception as e:
             print(e)
@@ -347,7 +347,7 @@ class InteractiveClient(cmd.Cmd):
 
         try:
             with open(dest, 'wb') as d:
-                content = self.c.retrieveFile(arg['filename'])
+                content = self.c.retrieve_file(arg['filename'])
                 d.write(content)
         except IOError:
             print('Cannot write to %s' % dest)
