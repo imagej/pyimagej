@@ -19,7 +19,7 @@ Use `pip install -r requirements.txt` to install requirements.
     
     Documented commands (type help <topic>):
     ========================================
-    detail  dt  help  it  iter  list  ls  req  request  ret  retrieve  run  upload
+    detail  download  help  it  iterate  list  request  run  stop  upload
     
     Undocumented commands:
     ======================
@@ -34,19 +34,21 @@ Use `pip install -r requirements.txt` to install requirements.
                 only list modules that match PATTERN
     
             -c, --count=[COUNT]
-                list first COUNT modules (default: 10)
+                List first COUNT modules (default: 10)
     
             Indices in the list could be used in "detail" and "run" commands.
-    (Client) help iter
+    
+    (Client) help iterate
     Iterates modules in last "list."
     
-            usage:  iter [-r] [NUM]
+            usage:  iterate [-r] [NUM]
     
             [NUM]
                 iterate the next NUM modules (default: 10)
     
             -r, --reverse
                 reverse the iteration order
+    
     (Client) help detail
     Shows details of a module.
     
@@ -54,6 +56,7 @@ Use `pip install -r requirements.txt` to install requirements.
     
             ID
                 index of a module in the last "list", or its full name
+    
     (Client) help run
     Runs a module.
     
@@ -70,6 +73,7 @@ Use `pip install -r requirements.txt` to install requirements.
     
             -n, --no-process
                 do not do pre/post processing
+    
     (Client) help upload
     Uploads a file.
     
@@ -77,6 +81,7 @@ Use `pip install -r requirements.txt` to install requirements.
     
             FILENAME
                 file to be uploaded
+    
     (Client) help request
     Requests for downloading an object.
     
@@ -90,16 +95,23 @@ Use `pip install -r requirements.txt` to install requirements.
     
             -c, --config=CONFIG
                 configuration in JSON format for saving the file
-    (Client) help retrieve
+    
+    (Client) help download
     Downloads a file.
     
-            usage:  retrieve [-d DEST] FILENAME
+            usage:  download [-d DEST] FILENAME
     
             FILENAME
                 filename obtained in "request"
     
             DEST
                 destination for saving the file (default: current directory)
+    
+    (Client) help stop
+    Stops imagej-server gracefully.
+    
+            usage: stop
+    
     (Client) quit
 
 ## Example
@@ -162,6 +174,6 @@ Use `pip install -r requirements.txt` to install requirements.
     {
         "filename": "al9n2mwy.tif"
     }
-    (Client) retrieve -d /tmp al9n2mwy.tif
+    (Client) download -d /tmp al9n2mwy.tif
     # Download the image to /tmp and now you can view it using your image viewer!
     (Client) quit

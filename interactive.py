@@ -29,8 +29,8 @@ class InteractiveParser(argparse.ArgumentParser):
 
 class InteractiveClient(cmd.Cmd):
 
-    COMMANDS = frozenset(['list', 'detail', 'iter', 'run', 'upload', 'request',
-                          'retrieve'])
+    COMMANDS = frozenset(['list', 'detail', 'iterate', 'run', 'upload',
+                          'request', 'download'])
 
     def __init__(self):
         cmd.Cmd.__init__(self)
@@ -55,7 +55,7 @@ class InteractiveClient(cmd.Cmd):
                        help='Index of a module in the last "list", '
                        'or its full name.')
 
-        p = ps['iter']
+        p = ps['iterate']
         p.description = 'Iterates modules in last "list."'
         p.add_argument('count', metavar='NUM', nargs='?', type=int, default=10,
                        help='iterate the next NUM modules')
@@ -89,7 +89,7 @@ class InteractiveClient(cmd.Cmd):
         p.add_argument('-c', '--config',
                        help='configuration for saving the file')
 
-        p = ps['retrieve']
+        p = ps['download']
         p.description = 'Downloads a file.'
         p.add_argument('filename', metavar='FILENAME',
                        help='filename obtained in "request"')
@@ -106,7 +106,8 @@ class InteractiveClient(cmd.Cmd):
         -c, --count=[COUNT]
             List first COUNT modules (default: 10)
 
-        Indices in the list could be used in "detail" and "run" commands."""
+        Indices in the list could be used in "detail" and "run" commands.
+        """
 
         try:
             arg = vars(self.parsers['list'].parse_args(shlex.split(arg)))
@@ -131,9 +132,7 @@ class InteractiveClient(cmd.Cmd):
             self.modules = filter(pattern.search, self.modules)
 
         self.iter_idx = 0
-        self.do_iter(str(arg['count']))
-
-    do_ls = do_list
+        self.do_iterate(str(arg['count']))
 
     def do_detail(self, arg):
         """Shows details of a module.
@@ -141,7 +140,8 @@ class InteractiveClient(cmd.Cmd):
         usage:  detail ID
 
         ID
-            index of a module in the last "list", or its full name"""
+            index of a module in the last "list", or its full name
+        """
 
         try:
             arg = vars(self.parsers['detail'].parse_args(shlex.split(arg)))
@@ -163,21 +163,20 @@ class InteractiveClient(cmd.Cmd):
         except Exception as e:
             print(e)
 
-    do_dt = do_detail
-
-    def do_iter(self, arg):
+    def do_iterate(self, arg):
         """Iterates modules in last "list."
 
-        usage:  iter [-r] [NUM]
+        usage:  iterate [-r] [NUM]
 
         [NUM]
             iterate the next NUM modules (default: 10)
 
         -r, --reverse
-            reverse the iteration order"""
+            reverse the iteration order
+        """
 
         try:
-            arg = vars(self.parsers['iter'].parse_args(shlex.split(arg)))
+            arg = vars(self.parsers['iterate'].parse_args(shlex.split(arg)))
         except Exception as e:
             print('Fail to parse arguments: %s' % e)
             return
@@ -201,7 +200,7 @@ class InteractiveClient(cmd.Cmd):
                 print('%d: %s' % (i, self.modules[i]))
             self.iter_idx = start
 
-    do_it = do_iter
+    do_it = do_iterate
 
     def do_run(self, arg):
         """Runs a module.
@@ -218,7 +217,8 @@ class InteractiveClient(cmd.Cmd):
             file that contains the inputs in JSON format
 
         -n, --no-process
-            do not do pre/post processing"""
+            do not do pre/post processing
+        """
 
         try:
             arg = vars(self.parsers['run'].parse_args(shlex.split(arg)))
@@ -262,7 +262,8 @@ class InteractiveClient(cmd.Cmd):
         upload FILENAME
 
         FILENAME
-            file to be uploaded"""
+            file to be uploaded
+        """
 
         try:
             arg = vars(self.parsers['upload'].parse_args(shlex.split(arg)))
@@ -291,7 +292,8 @@ class InteractiveClient(cmd.Cmd):
             file format to be saved with
 
         -c, --config=CONFIG
-            configuration in JSON format for saving the file"""
+            configuration in JSON format for saving the file
+        """
 
         try:
             arg = vars(self.parsers['request'].parse_args(shlex.split(arg)))
@@ -313,21 +315,20 @@ class InteractiveClient(cmd.Cmd):
         except Exception as e:
             print(e)
 
-    do_req = do_request
-
-    def do_retrieve(self, arg):
+    def do_download(self, arg):
         """Downloads a file.
 
-        usage:  retrieve [-d DEST] FILENAME
+        usage:  download [-d DEST] FILENAME
 
         FILENAME
             filename obtained in "request"
 
         DEST
-            destination for saving the file (default: current directory)"""
+            destination for saving the file (default: current directory)
+        """
 
         try:
-            arg = vars(self.parsers['retrieve'].parse_args(shlex.split(arg)))
+            arg = vars(self.parsers['download'].parse_args(shlex.split(arg)))
         except Exception as e:
             print('Fail to parse arguments: %s' % e)
             return
@@ -353,7 +354,13 @@ class InteractiveClient(cmd.Cmd):
         except Exception as e:
             print(e)
 
-    do_ret = do_retrieve
+    def do_stop(self, arg):
+        """Stops imagej-server gracefully.
+
+        usage: stop
+        """
+
+        stop()
 
     def do_quit(self, arg):
         return 1
