@@ -2,7 +2,7 @@
 
 """Interactive client for imagej-server."""
 
-from imagej_client import *
+from imagej_server import *
 import argparse
 import cmd
 import json
