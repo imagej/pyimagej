@@ -128,7 +128,7 @@ Use `pip install -r requirements.txt` to install requirements.
     (Client) upload ../../src/test/resources/imgs/about4.tif
     # Upload a test image and obtain its ID in imagej-server
     {
-        "id": "_obj_8kg18dwxagwnhwu3"
+        "id": "object:8kg18dwxagwnhwu3"
     }
     (Client) list -r Create
     0: command:net.imagej.ops.create.img.CreateImgFromImg
@@ -142,22 +142,22 @@ Use `pip install -r requirements.txt` to install requirements.
     8: command:net.imagej.ops.create.img.CreateImgFromInterval
     9: command:net.imagej.ops.create.imgFactory.DefaultCreateImgFactory
     --use "it" to show more--
-    (Client) run 0 -i '{"in": "_obj_8kg18dwxagwnhwu3"}'
+    (Client) run 0 -i '{"in": "object:8kg18dwxagwnhwu3"}'
     # Create an image of same size to hold the output for next operation
     {
-        "out": "_obj_y6ohl5k7lpbi0qvm"
+        "out": "object:y6ohl5k7lpbi0qvm"
     }
     (Client) list -r Invert
     0: command:net.imagej.ops.image.invert.InvertII
     1: command:net.imagej.plugins.commands.assign.InvertDataValues
     2: command:net.imagej.ops.math.UnaryRealTypeMath$Invert
     3: command:net.imagej.ops.transform.invertAxisView.DefaultInvertAxisView
-    (Client) run 0 -i '{"in": "_obj_8kg18dwxagwnhwu3", "out": "_obj_y6ohl5k7lpbi0qvm"}'
+    (Client) run 0 -i '{"in": "object:8kg18dwxagwnhwu3", "out": "object:y6ohl5k7lpbi0qvm"}'
     # Invert the test image and store it in the created image
     {
-        "out": "_obj_y6ohl5k7lpbi0qvm"
+        "out": "object:y6ohl5k7lpbi0qvm"
     }
-    (Client) request -e tif _obj_y6ohl5k7lpbi0qvm
+    (Client) request -e tif object:y6ohl5k7lpbi0qvm
     # Request the imagej-server to prepare the inverted image for download in tif format
     {
         "filename": "al9n2mwy.tif"
