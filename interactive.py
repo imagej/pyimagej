@@ -2,7 +2,7 @@
 
 """Interactive client for imagej-server."""
 
-from imagej_client import Client
+from imagej_client import *
 import argparse
 import cmd
 import json
@@ -35,7 +35,6 @@ class InteractiveClient(cmd.Cmd):
     def __init__(self):
         cmd.Cmd.__init__(self)
         self.prompt = '(Client) '
-        self.c = Client()
 
         self.iter_idx = 0
 
@@ -123,7 +122,7 @@ class InteractiveClient(cmd.Cmd):
                 return
 
         try:
-            self.modules = self.c.get_modules()
+            self.modules = get_modules()
         except Exception as e:
             print(e)
             return
@@ -159,7 +158,7 @@ class InteractiveClient(cmd.Cmd):
             print('Index out of range. Try to call "list" with new query')
             return
         try:
-            rsp = self.c.get_module(id)
+            rsp = get_module(id)
             print(json.dumps(rsp, indent=4))
         except Exception as e:
             print(e)
@@ -252,7 +251,7 @@ class InteractiveClient(cmd.Cmd):
             return
 
         try:
-            rsp = self.c.run_module(id, inputs, not arg['no_process'])
+            rsp = run_module(id, inputs, not arg['no_process'])
             print(json.dumps(rsp, indent=4))
         except Exception as e:
             print(e)
@@ -273,7 +272,7 @@ class InteractiveClient(cmd.Cmd):
 
         try:
             with open(arg['data']) as data_file:
-                rsp = self.c.upload_file(data_file)
+                rsp = upload_file(data_file)
             print(json.dumps(rsp, indent=4))
         except IOError:
             print('Cannot open file %s' % arg['data'])
@@ -309,7 +308,7 @@ class InteractiveClient(cmd.Cmd):
                 return
 
         try:
-            rsp = self.c.request_file(arg['id'], arg['format'], config)
+            rsp = request_file(arg['id'], arg['format'], config)
             print(json.dumps(rsp, indent=4))
         except Exception as e:
             print(e)
@@ -347,7 +346,7 @@ class InteractiveClient(cmd.Cmd):
 
         try:
             with open(dest, 'wb') as d:
-                content = self.c.retrieve_file(arg['filename'])
+                content = retrieve_file(arg['filename'])
                 d.write(content)
         except IOError:
             print('Cannot write to %s' % dest)
