@@ -82,7 +82,7 @@ def request_file(id, format, config=None, host=HOST):
     """Requests to stores an object as a file in specific format for
     download.
 
-    API: POST /io/{id}?format=FORMAT
+    API: POST /io/file/{id}?format=FORMAT
 
     :param id: object ID
     :param format: format of the object to be stored in
@@ -93,7 +93,7 @@ def request_file(id, format, config=None, host=HOST):
     :rtype: dict
     """
 
-    url = urljoin(host, 'io/%s' % id)
+    url = urljoin(host, 'io/file/%s' % id)
     r = requests.post(
         url, params={'format': format}, json={'config': config})
     r.raise_for_status()
@@ -103,7 +103,7 @@ def request_file(id, format, config=None, host=HOST):
 def retrieve_file(filename, host=HOST):
     """Retrieves the content of a file.
 
-    API: GET /io/{filename}
+    API: GET /io/file/{filename}
 
     :param filename: name of file to be download
     :param host: host address of imagej-server
@@ -111,7 +111,7 @@ def retrieve_file(filename, host=HOST):
     :rtype: file
     """
 
-    url = urljoin(host, 'io/%s' % filename)
+    url = urljoin(host, 'io/file/%s' % filename)
     r = requests.get(url)
     r.raise_for_status()
     return r.content
