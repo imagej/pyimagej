@@ -14,7 +14,7 @@ Use `pip install -r requirements.txt` to install requirements.
 
 (Only for the interactive console. For the Python API, refer to source code for details)
 
-    ./interactive.py
+    ./imagej_client.py
     (Client) help
     
     Documented commands (type help <topic>):
@@ -110,7 +110,7 @@ Use `pip install -r requirements.txt` to install requirements.
 
 ## Example
 
-    ./interactive.py
+    ./imagej_client.py
     (Client) list -r PrimitiveMath
     # Module ID's that contain "PrimitiveMath"
     0: command:net.imagej.ops.math.PrimitiveMath$IntegerAbs
