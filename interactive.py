@@ -30,7 +30,7 @@ class InteractiveParser(argparse.ArgumentParser):
 class InteractiveClient(cmd.Cmd):
 
     COMMANDS = frozenset(['list', 'detail', 'iterate', 'run', 'upload',
-                          'request', 'download'])
+                          'download'])
 
     def __init__(self):
         cmd.Cmd.__init__(self)
@@ -80,20 +80,16 @@ class InteractiveClient(cmd.Cmd):
         p.add_argument('data', metavar='FILENAME',
                        help='file to be uploaded')
 
-        p = ps['request']
-        p.description = 'Requests for downloading an object.'
-        p.add_argument('id', metavar='ID',
-                       help='object ID obtained from "upload" or "run"')
-        p.add_argument('-f', '--format', metavar='FORMAT', required=True,
+        p = ps['download']
+        p.description = 'Downloads a file.'
+        p.add_argument('-f', '--format', metavar='FORMAT',
                        help='file format to be saved with')
         p.add_argument('-c', '--config',
                        help='configuration for saving the file')
-
-        p = ps['download']
-        p.description = 'Downloads a file.'
-        p.add_argument('filename', metavar='FILENAME',
-                       help='filename obtained in "request"')
-        p.add_argument('-d', '--dest', default='.')
+        p.add_argument('source', metavar='SOURCE',
+                       help='object ID if "format" is set, or filename otherwise')
+        p.add_argument('-d', '--dest', default='.',
+                       help='destination to save the file')
 
     def do_list(self, arg):
         """Lists available modules.
@@ -259,7 +255,7 @@ class InteractiveClient(cmd.Cmd):
     def do_upload(self, arg):
         """Uploads a file.
 
-        upload FILENAME
+        usage: upload FILENAME
 
         FILENAME
             file to be uploaded
@@ -280,50 +276,23 @@ class InteractiveClient(cmd.Cmd):
         except Exception as e:
             print(e)
 
-    def do_request(self, arg):
-        """Requests for downloading an object.
+    def do_download(self, arg):
+        """Downloads a file.
 
-        request -f FORMAT [-c CONFIG] ID
+        usage:  download [-f FORMAT] [-c CONFIG] [-d DEST] SOURCE
 
-        ID
-            object ID obtained from "upload" or "run"
+        SOURCE
+            object ID obtained from "upload" or "run" if "format" is set, or
+            filename obtained from "download" otherwise
 
         -f, --format=FORMAT
             file format to be saved with
 
         -c, --config=CONFIG
-            configuration in JSON format for saving the file
-        """
+            configuration in JSON format for saving the file (only used if
+            "format" is set)
 
-        try:
-            arg = vars(self.parsers['request'].parse_args(shlex.split(arg)))
-        except Exception as e:
-            print('Fail to parse arguments: %s' % e)
-            return
-
-        config = None
-        if arg['config'] is not None:
-            try:
-                config = json.loads(arg['config'])
-            except Exception:
-                print('Fail to parse config')
-                return
-
-        try:
-            rsp = request_file(arg['id'], arg['format'], config)
-            print(json.dumps(rsp, indent=4))
-        except Exception as e:
-            print(e)
-
-    def do_download(self, arg):
-        """Downloads a file.
-
-        usage:  download [-d DEST] FILENAME
-
-        FILENAME
-            filename obtained in "request"
-
-        DEST
+        -d, --dest=DEST
             destination for saving the file (default: current directory)
         """
 
@@ -333,21 +302,40 @@ class InteractiveClient(cmd.Cmd):
             print('Fail to parse arguments: %s' % e)
             return
 
-        if os.path.isfile(arg['dest']):
-            print('File already exists: %s' % os.path.abspath(arg['dest']))
-            return
-        if os.path.isdir(arg['dest']):
-            dest = os.path.join(arg['dest'], arg['filename'])
+        if arg['format'] is not None:
+            config = None
+            if arg['config'] is not None:
+                try:
+                    config = json.loads(arg['config'])
+                except Exception:
+                    print('Fail to parse config')
+                    return
+
+            try:
+                rsp = request_file(arg['source'], arg['format'], config)
+                print(json.dumps(rsp, indent=4))
+            except Exception as e:
+                print(e)
+                return
+            filename = rsp['filename']
         else:
-            dir = os.path.dirname(os.path.abspath(arg['dest']))
+            filename = arg['source']
+
+        if os.path.isdir(arg['dest']):
+            dest = os.path.join(arg['dest'], filename)
+        else:
+            dir = os.path.dirname(arg['dest'])
             if not os.path.isdir(dir):
                 print('Directory does not exist: %s' % dir)
                 return
             dest = arg['dest']
+        if os.path.isfile(dest):
+            print('File already exists: %s' % dest)
+            return
 
         try:
             with open(dest, 'wb') as d:
-                content = retrieve_file(arg['filename'])
+                content = retrieve_file(filename)
                 d.write(content)
         except IOError:
             print('Cannot write to %s' % dest)

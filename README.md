@@ -19,7 +19,7 @@ Use `pip install -r requirements.txt` to install requirements.
     
     Documented commands (type help <topic>):
     ========================================
-    detail  download  help  it  iterate  list  request  run  stop  upload
+    detail  download  help  it  iterate  list  run  stop  upload
     
     Undocumented commands:
     ======================
@@ -82,29 +82,23 @@ Use `pip install -r requirements.txt` to install requirements.
             FILENAME
                 file to be uploaded
     
-    (Client) help request
-    Requests for downloading an object.
+    (Client) help download
+    Downloads a file.
     
-            request -f FORMAT [-c CONFIG] ID
+            usage:  download [-f FORMAT] [-c CONFIG] [-d DEST] SOURCE
     
-            ID
-                object ID obtained from "upload" or "run"
+            SOURCE
+                object ID obtained from "upload" or "run" if "format" is set, or
+                filename obtained from "download" otherwise
     
             -f, --format=FORMAT
                 file format to be saved with
     
             -c, --config=CONFIG
-                configuration in JSON format for saving the file
+                configuration in JSON format for saving the file (only used if
+                "format" is set)
     
-    (Client) help download
-    Downloads a file.
-    
-            usage:  download [-d DEST] FILENAME
-    
-            FILENAME
-                filename obtained in "request"
-    
-            DEST
+            -d, --dest=DEST
                 destination for saving the file (default: current directory)
     
     (Client) help stop
@@ -169,11 +163,9 @@ Use `pip install -r requirements.txt` to install requirements.
     {
         "out": "object:y6ohl5k7lpbi0qvm"
     }
-    (Client) request -f tif object:y6ohl5k7lpbi0qvm
-    # Request the imagej-server to prepare the inverted image for download in tif format
+    (Client) download -f tif -d /tmp object:y6ohl5k7lpbi0qvm
+    # Request the imagej-server to prepare the inverted image for download in tif format, and download it to /tmp
     {
         "filename": "al9n2mwy.tif"
     }
-    (Client) download -d /tmp al9n2mwy.tif
-    # Download the image to /tmp and now you can view it using your image viewer!
     (Client) quit
