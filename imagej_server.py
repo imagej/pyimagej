@@ -108,9 +108,8 @@ def upload_file(data, host=HOST):
     return r.json()
 
 
-def request_file(id, format, config=None, host=HOST):
-    """Requests to stores an object as a file in specific format for
-    download.
+def retrieve_file(id, format, config=None, host=HOST):
+    """Retrieves an object as a file in specific format
 
     API: POST /io/file/{id}?format=FORMAT
 
@@ -126,23 +125,6 @@ def request_file(id, format, config=None, host=HOST):
     url = urljoin(host, 'io/file/%s' % id)
     r = requests.post(
         url, params={'format': format}, json={'config': config})
-    r.raise_for_status()
-    return r.json()
-
-
-def retrieve_file(filename, host=HOST):
-    """Retrieves the content of a file.
-
-    API: GET /io/file/{filename}
-
-    :param filename: name of file to be download
-    :param host: host address of imagej-server
-    :return: the downloaded file
-    :rtype: file
-    """
-
-    url = urljoin(host, 'io/file/%s' % filename)
-    r = requests.get(url)
     r.raise_for_status()
     return r.content
 

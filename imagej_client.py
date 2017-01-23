@@ -91,26 +91,20 @@ class Client(object):
         with open(filename, 'rb') as data:
             return upload_file(data, self.host)['id']
 
-    def retrieve(self, source, format=None, config=None, dest=None):
-        """Retrieves the content of an object/file from imagej-server.
+    def retrieve(self, id, format, config=None, dest=None):
+        """Retrieves an object in specific format from imagej-server.
 
-        If format is set, source will be interpreted as an object ID, otherwise
-        source should be a file being served on imagej-server and config will be
-        ignored. If dest is None, the raw content would be returned.
+        If dest is None, the raw content would be returned.
 
-        :param source: object ID if format is set, or a file being served
+        :param id: object ID
         :param format: file format the object to be saved into
         :param config: configuration for storing the object (not tested)
         :param dest: download destination
+        :return: content of the object if dest is None, otherwise None
+        :rtype: str or None
         """
 
-        if format is not None:
-            filename = request_file(
-                source, format, config, self.host)['filename']
-        else:
-            filename = source
-
-        content = retrieve_file(filename, host=self.host)
+        content = retrieve_file(id, format, config, host=self.host)
         if dest is None:
             return content
         if os.path.isdir(dest):
@@ -124,11 +118,10 @@ class Client(object):
         with open(dest, 'wb') as f:
             f.write(content)
 
-    def show(self, source, format=None, config=None):
-        """Retrieves the content of an object/file from imagej-server and shows
-        it.
+    def show(self, id, format, config=None):
+        """Retrieves and shows an object in specific format from imagej-server.
 
-        :param source: object ID if format is set, or a file being served
+        :param id: object ID if format is set, or a file being served
         :param format: file format the object to be saved into
         :param config: configuration for storing the object (not tested)
         """
@@ -136,7 +129,8 @@ class Client(object):
         from PIL import Image
         import io
 
-        Image.open(io.BytesIO(self.retrieve(source, format, config))).show()
+        content = retrieve_file(id, format, config, host=self.host)
+        Image.open(io.BytesIO(content)).show()
 
 
 class InteractiveParser(argparse.ArgumentParser):
