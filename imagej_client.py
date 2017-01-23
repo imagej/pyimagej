@@ -124,6 +124,20 @@ class Client(object):
         with open(dest, 'wb') as f:
             f.write(content)
 
+    def show(self, source, format=None, config=None):
+        """Retrieves the content of an object/file from imagej-server and shows
+        it.
+
+        :param source: object ID if format is set, or a file being served
+        :param format: file format the object to be saved into
+        :param config: configuration for storing the object (not tested)
+        """
+
+        from PIL import Image
+        import io
+
+        Image.open(io.BytesIO(self.retrieve(source, format, config))).show()
+
 
 class InteractiveParser(argparse.ArgumentParser):
     """ArgumentParser that does not quit at parse errors."""
