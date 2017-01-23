@@ -60,6 +60,36 @@ def run_module(id, inputs=None, process=True, host=HOST):
     return r.json()
 
 
+def get_objects(host=HOST):
+    """Gets a list of object IDs available on imagej-server.
+
+    API: GET /io/objects
+
+    :param host: host address of imagej-server
+    :return: a list of object IDs
+    :rtype: list[string]
+    """
+    url = urljoin(host, 'io/objects')
+    r = requests.get(url)
+    r.raise_for_status()
+    return r.json()
+
+
+def get_files(host=HOST):
+    """Gets a list of files being served on imagej-server.
+
+    API: GET /io/files
+
+    :param host: host address of imagej-server
+    :return: a list of filenames
+    :rtype: list[string]
+    """
+    url = urljoin(host, 'io/files')
+    r = requests.get(url)
+    r.raise_for_status()
+    return r.json()
+
+
 def upload_file(data, host=HOST):
     """Uploads a file to imagej-server (currently only supports image files).
 
