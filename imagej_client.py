@@ -71,15 +71,6 @@ class Client(object):
         """
         return sorted(get_objects(host=self.host))
 
-    def files(self):
-        """Gets a list of files being served on imagej-server, sorted by name.
-
-        :return: a list of filenames
-        :rtype: list[string]
-        """
-
-        return sorted(get_files(host=self.host))
-
     def upload(self, filename):
         """Uploads a file to imagej-server
 
