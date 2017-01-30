@@ -95,7 +95,7 @@ class Client(object):
         if dest is None:
             return content
         if os.path.isdir(dest):
-            dest = os.path.join(dest, filename)
+            dest = os.path.join(dest, id[len('object:'):] + '.' + format)
         else:
             dir = os.path.dirname(dest)
             if not os.path.isdir(dir):
