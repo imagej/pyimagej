@@ -1,171 +1,131 @@
 # Python client for imagej-server
 
-[`imagej_client.py`](imagej_client.py) provides a nice and clean Python API for the `imagej-server`. 
+[`imagej_server.py`](imagej_server.py) Wraps the APIs of `imagej-server` in simple Python functions. 
 
-[`interactive.py`](interactive.py) demonstrates how to use the Python API with an interactive console.
+[`imagej_client.py`](imagej_client.py) Provides higher level functionalities that utilize the APIs.
 
 ## Requirements:
 
     - requests
+    - Pillow
 
 Use `pip install -r requirements.txt` to install requirements.
 
+`Pillow` is required for the `Client.show()` function. In addition, `display` or `xv` needs to exist in your system to view the image.
+
 ## Usage:
 
-(Only for the interactive console. For the Python API, refer to source code for details)
+Try running [usage.py](usage.py) in the directory of this README file and see the results.
+ 
+```Python
+# This script shows the basic functionalities of the Python imagej client.
+# It uploads an image to imagej-server, inverts the image, and display both the
+# original and the inverted ones.
 
-    ./imagej_client.py
-    (Client) help
-    
-    Documented commands (type help <topic>):
-    ========================================
-    detail  download  help  it  iterate  list  run  stop  upload
-    
-    Undocumented commands:
-    ======================
-    EOF  exit  q  quit
-    
-    (Client) help list
-    Lists available modules.
-    
-            Usage: list [-r PATTERN] [-c NUM]
-    
-            -r, --regex=PATTERN
-                only list modules that match PATTERN
-    
-            -c, --count=[COUNT]
-                List first COUNT modules (default: 10)
-    
-            Indices in the list could be used in "detail" and "run" commands.
-    
-    (Client) help iterate
-    Iterates modules in last "list."
-    
-            usage:  iterate [-r] [NUM]
-    
-            [NUM]
-                iterate the next NUM modules (default: 10)
-    
-            -r, --reverse
-                reverse the iteration order
-    
-    (Client) help detail
-    Shows details of a module.
-    
-            usage:  detail ID
-    
-            ID
-                index of a module in the last "list", or its full name
-    
-    (Client) help run
-    Runs a module.
-    
-            usage:  run (-i INPUTS | -f FILENAME) [-n] ID
-    
-            ID
-                index of a module in the last "list", or its full name
-    
-            -i, --inputs=INPUTS
-                inputs to the module in JSON format
-    
-            -f, --file=FILENAME
-                file that contains the inputs in JSON format
-    
-            -n, --no-process
-                do not do pre/post processing
-    
-    (Client) help upload
-    Uploads a file.
-    
-            upload FILENAME
-    
-            FILENAME
-                file to be uploaded
-    
-    (Client) help download
-    Downloads a file.
-    
-            usage:  download [-f FORMAT] [-c CONFIG] [-d DEST] SOURCE
-    
-            SOURCE
-                object ID obtained from "upload" or "run" if "format" is set, or
-                filename obtained from "download" otherwise
-    
-            -f, --format=FORMAT
-                file format to be saved with
-    
-            -c, --config=CONFIG
-                configuration in JSON format for saving the file (only used if
-                "format" is set)
-    
-            -d, --dest=DEST
-                destination for saving the file (default: current directory)
-    
-    (Client) help stop
-    Stops imagej-server gracefully.
-    
-            usage: stop
-    
-    (Client) quit
+from imagej_client import Client
+import json
 
-## Example
+client = Client()
 
-    ./imagej_client.py
-    (Client) list -r PrimitiveMath
-    # Module ID's that contain "PrimitiveMath"
-    0: command:net.imagej.ops.math.PrimitiveMath$IntegerAbs
-    1: command:net.imagej.ops.math.PrimitiveMath$IntegerAdd
-    2: command:net.imagej.ops.math.PrimitiveMath$IntegerAnd
-    3: command:net.imagej.ops.math.PrimitiveMath$IntegerComplement
-    4: command:net.imagej.ops.math.PrimitiveMath$IntegerDivide
-    5: command:net.imagej.ops.math.PrimitiveMath$IntegerLeftShift
-    6: command:net.imagej.ops.math.PrimitiveMath$IntegerMax
-    7: command:net.imagej.ops.math.PrimitiveMath$IntegerMin
-    8: command:net.imagej.ops.math.PrimitiveMath$IntegerMultiply
-    9: command:net.imagej.ops.math.PrimitiveMath$IntegerNegate
-    --use "it" to show more--
-    # Use "detail" to obtain parameter names for running the module
-    # These calls are omitted here and after for concision
-    (Client) run 1 -i '{"a": 13, "b": 22}'
-    # result of "13 + 22"
-    {
-        "result": 35
-    }
-    (Client) upload ../../src/test/resources/imgs/about4.tif
-    # Upload a test image and obtain its ID in imagej-server
-    {
-        "id": "object:8kg18dwxagwnhwu3"
-    }
-    (Client) list -r Create
-    0: command:net.imagej.ops.create.img.CreateImgFromImg
-    1: command:net.imagej.ops.create.img.CreateImgFromII
-    2: command:net.imagej.ops.create.img.CreateImgFromRAI
-    3: command:net.imagej.ops.create.imgFactory.CreateImgFactoryFromImg
-    4: command:net.imagej.ops.create.imgLabeling.CreateImgLabelingFromInterval
-    5: command:net.imagej.plugins.commands.binary.CreateMask
-    6: command:net.imagej.plugins.commands.app.CreateShortcut
-    7: command:net.imagej.ops.create.img.CreateImgFromDimsAndType
-    8: command:net.imagej.ops.create.img.CreateImgFromInterval
-    9: command:net.imagej.ops.create.imgFactory.DefaultCreateImgFactory
-    --use "it" to show more--
-    (Client) run 0 -i '{"in": "object:8kg18dwxagwnhwu3"}'
-    # Create an image of same size to hold the output for next operation
-    {
-        "out": "object:y6ohl5k7lpbi0qvm"
-    }
-    (Client) list -r Invert
-    0: command:net.imagej.ops.image.invert.InvertII
-    1: command:net.imagej.plugins.commands.assign.InvertDataValues
-    2: command:net.imagej.ops.math.UnaryRealTypeMath$Invert
-    3: command:net.imagej.ops.transform.invertAxisView.DefaultInvertAxisView
-    (Client) run 0 -i '{"in": "object:8kg18dwxagwnhwu3", "out": "object:y6ohl5k7lpbi0qvm"}'
-    # Invert the test image and store it in the created image
-    {
-        "out": "object:y6ohl5k7lpbi0qvm"
-    }
-    (Client) download -f tif -d /tmp object:y6ohl5k7lpbi0qvm
-    # Request the imagej-server to prepare the inverted image for download in tif format, and download it to /tmp
-    {
-        "filename": "al9n2mwy.tif"
-    }
-    (Client) quit
+# Find modules that contain a specific string in its ID.
+create = client.find("CreateImgFromImg")[0]
+invert = client.find("InvertII")[0]
+
+# Check details of a module. Names of "inputs" and "outputs" are usually important.
+print('Details for CreateImgFromImg:')
+print(json.dumps(client.detail(create), indent=4))
+print('Details for InvertII:')
+print(json.dumps(client.detail(invert), indent=4))
+
+# Upload an image.
+img_in = client.upload('../../src/test/resources/imgs/about4.tif')
+
+# Execute modules.
+result = client.run(create, {'in': img_in})
+img_out = result['out']
+result = client.run(invert, {'in': img_in, 'out': img_out})
+img_out = result['out']
+
+# Check objects available on imagej-server
+print('Objects available on imagej-server')
+print(client.objects())
+
+# retrieve/show images.
+client.retrieve(img_out, format='png', dest='/tmp')
+client.show(img_in, format='tiff')
+client.show(img_out, format='tiff')
+```
+
+## Documentation
+
+The entry point of [imagej_client](imagej_client.py) is a *__Client__* object, which has the following functions:
+
+```
+class imagej_client.Client(host='http://localhost:8080')
+    Creates a client that bounds to host.
+       
+    :param host: address of imagej-server
+   
+Client.detail(id)
+    Gets the detail of a module specified by the ID.
+       
+    :param id: the ID of the module
+    :return: details of a module
+    :rtype: dict
+   
+Client.find(regex)
+    Finds all module IDs that match the regular expression.
+       
+    :param regex: the regular express to match the module IDs
+    :return: all matching IDs
+    :rtype: list[string]
+   
+Client.modules(refresh=False)
+    Gets the module IDs of imagej-server if no cache is available or
+    refresh is set to True, or returns the cache for the IDs otherwise.
+       
+    :param refresh: force fetching modules from imagej-server if True
+    :return: imagej-server module IDs
+    :rtype: list[string]
+   
+Client.objects()
+    Gets a list of objects being served on imagej-server, sorted by ID.
+       
+    :return: a list of object IDs
+    :rtype: list[string]
+   
+Client.retrieve(id, format, config=None, dest=None)
+    Retrieves an object in specific format from imagej-server.
+       
+    If dest is None, the raw content would be returned.
+       
+    :param id: object ID
+    :param format: file format the object to be saved into
+    :param config: configuration for storing the object (not tested)
+    :param dest: download destination
+    :return: content of the object if dest is None, otherwise None
+    :rtype: string or None
+   
+Client.run(id, inputs=None, process=True)
+    Runs a module specified by the ID with inputs.
+       
+    :param id: the ID of the module
+    :param inputs: a dict-like object containing inputs for the execution
+    :param process: if the execution should be pre/post processed
+    :return: outputs of the execution
+    :rtype: dict
+   
+Client.show(id, format, config=None)
+    Retrieves and shows an object in specific format from imagej-server.
+       
+    :param id: object ID if format is set, or a file being served
+    :param format: file format the object to be saved into
+    :param config: configuration for storing the object (not tested)
+   
+Client.upload(filename)
+    Uploads a file to imagej-server
+       
+    :param filename: filename of the file to be uploaded
+    :return: object ID of the uploaded file
+    :rtype: string
+```
