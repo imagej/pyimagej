@@ -10,6 +10,10 @@ class Client(object):
     """Basic client for imagej-server."""
 
     def __init__(self, host=HOST):
+        """Creates a client that bounds to host.
+        
+        :param host: address of imagej-server
+        """
         self.host = HOST
         self._modules = None
 
@@ -88,7 +92,7 @@ class Client(object):
         :param config: configuration for storing the object (not tested)
         :param dest: download destination
         :return: content of the object if dest is None, otherwise None
-        :rtype: str or None
+        :rtype: string or None
         """
 
         content = retrieve_file(id, format, config, host=self.host)
@@ -107,6 +111,9 @@ class Client(object):
 
     def show(self, id, format, config=None):
         """Retrieves and shows an object in specific format from imagej-server.
+        
+        PIL is needed for this function. In addition, image viewing software
+        must exist on the system (i.e. display or xv on Unix).
 
         :param id: object ID if format is set, or a file being served
         :param format: file format the object to be saved into
