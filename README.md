@@ -67,10 +67,10 @@ class imagej_client.Client(host='http://localhost:8080')
     :param host: address of imagej-server
    
 Client.detail(id)
-    Gets the detail of a module specified by the ID.
-       
-    :param id: the ID of the module
-    :return: details of a module
+    Gets the detail of a module or an object specified by the ID.
+
+    :param id: the ID of a module or an object
+    :return: details of a module or an object
     :rtype: dict
    
 Client.find(regex)

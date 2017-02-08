@@ -75,6 +75,20 @@ def get_objects(host=HOST):
     return r.json()
 
 
+def get_object(id, host=HOST):
+    """Shows the information of an object.
+    
+    API: GET /io/objects/{id}
+    
+    :param id: object ID to show information
+    """
+    
+    url = urljoin(host, 'io/objects/%s' % id)
+    r = requests.get(url)
+    r.raise_for_status()
+    return r.json()
+
+
 def remove_object(id, host=HOST):
     """Removes one object form imagej-server.
     

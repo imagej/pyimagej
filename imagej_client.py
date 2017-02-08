@@ -42,13 +42,15 @@ class Client(object):
         return filter(pattern.search, self.modules())
 
     def detail(self, id):
-        """Gets the detail of a module specified by the ID.
+        """Gets the detail of a module or an object specified by the ID.
 
-        :param id: the ID of the module
-        :return: details of a module
+        :param id: the ID of a module or an object
+        :return: details of a module or an object
         :rtype: dict
         """
 
+        if id.startswith('object:'):
+            return get_object(id, self.host)
         return get_module(id, self.host)
 
     def run(self, id, inputs=None, process=True):
