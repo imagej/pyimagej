@@ -75,6 +75,19 @@ def get_objects(host=HOST):
     return r.json()
 
 
+def remove_object(id, host=HOST):
+    """Removes one object form imagej-server.
+    
+    API: DELETE /io/objects/{id}
+    
+    :param id: object ID to remove
+    """
+    
+    url = urljoin(host, 'io/objects/%s' % id)
+    r = requests.delete(url)
+    r.raise_for_status()
+
+
 def upload_file(data, host=HOST):
     """Uploads a file to imagej-server (currently only supports image files).
 

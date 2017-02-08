@@ -93,6 +93,11 @@ Client.objects()
        
     :return: a list of object IDs
     :rtype: list[string]
+    
+Client.remove(id)
+    Removes one object from imagej-server.
+        
+    :param id: object ID to remove
    
 Client.retrieve(id, format, config=None, dest=None)
     Retrieves an object in specific format from imagej-server.

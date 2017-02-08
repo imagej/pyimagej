@@ -11,7 +11,7 @@ class Client(object):
 
     def __init__(self, host=HOST):
         """Creates a client that bounds to host.
-        
+
         :param host: address of imagej-server
         """
         self.host = HOST
@@ -71,6 +71,14 @@ class Client(object):
         """
         return sorted(get_objects(host=self.host))
 
+    def remove(self, id):
+        """Removes one object from imagej-server.
+        
+        :param id: object ID to remove
+        """
+
+        remove_object(id, self.host)
+
     def upload(self, filename):
         """Uploads a file to imagej-server
 
@@ -111,7 +119,7 @@ class Client(object):
 
     def show(self, id, format, config=None):
         """Retrieves and shows an object in specific format from imagej-server.
-        
+
         PIL is needed for this function. In addition, image viewing software
         must exist on the system (i.e. display or xv on Unix).
 
