@@ -126,6 +126,7 @@ IJ.upload(filename)
     Uploads a file to imagej-server
        
     :param filename: filename of the file to be uploaded
+    :param type: optional hint for file type
     :return: object ID of the uploaded file
     :rtype: string
 ```

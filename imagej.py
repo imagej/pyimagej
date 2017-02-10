@@ -106,12 +106,14 @@ def remove_object(id, host=HOST):
     r.raise_for_status()
 
 
-def upload_file(data, host=HOST):
-    """Uploads a file to imagej-server (currently only supports image files).
+def upload_file(data, type=None, host=HOST):
+    """Uploads a file to imagej-server (currently only supports image and table
+    in text).
 
-    API: POST /io/file
+    API: POST /io/file?[type=TYPE]
 
     :param data: file-like object to be uploaded
+    :param type: hint for file type
     :param host: host address of imagej-server
     :return: object ID representing the file in form of
             {"id": "object:1234567890abcdef"}
@@ -119,6 +121,8 @@ def upload_file(data, host=HOST):
     """
 
     url = urljoin(host, 'io/file')
+    if type:
+        url += '?type=' + type
     r = requests.post(url, files={'file': data})
     r.raise_for_status()
     return r.json()
@@ -234,16 +238,17 @@ class IJ(object):
 
         remove_object(id, self.host)
 
-    def upload(self, filename):
+    def upload(self, filename, type=None):
         """Uploads a file to imagej-server
 
         :param filename: filename of the file to be uploaded
+        :param type: optional hint for file type
         :return: object ID of the uploaded file
         :rtype: string
         """
 
         with open(filename, 'rb') as data:
-            return upload_file(data, self.host)['id']
+            return upload_file(data, type, self.host)['id']
 
     def retrieve(self, id, format='tif', config=None, dest=None):
         """Retrieves an object in specific format from imagej-server.
