@@ -65,15 +65,15 @@ def run_module(id, inputs=None, process=True, host=HOST):
 
 
 def get_objects(host=HOST):
-    """Gets a list of object IDs available on imagej-server.
+    """Gets a list of information for objects available on imagej-server.
 
-    API: GET /io/objects
+    API: GET /objects
 
     :param host: host address of imagej-server
-    :return: a list of object IDs
+    :return: a list of object information
     :rtype: list[string]
     """
-    url = urljoin(host, 'io/objects')
+    url = urljoin(host, 'objects')
     r = requests.get(url)
     r.raise_for_status()
     return r.json()
@@ -82,12 +82,12 @@ def get_objects(host=HOST):
 def get_object(id, host=HOST):
     """Shows the information of an object.
 
-    API: GET /io/objects/{id}
+    API: GET /objects/{id}
 
     :param id: object ID to show information
     """
 
-    url = urljoin(host, 'io/objects/%s' % id)
+    url = urljoin(host, 'objects/%s' % id)
     r = requests.get(url)
     r.raise_for_status()
     return r.json()
@@ -96,12 +96,12 @@ def get_object(id, host=HOST):
 def remove_object(id, host=HOST):
     """Removes one object form imagej-server.
 
-    API: DELETE /io/objects/{id}
+    API: DELETE /objects/{id}
 
     :param id: object ID to remove
     """
 
-    url = urljoin(host, 'io/objects/%s' % id)
+    url = urljoin(host, 'objects/%s' % id)
     r = requests.delete(url)
     r.raise_for_status()
 
@@ -110,7 +110,7 @@ def upload_file(data, type=None, host=HOST):
     """Uploads a file to imagej-server (currently only supports image and table
     in text).
 
-    API: POST /io/file?[type=TYPE]
+    API: POST /objects/upload?[type=TYPE]
 
     :param data: file-like object to be uploaded
     :param type: hint for file type
@@ -120,7 +120,7 @@ def upload_file(data, type=None, host=HOST):
     :rtype: dict
     """
 
-    url = urljoin(host, 'io/file')
+    url = urljoin(host, 'objects/upload')
     if type:
         url += '?type=' + type
     r = requests.post(url, files={'file': data})
@@ -128,10 +128,10 @@ def upload_file(data, type=None, host=HOST):
     return r.json()
 
 
-def retrieve_file(id, format, config=None, host=HOST):
+def retrieve_object(id, format, config=None, host=HOST):
     """Retrieves an object as a file in specific format
 
-    API: POST /io/file/{id}?format=FORMAT
+    API: POST /objects/{id}/{format}?[&key=value]...
 
     :param id: object ID
     :param format: format of the object to be stored in
@@ -142,9 +142,8 @@ def retrieve_file(id, format, config=None, host=HOST):
     :rtype: dict
     """
 
-    url = urljoin(host, 'io/file/%s' % id)
-    r = requests.post(
-        url, params={'format': format}, json={'config': config})
+    url = urljoin(host, 'objects/%s/%s' % (id, format))
+    r = requests.get(url, params=config)
     r.raise_for_status()
     return r.content
 
@@ -173,6 +172,7 @@ class IJ(object):
         """
         self.host = HOST
         self._modules = None
+        self._objects = None
 
     def modules(self, refresh=False):
         """Gets the module IDs of imagej-server if no cache is available or
@@ -223,7 +223,7 @@ class IJ(object):
         return run_module(id, inputs, process, self.host)
 
     def objects(self):
-        """Gets a list of objects being served on imagej-server, sorted by ID.
+        """Gets a list of sorted object IDs being served on imagej-server.
 
         :return: a list of object IDs
         :rtype: list[string]
@@ -263,7 +263,7 @@ class IJ(object):
         :rtype: string or None
         """
 
-        content = retrieve_file(id, format, config, host=self.host)
+        content = retrieve_object(id, format, config, host=self.host)
         if dest is None:
             return content
         if os.path.isdir(dest):
@@ -291,5 +291,5 @@ class IJ(object):
         from PIL import Image
         import io
 
-        content = retrieve_file(id, format, config, host=self.host)
+        content = retrieve_object(id, format, config, host=self.host)
         Image.open(io.BytesIO(content)).show()
