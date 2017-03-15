@@ -170,9 +170,39 @@ class IJ(object):
 
         :param host: address of imagej-server
         """
-        self.host = host
         self._modules = None
         self._objects = None
+        self._host = None
+        self.host = host
+
+    @property
+    def host(self):
+        return self._host
+
+    @host.setter
+    def host(self, value):
+        """Sets the host of IJ to a new value.
+
+        Adds schema and/or port to value if necessary. Also checks if
+        connection can be established.
+        """
+        if value is not None:
+            m = re.match('(.+?://)?.+?(:\d{1,5})?$', value)
+            if m.group(1) is None:
+                print('No schema supplied for host address. Using "http".')
+                value = 'http://' + value
+            if m.group(2) is None:
+                print('No port supplied for host address. Using "8080".')
+                value = value + ':8080'
+        else:
+            value = HOST
+
+        oldhost, self._host = self._host, value
+        try:
+            self.modules(refresh=True)
+        except:
+            self._host = oldhost
+            raise RuntimeError('Cannot connect to host: %s' % value)
 
     def modules(self, refresh=False):
         """Gets the module IDs of imagej-server if no cache is available or
