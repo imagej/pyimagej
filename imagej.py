@@ -1,9 +1,13 @@
 #! /usr/bin/env python2
 
+import sys
 import os
 import re
 import requests
-from urlparse import urljoin
+if sys.version_info.major == 2:
+    from urlparse import urljoin
+else:
+    from urllib.parse import urljoin
 
 
 HOST = 'http://localhost:8080'
@@ -226,7 +230,7 @@ class IJ(object):
         """
 
         pattern = re.compile(regex)
-        return filter(pattern.search, self.modules())
+        return list(filter(pattern.search, self.modules()))
 
     def detail(self, id):
         """Gets the detail of a module or an object specified by the ID.
