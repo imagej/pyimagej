@@ -170,7 +170,7 @@ class IJ(object):
 
         :param host: address of imagej-server
         """
-        self.host = HOST
+        self.host = host
         self._modules = None
         self._objects = None
 
