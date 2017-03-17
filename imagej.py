@@ -9,6 +9,7 @@ if sys.version_info.major == 2:
 else:
     from urllib.parse import urljoin
 
+__version__ = '0.1.0'
 
 HOST = 'http://localhost:8080'
 
