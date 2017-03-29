@@ -21,7 +21,10 @@ setup(
     url='https://github.com/imagej/imagej-server/',
     py_modules=['imagej'],
     platforms=['any'],
-    install_requires=['requests', 'pillow'],
+    install_requires=['requests'],
+    extras_require={
+        'show_img': ['pillow'],
+    },
     description='Python client for imagej-server',
     long_description=imagej_long_description,
     license='Apache 2.0'
