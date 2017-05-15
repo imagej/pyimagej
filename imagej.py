@@ -1,13 +1,7 @@
-#! /usr/bin/env python2
-
-import sys
 import os
 import re
 import requests
-if sys.version_info.major == 2:
-    from urlparse import urljoin
-else:
-    from urllib.parse import urljoin
+from requests.compat import urljoin
 
 __version__ = '0.1.1'
 
