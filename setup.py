@@ -1,31 +1,21 @@
-from distutils.core import setup
-import re
+from setuptools import setup
+from os import path
 
-with open('imagej.py', 'rb') as src:
-    for line in src:
-        m = re.match("__version__ = '(.*?)'", line.decode('utf-8'))
-        if m is not None:
-            imagej_version = m.group(1)
-            break
-    else:
-        raise RuntimeError('Cannot find imagej version')
+here = path.abspath(path.dirname(__file__))
 
-with open('README.md', 'rb') as readme:
-    imagej_long_description = readme.read().decode('utf-8')
+with open(path.join(here, 'README.md')) as f:
+    imagej_long_description = f.read()
+
 
 setup(
     name='imagej',
-    version=imagej_version,
-    author='Leon Yang',
-    author_email='leon.gh.yang@gmail.com',
-    url='https://github.com/imagej/imagej-server/',
-    py_modules=['imagej'],
+    version= '0.1.2',
+    author='Yang Liu && Leon Yang',
+    author_email='liu574@wisc.edu',
+    url='https://github.com/imagej/imagej.py/',
+    packages=['imagej'],
     platforms=['any'],
-    install_requires=['requests'],
-    extras_require={
-        'show_img': ['pillow'],
-    },
-    description='Python client for imagej-server',
+    description='Python wrapper for imagej',
     long_description=imagej_long_description,
     license='Apache 2.0'
 )

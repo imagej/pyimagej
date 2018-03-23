@@ -1,0 +1,12 @@
+LICENSE.txt
+MANIFEST.in
+README.md
+requirements.txt
+server_requirements.txt
+setup.cfg
+imagej/__init__.py
+imagej/imagej.py
+imagej.egg-info/PKG-INFO
+imagej.egg-info/SOURCES.txt
+imagej.egg-info/dependency_links.txt
+imagej.egg-info/top_level.txt

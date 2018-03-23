@@ -1,2 +1,3 @@
-requests
-Pillow
+conda
+imglib2-imglyb
+Pyjnius
