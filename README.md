@@ -5,11 +5,8 @@
 ## Requirements:
 
     default:
-    - Conda
     - pyjnius
     - imglib2-imglyb
-
-Refer to Conda installtion guide for installing [Conda](https://conda.io/docs/user-guide/install/index.html)
 
 Refer to Pyjnius installation guide for installing [Pyjnius](http://pyjnius.readthedocs.io/en/latest/installation.html).
 
