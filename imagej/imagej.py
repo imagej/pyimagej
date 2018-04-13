@@ -9,6 +9,7 @@ __author__ = 'Yang Liu'
 import subprocess
 import os
 import sys
+import re
 
 
 def setenv(k, v):
@@ -166,7 +167,7 @@ def help():
 
     """
 
-    print(("Please set the environment variables first:\n" 
+    print(("Please set the environment variables first:\n"
            "1. Java:       set_java_env('your local java path')\n"
            "2. Fiji.app:   ij_dir = 'your local fiji.app path'\n"
            "Then call quiet_init(ij_dir)"))
@@ -217,7 +218,11 @@ def conda_path_check(p, checked, imglyb_path, pyjnius_path, java_path):
     return imglyb_path, pyjnius_path, java_path
 
 
-def pypi_path_check(p, checked):
+def pypi_path_check(p, checked, imglyb_path, pyjnius_path):
+    """
+    :param p: current checking path
+    :type checked: list
+    """
     split_list = p.split("/")
     index = 0
     for level in split_list:
@@ -229,21 +234,21 @@ def pypi_path_check(p, checked):
     if basedir in checked:
         return None, None
 
-    test_path_imglyb = basedir  + "/imglyb/"
-    test_path_pyjnius = basedir  + "/pyjnius/"
+    test_path_imglyb = basedir + "/imglyb/"
+    test_path_pyjnius = basedir + "/pyjnius/"
 
-    if os.path.isdir(test_path_imglyb):
-        for file in os.listdir(test_path_imglyb):
-            if ".jar" in file:
-                imglyb_jar = test_path_imglyb + file
+    if imglyb_path is None and os.path.isdir(test_path_imglyb):
+        for f in os.listdir(test_path_imglyb):
+            if ".jar" in f:
+                imglyb_path = test_path_imglyb + f
 
-    if os.path.isdir(test_path_pyjnius):
-        for file in os.listdir(test_path_pyjnius):
-            if ".jar" in file:
-                pyjnius_jar = test_path_pyjnius + file
+    if pyjnius_path is None and os.path.isdir(test_path_pyjnius):
+        for f in os.listdir(test_path_pyjnius):
+            if ".jar" in f:
+                pyjnius_path = test_path_pyjnius + f
 
     checked.append(basedir)
-    return imglyb_jar, pyjnius_jar
+    return imglyb_path, pyjnius_path
 
 
 def configure_path():
@@ -261,7 +266,7 @@ def configure_path():
         if "envs" in p:
             imglyb_path, pyjnius_path, java_path = conda_path_check(p, checked, imglyb_path, pyjnius_path, java_path)
         elif "site_packages" in p:
-            imglyb_path, pyjnius_path = pypi_path_check(p, checked)
+            imglyb_path, pyjnius_path = pypi_path_check(p, checked, imglyb_path, pyjnius_path)
         index += 1
 
     print("imglyb: " + imglyb_path)
@@ -284,36 +289,30 @@ def os_check():
 
 
 def java_check():
-    os = os_check()
-    if "linux" in os:
-        print("this is a linux machine")
+    system_name = os_check()
+    if "linux" in system_name:
         path = subprocess.check_output(["echo", "$JAVA_HOME"], shell=True)
         if path is None or path == "\n":
-            #path = subprocess.check_output(["which", "java"])
-            #print path
-            #if path == None:
+            path = subprocess.check_output(["which", "java"])
+            if path is None:
                 java_list = subprocess.check_output(["whereis", "java"]).split(" ")
                 java_list = java_list[1:len(java_list) - 1]
-                print java_list
-                for item in java_list:
+                for each in java_list:
                     try:
-                        output = subprocess.check_output([item, "-version"])
-                        for i in output:
-                            print(i + " ")
-                        #version = version[0]
-                        #print version
+                        output = subprocess.check_output([each, "-version"], stderr=subprocess.STDOUT)
+                        version = re.search('"(.+?)"', output).group(1)
+                        if "9" in version[0:3]:
+                            pass
+                        else:
+                            return each
                     except OSError:
                         pass
 
         return None
 
-
-
-
-
-    elif "Darwin" in os:
+    elif "Darwin" in system_name:
         print("this is a mac")
         return None
-    elif "win32" in os:
+    elif "win32" in system_name:
         print("please set the java enviroment manully by call set_java_env() command")
         return None
