@@ -9,8 +9,6 @@ __author__ = 'Yang Liu'
 import subprocess
 import os
 import sys
-import scandir
-import time
 
 
 def setenv(k, v):
@@ -57,9 +55,9 @@ def set_pyjnius_env(pyjnius_dir):
     """set up an pyjnius environment
 
     Args:
-        conda_env(string): System path for conda
+        pyjnius_dir(string): System path for conda
 
-    return: None if conda_env is not set
+    return: None if pyjnius_dir is not set
     """
 
     if pyjnius_dir is None:
@@ -97,7 +95,7 @@ def set_imglyb_env(imglyb_dir):
     """set up the variable path for imglyb
 
     Args:
-        classpath(string): local path to the imglyb jar
+        imglyb_dir(string): local path to the imglyb jar
     """
 
     if imglyb_dir is None:
@@ -128,7 +126,6 @@ def verify_java_env():
             return
 
 
-# TODO: make this work with pypi and more
 def verify_conda_env():
     """make sure the conda env is correct
 
@@ -156,7 +153,6 @@ def quiet_init(ij_dir):
     Args: ij_dir(String): System path for Fiji.app
 
     """
-
     verify_java_env()
     configure_path()
     # ImageJ
@@ -175,13 +171,14 @@ def help():
            "2. Fiji.app:   ij_dir = 'your local fiji.app path'\n"
            "Then call quiet_init(ij_dir)"))
 
+
 def error_message(error):
-    print ( error + "can not be found, it might not be correctly installed.")
+    print (error + "can not be found, it might not be correctly installed.")
     print ("if you believe it is correctly install, you can set up the path manually by calling")
-    print ("'set_"+ error + "_env(your_path_to_" + error + ".jar)'")
+    print ("'set_" + error + "_env(your_path_to_" + error + ".jar)'")
 
 
-def conda_path_check(p, checked):
+def conda_path_check(p, checked, imglyb_path, pyjnius_path, java_path):
     split_list = p.split("/")
     index = 0
     for level in split_list:
@@ -190,24 +187,35 @@ def conda_path_check(p, checked):
             break
 
     basedir = "/".join(split_list[0:index + 1])
-    if basedir  in checked:
-        return None, None
+    if basedir in checked:
+        return None, None, None
 
     test_path_imglyb = basedir + "/share/imglyb/"
     test_path_pyjnius = basedir + "/share/pyjnius/"
+    test_path_java = basedir + "/bin"
+    print(test_path_java)
 
-    if os.path.isdir(test_path_imglyb):
-        for file in os.listdir(test_path_imglyb):
-            if ".jar" in file:
-                imglyb_jar = test_path_imglyb + file
+    if imglyb_path is None and os.path.isdir(test_path_imglyb):
+        for f in os.listdir(test_path_imglyb):
+            if ".jar" in f:
+                imglyb_path = test_path_imglyb + f
+                break
 
-    if os.path.isdir(test_path_pyjnius):
-        for file in os.listdir(test_path_pyjnius):
-            if ".jar" in file:
-                pyjnius_jar = test_path_pyjnius + file
+    if pyjnius_path is None and os.path.isdir(test_path_pyjnius):
+        for f in os.listdir(test_path_pyjnius):
+            if ".jar" in f:
+                pyjnius_path = test_path_pyjnius + f
+                break
+
+    if java_path is None and os.path.isdir(test_path_java):
+        for f in os.listdir(test_path_java):
+            if "java" == f:
+                java_path = test_path_java
+                break
 
     checked.append(basedir)
-    return imglyb_jar, pyjnius_jar
+    return imglyb_path, pyjnius_path, java_path
+
 
 def pypi_path_check(p, checked):
     split_list = p.split("/")
@@ -222,7 +230,7 @@ def pypi_path_check(p, checked):
         return None, None
 
     test_path_imglyb = basedir  + "/imglyb/"
-    test_path_pyjnius = basedir  + "pyjnius/"
+    test_path_pyjnius = basedir  + "/pyjnius/"
 
     if os.path.isdir(test_path_imglyb):
         for file in os.listdir(test_path_imglyb):
@@ -243,16 +251,17 @@ def configure_path():
 
     imglyb_path = None
     pyjnius_path = None
+    java_path = None
 
     checked = []
     index = 0
 
-    while index < len(paths) and (imglyb_path is None or pyjnius_path is None):
+    while index < len(paths) and (imglyb_path is None or pyjnius_path is None or java_path is None):
         p = paths[index]
         if "envs" in p:
-            imglyb_path, pyjnius_path = conda_path_check(p, checked)
+            imglyb_path, pyjnius_path, java_path = conda_path_check(p, checked, imglyb_path, pyjnius_path, java_path)
         elif "site_packages" in p:
-            pypi_path_check(p, checked)
+            imglyb_path, pyjnius_path = pypi_path_check(p, checked)
         index += 1
 
     print("imglyb: " + imglyb_path)
@@ -262,4 +271,49 @@ def configure_path():
         error_message("imglyb")
     if pyjnius_path is None:
         error_message("pyjnius")
+
+    if java_path is None:
+        java_path = java_check()
+        if java_path is not None:
+            set_java_env(java_path)
     return
+
+
+def os_check():
+    return sys.platform
+
+
+def java_check():
+    os = os_check()
+    if "linux" in os:
+        print("this is a linux machine")
+        path = subprocess.check_output(["echo", "$JAVA_HOME"], shell=True)
+        if path is None or path == "\n":
+            #path = subprocess.check_output(["which", "java"])
+            #print path
+            #if path == None:
+                java_list = subprocess.check_output(["whereis", "java"]).split(" ")
+                java_list = java_list[1:len(java_list) - 1]
+                print java_list
+                for item in java_list:
+                    try:
+                        output = subprocess.check_output([item, "-version"])
+                        for i in output:
+                            print(i + " ")
+                        #version = version[0]
+                        #print version
+                    except OSError:
+                        pass
+
+        return None
+
+
+
+
+
+    elif "Darwin" in os:
+        print("this is a mac")
+        return None
+    elif "win32" in os:
+        print("please set the java enviroment manully by call set_java_env() command")
+        return None
