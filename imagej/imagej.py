@@ -68,7 +68,7 @@ def set_pyjnius_env(pyjnius_dir):
         setenv('PYJNIUS_JAR', pyjnius_dir)
 
 
-def set_ij_env(ij_dir):
+def set_ij_env(ij_dir, imglyb_path):
     """make a list of all the required jar file
 
     Args:
@@ -87,9 +87,10 @@ def set_ij_env(ij_dir):
                     'ij1-patcher' not in each_file and \
                     'ij-1' not in each_file:
                 jars.append(root + '/' + each_file)
-    classpath = ":".join(jars)
     num_jars = len(jars)
-    return classpath, num_jars
+    classpath = ":".join(jars) + ":" + imglyb_path
+    set_imglyb_env(classpath)
+    return num_jars
 
 
 def set_imglyb_env(imglyb_dir):
@@ -114,7 +115,7 @@ def verify_java_env():
 
     if os.getenv('JAVA_HOME') is None:
         print('Java Environment is not set correctly, \
-                please set Java Environment by using set_java_env(your_local_path_to_java)')
+                please set Java Environment by using set_java_env(your_local_path_to_java')
         return
     else:
         java_home = os.getenv('JAVA_HOME')
@@ -123,7 +124,7 @@ def verify_java_env():
             return
         else:
             print('Java Environment is not set correctly, \
-                            please set Java Environment by execute the top block')
+                            please set Java Environment by using set_java_env(your_local_path_to_java')
             return
 
 
@@ -136,13 +137,13 @@ def verify_conda_env():
     conda_env = os.getenv('CONDA_PREFIX')
     if conda_env is None:
         print('Conda environment is not set, \
-                please execute the top block')
+                please manually set the conda enviroment')
     else:
         try:
             subprocess.check_output([conda_env + '/bin/conda', '--version'])
         except OSError:
             print('Conda Environment is not set correctly,\
-                    please set Conda Environment by execute the top block')
+                    please manually set the conda enviroment')
             return None
         print('Conda environment: ' + conda_env)
         return conda_env
@@ -154,10 +155,12 @@ def quiet_init(ij_dir):
     Args: ij_dir(String): System path for Fiji.app
 
     """
-    configure_path()
+    imglyb_path = configure_path()
     # ImageJ
-    classpath, num_jars = set_ij_env(ij_dir)
-
+    if(imglyb_path is not None):
+        num_jars = set_ij_env(ij_dir, imglyb_path)
+    else:
+        return
     print("Added " + str(num_jars + 1) + " JARs to the Java classpath.")
 
 
@@ -166,16 +169,13 @@ def help():
 
     """
 
-    print(("Please set the environment variables first:\n"
-           "1. Java:       set_java_env('your local java path')\n"
-           "2. Fiji.app:   ij_dir = 'your local fiji.app path'\n"
+    print(("Please set the environment variables first:\n" 
+           "Fiji.app:   ij_dir = 'your local fiji.app path'\n"
            "Then call quiet_init(ij_dir)"))
 
 
 def error_message(error):
-    print (error + "can not be found, it might not be correctly installed.")
-    print ("if you believe it is correctly install, you can set up the path manually by calling")
-    print ("'set_" + error + "_env(your_path_to_" + error + ".jar)'")
+    print (error + " can not be found, it might not be correctly installed.")
 
 
 def conda_path_check(p, checked, imglyb_path, pyjnius_path, java_path):
@@ -193,7 +193,6 @@ def conda_path_check(p, checked, imglyb_path, pyjnius_path, java_path):
     test_path_imglyb = basedir + "/share/imglyb/"
     test_path_pyjnius = basedir + "/share/pyjnius/"
     test_path_java = basedir + "/bin"
-    print(test_path_java)
 
     if imglyb_path is None and os.path.isdir(test_path_imglyb):
         for f in os.listdir(test_path_imglyb):
@@ -210,7 +209,7 @@ def conda_path_check(p, checked, imglyb_path, pyjnius_path, java_path):
     if java_path is None and os.path.isdir(test_path_java):
         for f in os.listdir(test_path_java):
             if "java" == f:
-                java_path = test_path_java
+                java_path = basedir
                 break
 
     checked.append(basedir)
@@ -263,21 +262,29 @@ def configure_path():
     while index < len(paths) and (imglyb_path is None or pyjnius_path is None or java_path is None):
         p = paths[index]
         if "envs" in p:
-            print(p)
             imglyb_path, pyjnius_path, java_path = conda_path_check(p, checked, imglyb_path, pyjnius_path, java_path)
         elif "site_packages" in p:
             imglyb_path, pyjnius_path = pypi_path_check(p, checked, imglyb_path, pyjnius_path)
         index += 1
 
-    if imglyb_path is None:
-        error_message("imglyb")
     if pyjnius_path is None:
         error_message("pyjnius")
+    else:
+        set_pyjnius_env(pyjnius_path)
 
     if java_path is None:
         java_path = java_check()
         if java_path is not None:
             set_java_env(java_path)
+        else:
+            error_message("Java")
+    else:
+        set_java_env(java_path)
+
+    if imglyb_path is None:
+        error_message("imglyb")
+    else:
+        return imglyb_path
     return
 
 
@@ -308,7 +315,6 @@ def java_check():
         return None
 
     elif "darwin" in system_name:
-        print("this is a mac")
         path_java_home_d = subprocess.check_output(["echo", "$JAVA_HOME"], shell=True)
         if path_java_home_d is None or path_java_home_d == "\n":
             path_darwin = subprocess.check_output(["which", "java"])
