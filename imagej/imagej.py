@@ -288,10 +288,10 @@ def os_check():
 def java_check():
     system_name = os_check()
     if "linux" in system_name:
-        path = subprocess.check_output(["echo", "$JAVA_HOME"], shell=True)
-        if path is None or path == "\n":
-            path = subprocess.check_output(["which", "java"])
-            if path is None:
+        path_java_home_l = subprocess.check_output(["echo", "$JAVA_HOME"], shell=True)
+        if path_java_home_l is None or path_java_home_l == "\n":
+            path_linux = subprocess.check_output(["which", "java"])
+            if path_linux is None:
                 java_list = subprocess.check_output(["whereis", "java"]).split(" ")
                 java_list = java_list[1:len(java_list) - 1]
                 for each in java_list:
@@ -309,9 +309,22 @@ def java_check():
 
     elif "darwin" in system_name:
         print("this is a mac")
-        if path is None or path == "\n":
-            path = subprocess.check_output(["which", "java"])
-            if path is None:
+        path_java_home_d = subprocess.check_output(["echo", "$JAVA_HOME"], shell=True)
+        if path_java_home_d is None or path_java_home_d == "\n":
+            path_darwin = subprocess.check_output(["which", "java"])
+            if path_darwin is None:
+                java_list = subprocess.check_output(["whereis", "java"]).split(" ")
+                java_list = java_list[1:len(java_list) - 1]
+                for each in java_list:
+                    try:
+                        output = subprocess.check_output([each, "-version"], stderr=subprocess.STDOUT)
+                        version = re.search('"(.+?)"', output).group(1)
+                        if "9" in version[0:3]:
+                            pass
+                        else:
+                            return each
+                    except OSError:
+                        pass
                 
         return None
     elif "win32" in system_name:
