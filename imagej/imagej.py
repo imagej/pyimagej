@@ -154,7 +154,6 @@ def quiet_init(ij_dir):
     Args: ij_dir(String): System path for Fiji.app
 
     """
-    verify_java_env()
     configure_path()
     # ImageJ
     classpath, num_jars = set_ij_env(ij_dir)
@@ -189,7 +188,7 @@ def conda_path_check(p, checked, imglyb_path, pyjnius_path, java_path):
 
     basedir = "/".join(split_list[0:index + 1])
     if basedir in checked:
-        return None, None, None
+        return 
 
     test_path_imglyb = basedir + "/share/imglyb/"
     test_path_pyjnius = basedir + "/share/pyjnius/"
@@ -253,7 +252,7 @@ def pypi_path_check(p, checked, imglyb_path, pyjnius_path):
 
 def configure_path():
     paths = sys.path
-
+    
     imglyb_path = None
     pyjnius_path = None
     java_path = None
@@ -264,13 +263,11 @@ def configure_path():
     while index < len(paths) and (imglyb_path is None or pyjnius_path is None or java_path is None):
         p = paths[index]
         if "envs" in p:
+            print(p)
             imglyb_path, pyjnius_path, java_path = conda_path_check(p, checked, imglyb_path, pyjnius_path, java_path)
         elif "site_packages" in p:
             imglyb_path, pyjnius_path = pypi_path_check(p, checked, imglyb_path, pyjnius_path)
         index += 1
-
-    print("imglyb: " + imglyb_path)
-    print("pyjnius: " + pyjnius_path)
 
     if imglyb_path is None:
         error_message("imglyb")
@@ -310,8 +307,12 @@ def java_check():
 
         return None
 
-    elif "Darwin" in system_name:
+    elif "darwin" in system_name:
         print("this is a mac")
+        if path is None or path == "\n":
+            path = subprocess.check_output(["which", "java"])
+            if path is None:
+                
         return None
     elif "win32" in system_name:
         print("please set the java enviroment manully by call set_java_env() command")
