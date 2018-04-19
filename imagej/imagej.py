@@ -180,11 +180,20 @@ def error_message(error):
 
 def conda_path_check(p, checked, imglyb_path, pyjnius_path, java_path):
     split_list = p.split("/")
-    index = 0
+    index_conda = 0
+    index_env = 0
+
     for level in split_list:
-        index += 1
+        index_env += 1
+        if "conda" in level:
+            index_conda = index_env
         if level == "envs":
             break
+    
+    if index_env == len(split_list):
+        index = index_conda
+    else:
+        index = index_env
 
     basedir = "/".join(split_list[0:index + 1])
     if basedir in checked:
@@ -225,7 +234,7 @@ def pypi_path_check(p, checked, imglyb_path, pyjnius_path):
     index = 0
     for level in split_list:
         index += 1
-        if level == "site_packages":
+        if level == "site_packages" or level == "dist-packages":
             break
 
     basedir = "/".join(split_list[0:index + 1])
@@ -261,9 +270,9 @@ def configure_path():
 
     while index < len(paths) and (imglyb_path is None or pyjnius_path is None or java_path is None):
         p = paths[index]
-        if "envs" in p:
+        if "conda" in p:
             imglyb_path, pyjnius_path, java_path = conda_path_check(p, checked, imglyb_path, pyjnius_path, java_path)
-        elif "site_packages" in p:
+        elif "site-packages" or "dist-packages" in p:
             imglyb_path, pyjnius_path = pypi_path_check(p, checked, imglyb_path, pyjnius_path)
         index += 1
 
