@@ -96,6 +96,7 @@ def set_ij_env(ij_dir, imglyb_path):
                     'ij-1' not in f:
                 path = root + '/' + f
                 jars.append(path)
+                _debug('Added ' + path)
     num_jars = len(jars)
     classpath = ":".join(jars) + ":" + imglyb_path
     set_imglyb_env(classpath)
