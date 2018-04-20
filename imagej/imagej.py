@@ -165,6 +165,8 @@ def quiet_init(ij_dir):
     Args: ij_dir(String): System path for Fiji.app
 
     """
+    import jnius_config
+    jnius_config.add_options('-Djava.awt.headless=true')
     imglyb_path = configure_path()
     # ImageJ
     if(imglyb_path is not None):
