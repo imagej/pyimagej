@@ -89,12 +89,13 @@ def set_ij_env(ij_dir, imglyb_path):
     jars = []
     # TODO: Consider including /plugins as well.
     for root, dirs, files in os.walk(ij_dir + '/jars'):
-        for each_file in files:
-            if each_file.endswith('.jar') and \
-                    'imagej-legacy' not in each_file and \
-                    'ij1-patcher' not in each_file and \
-                    'ij-1' not in each_file:
-                jars.append(root + '/' + each_file)
+        for f in files:
+            if f.endswith('.jar') and \
+                    'imagej-legacy' not in f and \
+                    'ij1-patcher' not in f and \
+                    'ij-1' not in f:
+                path = root + '/' + f
+                jars.append(path)
     num_jars = len(jars)
     classpath = ":".join(jars) + ":" + imglyb_path
     set_imglyb_env(classpath)
