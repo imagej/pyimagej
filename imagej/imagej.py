@@ -12,6 +12,17 @@ import sys
 import re
 
 
+_debug = False
+
+def set_debug(debug):
+    global _debug
+    _debug = debug
+
+def debug(message):
+    if (_debug):
+        print(message)
+
+
 def setenv(k, v):
     """set up an general environment variable
 
