@@ -87,6 +87,7 @@ def set_ij_env(ij_dir, imglyb_path):
     """
 
     jars = []
+    # TODO: Consider including /plugins as well.
     for root, dirs, files in os.walk(ij_dir + '/jars'):
         for each_file in files:
             if each_file.endswith('.jar') and \
