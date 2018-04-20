@@ -14,11 +14,7 @@ import re
 
 _debug = False
 
-def set_debug(debug):
-    global _debug
-    _debug = debug
-
-def debug(message):
+def _debug(message):
     if (_debug):
         print(message)
 
@@ -215,21 +211,27 @@ def conda_path_check(p, checked, imglyb_path, pyjnius_path, java_path):
     test_path_java = basedir + "/bin"
 
     if imglyb_path is None and os.path.isdir(test_path_imglyb) and os.listdir(test_path_imglyb) is not None:
+        _debug('Scanning directory: ' + test_path_imglyb)
         for f in os.listdir(test_path_imglyb):
             if ".jar" in f:
                 imglyb_path = test_path_imglyb + f
+                _debug('Found imglyb at: ' + imglyb_path)
                 break
 
     if pyjnius_path is None and os.path.isdir(test_path_pyjnius) and os.listdir(test_path_pyjnius) is not None:
+        _debug('Scanning directory: ' + test_path_pyjnius)
         for f in os.listdir(test_path_pyjnius):
             if ".jar" in f:
                 pyjnius_path = test_path_pyjnius + f
+                _debug('Found pyjnius at: ' + pyjnius_path)
                 break
 
     if java_path is None and os.path.isdir(test_path_java) and os.listdir(test_path_java) is not None:
+        _debug('Scanning directory: ' + test_path_java)
         for f in os.listdir(test_path_java):
             if "java" == f:
                 java_path = basedir
+                _debug('Found java at: ' + java_path)
                 break
 
     checked.append(basedir)
@@ -281,6 +283,7 @@ def configure_path():
 
     while index < len(paths) and (imglyb_path is None or pyjnius_path is None or java_path is None):
         p = paths[index]
+        _debug('Checking path: ' + p)
         if "conda" in p:
             imglyb_path, pyjnius_path, java_path = conda_path_check(p, checked, imglyb_path, pyjnius_path, java_path)
         elif "site-packages" or "dist-packages" in p:
