@@ -1,5 +1,5 @@
 import imagej as setup
-ij_dir = '/home/loci/code/Fiji.app'
+ij_dir = '/Applications/Fiji.app'
 setup.quiet_init(ij_dir)
 
 import imglyb

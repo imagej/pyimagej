@@ -195,27 +195,27 @@ def conda_path_check(p, checked, imglyb_path, pyjnius_path, java_path):
     else:
         index = index_env
 
-    basedir = "/".join(split_list[0:index + 1])
+    basedir = "/".join(split_list[0:index])
     if basedir in checked:
-        return 
+        return None, None, None
 
     test_path_imglyb = basedir + "/share/imglyb/"
     test_path_pyjnius = basedir + "/share/pyjnius/"
     test_path_java = basedir + "/bin"
 
-    if imglyb_path is None and os.path.isdir(test_path_imglyb):
+    if imglyb_path is None and os.path.isdir(test_path_imglyb) and os.listdir(test_path_imglyb) is not None:
         for f in os.listdir(test_path_imglyb):
             if ".jar" in f:
                 imglyb_path = test_path_imglyb + f
                 break
 
-    if pyjnius_path is None and os.path.isdir(test_path_pyjnius):
+    if pyjnius_path is None and os.path.isdir(test_path_pyjnius) and os.listdir(test_path_pyjnius) is not None:
         for f in os.listdir(test_path_pyjnius):
             if ".jar" in f:
                 pyjnius_path = test_path_pyjnius + f
                 break
 
-    if java_path is None and os.path.isdir(test_path_java):
+    if java_path is None and os.path.isdir(test_path_java) and os.listdir(test_path_java) is not None:
         for f in os.listdir(test_path_java):
             if "java" == f:
                 java_path = basedir
@@ -260,7 +260,7 @@ def pypi_path_check(p, checked, imglyb_path, pyjnius_path):
 
 def configure_path():
     paths = sys.path
-    
+   
     imglyb_path = None
     pyjnius_path = None
     java_path = None
@@ -275,7 +275,7 @@ def configure_path():
         elif "site-packages" or "dist-packages" in p:
             imglyb_path, pyjnius_path = pypi_path_check(p, checked, imglyb_path, pyjnius_path)
         index += 1
-
+    
     if pyjnius_path is None:
         error_message("pyjnius")
     else:
@@ -299,7 +299,6 @@ def configure_path():
 
 def os_check():
     return sys.platform
-
 
 def java_check():
     system_name = os_check()
