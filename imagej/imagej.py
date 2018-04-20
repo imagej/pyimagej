@@ -195,7 +195,7 @@ def conda_path_check(p, checked, imglyb_path, pyjnius_path, java_path):
     else:
         index = index_env
 
-    basedir = "/".join(split_list[0:index])
+    basedir = "/".join(split_list[0:index+1])
     if basedir in checked:
         return None, None, None
 
