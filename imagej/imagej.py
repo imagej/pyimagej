@@ -10,9 +10,11 @@ import subprocess
 import os
 import sys
 import re
+import jnius_config
 
 
 _debug = False
+
 
 def _debug(message):
     if (_debug):
@@ -97,6 +99,15 @@ def set_ij_env(ij_dir, imglyb_path):
                 path = root + '/' + f
                 jars.append(path)
                 _debug('Added ' + path)
+    for root, dirs, files in os.walk(ij_dir + '/plugins'):
+        for f in files:
+            if f.endswith('.jar') and \
+                    'imagej-legacy' not in f and \
+                    'ij1-patcher' not in f and \
+                    'ij-1' not in f:
+                path = root + '/' + f
+                jars.append(path)
+                _debug('Added ' + path)
     num_jars = len(jars)
     classpath = ":".join(jars) + ":" + imglyb_path
     set_imglyb_env(classpath)
@@ -165,7 +176,7 @@ def quiet_init(ij_dir):
     Args: ij_dir(String): System path for Fiji.app
 
     """
-    import jnius_config
+
     jnius_config.add_options('-Djava.awt.headless=true')
     imglyb_path = configure_path()
     # ImageJ
@@ -198,7 +209,7 @@ def conda_path_check(p, checked, imglyb_path, pyjnius_path, java_path):
     for level in split_list:
         index_env += 1
         if "conda" in level:
-            index_conda = index_env
+            index_conda = index_env-1
         if level == "envs":
             break
     
