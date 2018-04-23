@@ -12,8 +12,6 @@ import sys
 import re
 import jnius_config
 
-_debug = False
-
 
 def _debug(message):
     """
@@ -22,7 +20,7 @@ def _debug(message):
     :param message: Debug message to be printed
     :return: None
     """
-    if _debug:
+    if not __debug__:
         print(message)
 
 
