@@ -17,57 +17,67 @@ _debug = False
 
 
 def _debug(message):
+    """
+    print debug message
+
+    :param message: Debug message to be printed
+    :return: None
+    """
     if (_debug):
         print(message)
 
 
 def setenv(k, v):
-    """set up an general environment variable
+    """
+    set up an general environment variable
 
-    Args:
-        k(string): Environment name
-        v(string): Environment value
+    :param k: Environment name
+    :param v: Environment value
+    :return: None
     """
 
     os.environ[k] = v
 
 
 def getenv(k):
-    """print the enviroment 
-
-    Args:
-        k(string): Enviroment name
     """
+    print the environment variable to console
+
+    :param k: Environment name
+    :return: None
+    """
+
     print(os.getenv(k))
 
 
 def set_conda_env(conda_env_path):
-    """set up an conda environment
+    """
+    Setup Conda environment path
 
-    Args:
-        conda_env_path(string): System path for conda
+    :param conda_env_path: Environment name
+    :return: None
     """
 
     setenv('CONDA_PREFIX', conda_env_path)
 
 
 def set_java_env(java_home_path):
-    """set up an Java environment
+    """
+    Setup Java environment path
 
-    Args:
-        java_home_path(string): System path for java
+    :param java_home_path: System path for java
+    :return: None
     """
 
     setenv('JAVA_HOME', java_home_path)
 
 
 def set_pyjnius_env(pyjnius_dir):
-    """set up an pyjnius environment
+    """
+    set up an pyjnius environment path
 
-    Args:
-        pyjnius_dir(string): System path for conda
-
-    return: None if pyjnius_dir is not set
+    :param pyjnius_dir: System path for pyjnius
+    :return: None
     """
 
     if pyjnius_dir is None:
@@ -77,48 +87,12 @@ def set_pyjnius_env(pyjnius_dir):
         setenv('PYJNIUS_JAR', pyjnius_dir)
 
 
-def set_ij_env(ij_dir, imglyb_path):
-    """make a list of all the required jar file
-
-    Args:
-        ij_dir(string): System path for Fiji.app
-
-    return:
-        classpath(string): list of required jars
-        num_jar(int): number of jars added
-    """
-
-    jars = []
-    # TODO: Consider including /plugins as well.
-    for root, dirs, files in os.walk(ij_dir + '/jars'):
-        for f in files:
-            if f.endswith('.jar') and \
-                    'imagej-legacy' not in f and \
-                    'ij1-patcher' not in f and \
-                    'ij-1' not in f:
-                path = root + '/' + f
-                jars.append(path)
-                _debug('Added ' + path)
-    for root, dirs, files in os.walk(ij_dir + '/plugins'):
-        for f in files:
-            if f.endswith('.jar') and \
-                    'imagej-legacy' not in f and \
-                    'ij1-patcher' not in f and \
-                    'ij-1' not in f:
-                path = root + '/' + f
-                jars.append(path)
-                _debug('Added ' + path)
-    num_jars = len(jars)
-    classpath = ":".join(jars) + ":" + imglyb_path
-    set_imglyb_env(classpath)
-    return num_jars
-
-
 def set_imglyb_env(imglyb_dir):
-    """set up the variable path for imglyb
+    """
+    set up the variable path for imglyb
 
-    Args:
-        imglyb_dir(string): local path to the imglyb jar
+    :param imglyb_dir: local path to the imglyb jar
+    :return: None
     """
 
     if imglyb_dir is None:
@@ -129,9 +103,48 @@ def set_imglyb_env(imglyb_dir):
         return
 
 
-def verify_java_env():
-    """make sure the java env is correct
+def set_ij_env(ij_dir, imglyb_path):
+    """
+    Create a list of required jars and add to imglyb search path
 
+    :param ij_dir: System path for Fiji.app
+    :param imglyb_path: System path for imglyb
+    :return: num_jar(int): number of jars added
+    """
+
+    jars = []
+    # search jars directory
+    for root, dirs, files in os.walk(ij_dir + '/jars'):
+        for f in files:
+            if f.endswith('.jar') and \
+                    'imagej-legacy' not in f and \
+                    'ij1-patcher' not in f and \
+                    'ij-1' not in f:
+                path = root + '/' + f
+                jars.append(path)
+                _debug('Added ' + path)
+    # search plugins directory
+    for root, dirs, files in os.walk(ij_dir + '/plugins'):
+        for f in files:
+            if f.endswith('.jar') and \
+                    'imagej-legacy' not in f and \
+                    'ij1-patcher' not in f and \
+                    'ij-1' not in f:
+                path = root + '/' + f
+                jars.append(path)
+                _debug('Added ' + path)
+    # add to classpath
+    num_jars = len(jars)
+    classpath = ":".join(jars) + ":" + imglyb_path
+    set_imglyb_env(classpath)
+    return num_jars
+
+
+def verify_java_env():
+    """
+    Verify System variable has JAVA_HOME and it is valid
+
+    :return: None
     """
 
     if os.getenv('JAVA_HOME') is None:
@@ -150,9 +163,10 @@ def verify_java_env():
 
 
 def verify_conda_env():
-    """make sure the conda env is correct
+    """
+    make sure the conda env is correct
 
-    return: conda_env(string): if correct, return conda environment variable
+    :return: None
     """
 
     conda_env = os.getenv('CONDA_PREFIX')
@@ -171,10 +185,11 @@ def verify_conda_env():
 
 
 def quiet_init(ij_dir):
-    """quietly setup the whole environment and run checks
+    """
+    quietly setup the whole environment
 
-    Args: ij_dir(String): System path for Fiji.app
-
+    :param ij_dir: System path for Fiji.app
+    :return: None
     """
 
     jnius_config.add_options('-Djava.awt.headless=true')
@@ -188,8 +203,10 @@ def quiet_init(ij_dir):
 
 
 def help():
-    """print the instruction for using imagej module
+    """
+    print the instruction for using imagej module
 
+    :return:
     """
 
     print(("Please set the environment variables first:\n" 
@@ -198,10 +215,26 @@ def help():
 
 
 def error_message(error):
+    """
+    print error message
+
+    :param error: The name of the file that can not be found
+    :return: None
+    """
     print (error + " can not be found, it might not be correctly installed.")
 
 
 def conda_path_check(p, checked, imglyb_path, pyjnius_path, java_path):
+    """
+    search for imglyb, pyjnius and java path if this is a conda environment
+
+    :param p: base path to check
+    :param checked: list of paths have already been checked
+    :param imglyb_path: if already found, path to imglyb, if not found, None
+    :param pyjnius_path: if already found, path to pyjnius, if not found, None
+    :param java_path: if already found, path to java, if not found, None
+    :return:
+    """
     split_list = p.split("/")
     index_conda = 0
     index_env = 0
@@ -256,8 +289,10 @@ def conda_path_check(p, checked, imglyb_path, pyjnius_path, java_path):
 
 def pypi_path_check(p, checked, imglyb_path, pyjnius_path):
     """
+    check if python is installed through pip
+
     :param p: current checking path
-    :type checked: list
+    :type checked: list of checked path
     """
     split_list = p.split("/")
     index = 0
@@ -288,6 +323,11 @@ def pypi_path_check(p, checked, imglyb_path, pyjnius_path):
 
 
 def configure_path():
+    """
+    find the path to imglyb, pyjnius and java by searching though python syspath
+
+    :return: imglyb_path: the path to imglyb if found
+    """
     paths = sys.path
    
     imglyb_path = None
@@ -328,9 +368,20 @@ def configure_path():
 
 
 def os_check():
+    """
+    check the os of current pc
+
+    :return: os type
+    """
+
     return sys.platform
 
 def java_check():
+    """
+    Try to find java in using which command according to os type
+
+    :return: each: the path to java
+    """
     system_name = os_check()
     if "linux" in system_name:
         path_java_home_l = subprocess.check_output(["echo", "$JAVA_HOME"], shell=True)
