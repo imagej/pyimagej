@@ -23,7 +23,7 @@ def _debug(message):
     :param message: Debug message to be printed
     :return: None
     """
-    if (_debug):
+    if _debug:
         print(message)
 
 
@@ -103,6 +103,26 @@ def set_imglyb_env(imglyb_dir):
         return
 
 
+def search_for_jars(ij_dir, subfolder):
+    """
+    Search and add .jars ile to a list
+    :param ij_dir: System path for Fiji.app
+    :param subfolder: the folder needs to be searched
+    :return: a list of jar files
+    """
+    jars = []
+    for root, dirs, files in os.walk(ij_dir + subfolder):
+        for f in files:
+            if f.endswith('.jar') and \
+                    'imagej-legacy' not in f and \
+                    'ij1-patcher' not in f and \
+                    'ij-1' not in f:
+                path = root + '/' + f
+                jars.append(path)
+                _debug('Added ' + path)
+    return jars
+
+
 def set_ij_env(ij_dir, imglyb_path):
     """
     Create a list of required jars and add to imglyb search path
@@ -111,28 +131,11 @@ def set_ij_env(ij_dir, imglyb_path):
     :param imglyb_path: System path for imglyb
     :return: num_jar(int): number of jars added
     """
-
     jars = []
     # search jars directory
-    for root, dirs, files in os.walk(ij_dir + '/jars'):
-        for f in files:
-            if f.endswith('.jar') and \
-                    'imagej-legacy' not in f and \
-                    'ij1-patcher' not in f and \
-                    'ij-1' not in f:
-                path = root + '/' + f
-                jars.append(path)
-                _debug('Added ' + path)
+    jars.extend(search_for_jars(ij_dir, '/jars'))
     # search plugins directory
-    for root, dirs, files in os.walk(ij_dir + '/plugins'):
-        for f in files:
-            if f.endswith('.jar') and \
-                    'imagej-legacy' not in f and \
-                    'ij1-patcher' not in f and \
-                    'ij-1' not in f:
-                path = root + '/' + f
-                jars.append(path)
-                _debug('Added ' + path)
+    jars.extend(search_for_jars(ij_dir, '/plugins'))
     # add to classpath
     num_jars = len(jars)
     classpath = ":".join(jars) + ":" + imglyb_path
@@ -195,7 +198,7 @@ def quiet_init(ij_dir):
     jnius_config.add_options('-Djava.awt.headless=true')
     imglyb_path = configure_path()
     # ImageJ
-    if(imglyb_path is not None):
+    if imglyb_path is not None:
         num_jars = set_ij_env(ij_dir, imglyb_path)
     else:
         return
@@ -224,6 +227,26 @@ def error_message(error):
     print (error + " can not be found, it might not be correctly installed.")
 
 
+def jar_present(path, test_path, target):
+    """
+    search for the target jar
+
+    :param path: inherited target path, if already found then skip
+    :param test_path: the path need to be checked
+    :param target: the name of the target
+    :return: target path
+    """
+    if path is None and os.path.isdir(test_path) and os.listdir(test_path) is not None:
+        _debug('Scanning directory: ' + test_path)
+        for f in os.listdir(test_path):
+            if ".jar" in f:
+                result_path = test_path + f
+                _debug('Found' + target + ' at: ' + result_path)
+                return result_path
+    else:
+        return path
+
+
 def conda_path_check(p, checked, imglyb_path, pyjnius_path, java_path):
     """
     search for imglyb, pyjnius and java path if this is a conda environment
@@ -233,7 +256,9 @@ def conda_path_check(p, checked, imglyb_path, pyjnius_path, java_path):
     :param imglyb_path: if already found, path to imglyb, if not found, None
     :param pyjnius_path: if already found, path to pyjnius, if not found, None
     :param java_path: if already found, path to java, if not found, None
-    :return:
+    :return: imglyb_path: path to imglyb if found, otherwise None
+    :return: pyjnius_path: path to pyjnius if found, otherwise None
+    :return: java_path: path to java if found, otherwise None
     """
     split_list = p.split("/")
     index_conda = 0
@@ -259,41 +284,24 @@ def conda_path_check(p, checked, imglyb_path, pyjnius_path, java_path):
     test_path_pyjnius = basedir + "/share/pyjnius/"
     test_path_java = basedir + "/bin"
 
-    if imglyb_path is None and os.path.isdir(test_path_imglyb) and os.listdir(test_path_imglyb) is not None:
-        _debug('Scanning directory: ' + test_path_imglyb)
-        for f in os.listdir(test_path_imglyb):
-            if ".jar" in f:
-                imglyb_path = test_path_imglyb + f
-                _debug('Found imglyb at: ' + imglyb_path)
-                break
-
-    if pyjnius_path is None and os.path.isdir(test_path_pyjnius) and os.listdir(test_path_pyjnius) is not None:
-        _debug('Scanning directory: ' + test_path_pyjnius)
-        for f in os.listdir(test_path_pyjnius):
-            if ".jar" in f:
-                pyjnius_path = test_path_pyjnius + f
-                _debug('Found pyjnius at: ' + pyjnius_path)
-                break
-
-    if java_path is None and os.path.isdir(test_path_java) and os.listdir(test_path_java) is not None:
-        _debug('Scanning directory: ' + test_path_java)
-        for f in os.listdir(test_path_java):
-            if "java" == f:
-                java_path = basedir
-                _debug('Found java at: ' + java_path)
-                break
-
+    imglyb_path = jar_present(imglyb_path, test_path_imglyb, 'imglyb')
+    pyjnius_path = jar_present(pyjnius_path, test_path_pyjnius, 'pyjnius')
+    java_path = jar_present(java_path, test_path_java, 'java')
     checked.append(basedir)
     return imglyb_path, pyjnius_path, java_path
 
 
 def pypi_path_check(p, checked, imglyb_path, pyjnius_path):
     """
-    check if python is installed through pip
+    check path if python is installed through pip
 
     :param p: current checking path
-    :type checked: list of checked path
+    :param checked: list of checked path
+    :param imglyb_path: if already found, path to imglyb, if not found, None
+    :param pyjnius_path: if already found, path to pyjnius, if not found, None
+    :return:
     """
+
     split_list = p.split("/")
     index = 0
     for level in split_list:
@@ -376,9 +384,10 @@ def os_check():
 
     return sys.platform
 
+
 def java_check():
     """
-    Try to find java in using which command according to os type
+    Try to find java in using "which" and "whereis" command according to os type
 
     :return: each: the path to java
     """
