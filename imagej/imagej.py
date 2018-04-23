@@ -12,7 +12,6 @@ import sys
 import re
 import jnius_config
 
-
 _debug = False
 
 
@@ -116,7 +115,8 @@ def search_for_jars(ij_dir, subfolder):
             if f.endswith('.jar') and \
                     'imagej-legacy' not in f and \
                     'ij1-patcher' not in f and \
-                    'ij-1' not in f:
+                    'ij-1' not in f and \
+                    'legacy-imglib1' not in f:
                 path = root + '/' + f
                 jars.append(path)
                 _debug('Added ' + path)
@@ -227,7 +227,7 @@ def error_message(error):
     print (error + " can not be found, it might not be correctly installed.")
 
 
-def jar_present(path, test_path, target):
+def jar_present(path, basedir, test_path, target):
     """
     search for the target jar
 
@@ -239,10 +239,17 @@ def jar_present(path, test_path, target):
     if path is None and os.path.isdir(test_path) and os.listdir(test_path) is not None:
         _debug('Scanning directory: ' + test_path)
         for f in os.listdir(test_path):
-            if ".jar" in f:
-                result_path = test_path + f
-                _debug('Found' + target + ' at: ' + result_path)
-                return result_path
+            if 'java' is not target:
+                if ".jar" in f:
+                    result_path = test_path + f
+                    _debug('Found' + target + ' at: ' + result_path)
+                    return result_path
+            else:
+                if "java" in f:
+                    result_path = basedir
+                    _debug('Found' + target + ' at: ' + result_path)
+                    return result_path
+
     else:
         return path
 
@@ -284,9 +291,9 @@ def conda_path_check(p, checked, imglyb_path, pyjnius_path, java_path):
     test_path_pyjnius = basedir + "/share/pyjnius/"
     test_path_java = basedir + "/bin"
 
-    imglyb_path = jar_present(imglyb_path, test_path_imglyb, 'imglyb')
-    pyjnius_path = jar_present(pyjnius_path, test_path_pyjnius, 'pyjnius')
-    java_path = jar_present(java_path, test_path_java, 'java')
+    imglyb_path = jar_present(imglyb_path, basedir, test_path_imglyb, 'imglyb')
+    pyjnius_path = jar_present(pyjnius_path, basedir, test_path_pyjnius, 'pyjnius')
+    java_path = jar_present(java_path, basedir, test_path_java, 'java')
     checked.append(basedir)
     return imglyb_path, pyjnius_path, java_path
 
