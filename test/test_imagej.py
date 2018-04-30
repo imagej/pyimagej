@@ -32,7 +32,7 @@ class Testimagej(unittest.TestCase):
         correct_result = np.array([[0, 0, 0, 0.94282, 0.94283], [0, 0, 0, 0.94283, 0.94283]])
         result = np.ndarray.round(result, decimals=5)
         self.assertTrue((result == correct_result).all())
-
+    """
     def testGaussian(self):
         imagej = autoclass('net.imagej.ImageJ')
         ij = imagej()
@@ -48,7 +48,7 @@ class Testimagej(unittest.TestCase):
                 ra.setPosition(x, y)
                 result.append(ra.get().get())
         self.assertEqual(result, correct_result)
-    """
+    
     def testTophat(self):
         arraylist = autoclass('java.util.ArrayList')
         hypersphereshape = autoclass('net.imglib2.algorithm.neighborhood.HyperSphereShape')

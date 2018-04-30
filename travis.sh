@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 sudo apt-get update
 if [[ "$TRAVIS_PYTHON_VERSION" == "2.7" ]]; then
@@ -17,6 +17,11 @@ conda create -q -n test-environment python=$TRAVIS_PYTHON_VERSION
 source activate test-environment
 pip install Cython
 pip install pyjnius
+
+sudo apt install curl
+sudo apt install git
+
+cd $HOME
 
 if [ ! -d Fiji.app ]
 then
@@ -47,7 +52,14 @@ cache:
   directories:
 - "~/.m2/repository"
 conda install -c hanslovsky imglib2-imglyb
-ij_dir= "$( cd "$(Fiji.app "$0")" ; pwd -P )"
+
+git clone https://github.com/kkangle/imagej.py.git
+git checkout pyjnius
+
+ij_dir=$HOME/Fiji.app
+echo $ij_dir
+cd $HOME/imagej.py
 python setup.py install
-python test_imagej.py --ij ij_dir
+cd test
+python -O test_imagej.py --ij $ij_dir
 
