@@ -1,23 +1,23 @@
-#!/bin/sh
+#!/bin/bash
 
 sudo apt-get update
-if [[ "$TRAVIS_PYTHON_VERSION" == "2.7" ]]; then
-    wget https://repo.continuum.io/miniconda/Miniconda2-latest-Linux-x86_64.sh -O miniconda.sh;
-else
-    wget https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh -O miniconda.sh;
-fi
-bash miniconda.sh -b -p $HOME/miniconda
-export PATH="$HOME/miniconda/bin:$PATH"
-hash -r
-conda config --set always_yes yes --set changeps1 no
-conda update -q conda
-conda info -a
 
+# -- create a test enviroment --
 conda create -q -n test-environment python=$TRAVIS_PYTHON_VERSION
 source activate test-environment
+
+# -- install dependencies --
 pip install Cython
 pip install pyjnius
 
+# -- install supporting tools --
+sudo apt -y install curl
+sudo apt -y install git
+sudo apt -y install unzip
+
+cd $HOME
+
+# -- download Fiji.app --
 if [ ! -d Fiji.app ]
 then
   echo
@@ -30,7 +30,6 @@ then
 fi
 
 # -- Determine correct ImageJ launcher executable --
-
 case "$(uname -s),$(uname -m)" in
   Linux,x86_64) launcher=ImageJ-linux64 ;;
   Linux,*) launcher=ImageJ-linux32 ;;
@@ -43,11 +42,20 @@ echo
 echo "--> Updating Fiji"
 Fiji.app/$launcher --update update-force-pristine
 
-cache:
-  directories:
-- "~/.m2/repository"
+# -- install imglyb --
 conda install -c hanslovsky imglib2-imglyb
-ij_dir= "$( cd "$(Fiji.app "$0")" ; pwd -P )"
+
+# -- clone testing unit --
+git clone https://github.com/imagej/imagej.py.git
+cd $HOME/imagej.py
+git checkout pyjnius
+
+# -- set ij dirctory --
+ij_dir=$HOME/Fiji.app
+echo $ij_dir
 python setup.py install
-python test_imagej.py --ij ij_dir
+
+# -- run test with debug flag --
+cd test
+python -O test_imagej.py --ij $ij_dir
 
