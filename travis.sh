@@ -46,7 +46,7 @@ Fiji.app/$launcher --update update-force-pristine
 conda install -c hanslovsky imglib2-imglyb
 
 # -- clone testing unit --
-git clone https://github.com/imagej/imagej.py.git
+git clone git://github.com/imagej/imagej.py
 cd $HOME/imagej.py
 git checkout pyjnius
 
