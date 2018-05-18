@@ -20,8 +20,28 @@ Use `pip install -r server_requirements.txt` to install requirements for server.
 
 `Pillow` is required for the `IJ.show()` function. In addition, `display` or `xv` needs to exist in your system to view the image.
 
-## Usage:
+## Usage
 
-Please see the ImageJ demo [notebooks](https://github.com/CellProfiler/notebooks.git) 
+```python
+# Spin up the ImageJ context.
+import imagej
+imagej.quiet_init('/Applications/Fiji.app')
+import imglyb
+from jnius import autoclass
+ImageJ = autoclass('net.imagej.ImageJ')
+ij = ImageJ()
+
+# Import an image with scikit-image.
+import skimage
+from skimage import io
+# NB: Blood vessel image from: https://www.fi.edu/heart/blood-vessels
+img = io.imread('https://www.fi.edu/sites/default/files/General_EduRes_Heart_BloodVessels_0.jpg')
+import numpy as np
+img = np.mean(img, axis=2)
+
+# Invoke ImageJ's Frangi vesselness op.
+vessels = np.zeros(img.shape, dtype=img.dtype)
+ij.op().filter().frangiVesselness(imglyb.to_imglib(vessels), imglyb.to_imglib(img), [1, 1], 20)
+```
 
 For imagej-server, there is a short usage example [here](https://github.com/kkangle/imagej.py/tree/pyjinus/imagej/server).
