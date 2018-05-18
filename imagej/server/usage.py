@@ -2,7 +2,7 @@
 # It uploads an image to imagej-server, inverts the image, and display both the
 # original and the inverted ones.
 
-import imagej
+import imagej.server as imagej
 import json
 
 ij = imagej.IJ()

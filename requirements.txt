@@ -1,2 +1,4 @@
-requests
-Pillow
+scandir
+conda
+imglib2-imglyb
+Pyjnius
