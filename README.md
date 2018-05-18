@@ -43,6 +43,7 @@ img = np.mean(img, axis=2)
 
 # Invoke ImageJ's Frangi vesselness op.
 vessels = np.zeros(img.shape, dtype=img.dtype)
+import imglyb
 ij.op().filter().frangiVesselness(imglyb.to_imglib(vessels), imglyb.to_imglib(img), [1, 1], 20)
 ```
 
