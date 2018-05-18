@@ -185,12 +185,12 @@ def verify_conda_env():
         return conda_env
 
 
-def quiet_init(ij_dir):
+def init(ij_dir):
     """
-    quietly setup the whole environment
+    quietly set up the whole environment
 
     :param ij_dir: System path for Fiji.app
-    :return: None
+    :return: an instance of the net.imagej.ImageJ gateway
     """
 
     jnius_config.add_options('-Djava.awt.headless=true')
@@ -201,6 +201,10 @@ def quiet_init(ij_dir):
     else:
         return
     print("Added " + str(num_jars + 1) + " JARs to the Java classpath.")
+    import imglyb
+    from jnius import autoclass
+    ImageJ = autoclass('net.imagej.ImageJ')
+    return ImageJ()
 
 
 def help():
@@ -212,7 +216,7 @@ def help():
 
     print(("Please set the environment variables first:\n" 
            "Fiji.app:   ij_dir = 'your local fiji.app path'\n"
-           "Then call quiet_init(ij_dir)"))
+           "Then call init(ij_dir)"))
 
 
 def error_message(error):
