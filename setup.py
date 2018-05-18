@@ -10,12 +10,12 @@ with open(path.join(here, 'README.md')) as f:
 setup(
     name='imagej',
     version= '0.1.2',
-    author='Yang Liu && Leon Yang',
-    author_email='liu574@wisc.edu',
-    url='https://github.com/imagej/imagej.py/',
+    author='Yang Liu, Leon Yang, Curtis Rueden',
+    author_email='ctrueden@wisc.edu',
+    url='https://github.com/imagej/imagej.py',
     packages=['imagej'],
     platforms=['any'],
-    description='Python wrapper for imagej',
+    description='Python wrapper for ImageJ',
     long_description=imagej_long_description,
     license='Apache 2.0'
 )
