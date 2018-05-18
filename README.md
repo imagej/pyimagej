@@ -47,4 +47,4 @@ ij.op().filter().frangiVesselness(imglyb.to_imglib(vessels), imglyb.to_imglib(im
 ```
 
 For imagej-server, there is a short usage example
-[here](https://github.com/kkangle/imagej.py/tree/master/imagej/server).
+[here](https://github.com/imagej/imagej.py/tree/master/imagej/server).
