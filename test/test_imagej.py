@@ -1,7 +1,7 @@
 import argparse
 import sys
 import unittest
-import imagej as setup
+import imagej
 
 if "--ij" in sys.argv:
     parser = argparse.ArgumentParser()
@@ -9,11 +9,11 @@ if "--ij" in sys.argv:
     args = parser.parse_args()
     print("set ij_dir to " + args.ij)
     ij_dir = args.ij
-    setup.quiet_init(ij_dir)
+    ij = imagej.init(ij_dir)
     sys.argv = sys.argv[2:]
 else:
     ij_dir = '/Applications/Fiji.app'
-    setup.quiet_init(ij_dir)
+    ij = imagej.init(ij_dir)
 
 
 import imglyb
@@ -21,22 +21,17 @@ from jnius import autoclass
 import numpy as np
 
 
-class Testimagej(unittest.TestCase):
+class TestImageJ(unittest.TestCase):
 
     def testFrangi(self):
-        imagej = autoclass('net.imagej.ImageJ')
-        ij = imagej()
         input_array = np.array([[1000, 1000, 1000, 2000, 3000], [5000, 8000, 13000, 21000, 34000]])
         result = np.zeros(input_array.shape)
         ij.op().filter().frangiVesselness(imglyb.to_imglib(result), imglyb.to_imglib(input_array), [1, 1], 4)
         correct_result = np.array([[0, 0, 0, 0.94282, 0.94283], [0, 0, 0, 0.94283, 0.94283]])
         result = np.ndarray.round(result, decimals=5)
         self.assertTrue((result == correct_result).all())
-    """
-    def testGaussian(self):
-        imagej = autoclass('net.imagej.ImageJ')
-        ij = imagej()
 
+    def testGaussian(self):
         input_array = np.array([[1000, 1000, 1000, 2000, 3000], [5000, 8000, 13000, 21000, 34000]])
 
         output_array = ij.op().filter().gauss(imglyb.to_imglib(input_array), 10)
@@ -49,23 +44,21 @@ class Testimagej(unittest.TestCase):
                 result.append(ra.get().get())
         self.assertEqual(result, correct_result)
     
-    def testTophat(self):
-        arraylist = autoclass('java.util.ArrayList')
-        hypersphereshape = autoclass('net.imglib2.algorithm.neighborhood.HyperSphereShape')
-        views = autoclass('net.imglib2.view.Views')
-
-        imagej = autoclass('net.imagej.ImageJ')
-        ij = imagej()
+    """
+    def testTopHat(self):
+        ArrayList = autoclass('java.util.ArrayList')
+        HyperSphereShape = autoclass('net.imglib2.algorithm.neighborhood.HyperSphereShape')
+        Views = autoclass('net.imglib2.view.Views')
 
         result = []
         correct_result = [0, 0, 0, 1000, 2000, 4000, 7000, 12000, 20000, 33000]
 
         input_array = np.array([[1000, 1000, 1000, 2000, 3000], [5000, 8000, 13000, 21000, 34000]])
         output_array = np.zeros(input_array.shape)
-        java_out = views.iterable(imglyb.to_imglib(output_array))
+        java_out = Views.iterable(imglyb.to_imglib(output_array))
         java_in = imglyb.to_imglib(input_array)
-        shapes = arraylist()
-        shapes.add(hypersphereshape(5))
+        shapes = ArrayList()
+        shapes.add(HyperSphereShape(5))
 
         ij.op().morphology().topHat(java_out, java_in, shapes)
         itr = java_out.iterator()
@@ -75,16 +68,13 @@ class Testimagej(unittest.TestCase):
         self.assertEqual(result, correct_result)
     """
 
-    def testImagemath(self):
-        views = autoclass('net.imglib2.view.Views')
-
-        imagej = autoclass('net.imagej.ImageJ')
-        ij = imagej()
+    def testImageMath(self):
+        Views = autoclass('net.imglib2.view.Views')
 
         input_array = np.array([[1, 1, 2], [3, 5, 8]])
         result = []
         correct_result = [192, 198, 205, 192, 198, 204]
-        java_in = views.iterable(imglyb.to_imglib(input_array))
+        java_in = Views.iterable(imglyb.to_imglib(input_array))
         java_out = ij.op().image().equation(java_in, "64 * (Math.sin(0.1 * p[0]) + Math.cos(0.1 * p[1])) + 128")
 
         itr = java_out.iterator()
