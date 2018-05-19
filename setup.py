@@ -17,5 +17,6 @@ setup(
     platforms=['any'],
     description='Python wrapper for ImageJ',
     long_description=imagej_long_description,
+    long_description_content_type='text/markdown',
     license='Apache 2.0'
 )
