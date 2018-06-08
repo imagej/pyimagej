@@ -27,7 +27,7 @@ Use `pip install -r server_requirements.txt` to install requirements for server.
 In addition, `display` or `xv` needs to exist in your system to view the image.
 
 ## Usage
-
+In this example, replace `/Applications/Fiji.app` with the location of your Fiji installation.
 ```python
 # Spin up ImageJ.
 import imagej
