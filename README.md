@@ -14,7 +14,7 @@ Refer to Pyjnius installation guide for installing
 [Pyjnius](http://pyjnius.readthedocs.io/en/latest/installation.html).
 
 For imglib2-imglyb installation, you can simply use `conda install -c
-hanslovsky imglib2-imglyb` Other infomation regarding imglyb can be found in
+hanslovsky imglib2-imglyb`. Other infomation regarding imglyb can be found in
 imglyb [git repo](https://github.com/hanslovsky/imglib2-imglyb).
 
     imagej_server:
