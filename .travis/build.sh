@@ -3,19 +3,18 @@
 sudo apt-get update
 
 # -- create a test enviroment --
-conda create -q -n test-environment python=$TRAVIS_PYTHON_VERSION
-source activate test-environment
+conda create -q -n imagej python=$TRAVIS_PYTHON_VERSION
+source activate imagej
 
 # -- install dependencies --
-pip install Cython
-pip install pyjnius
+conda install -c hanslovsky imglyb
 
 # -- install supporting tools --
 sudo apt -y install curl
 sudo apt -y install git
 sudo apt -y install unzip
 
-cd $HOME
+cd
 
 # -- download Fiji.app --
 if [ ! -d Fiji.app ]
@@ -47,15 +46,14 @@ conda install -c hanslovsky imglyb
 
 # -- clone testing unit --
 git clone git://github.com/imagej/imagej.py
-cd $HOME/imagej.py
+cd imagej.py
 git checkout pyjnius
 
 # -- set ij dirctory --
 ij_dir=$HOME/Fiji.app
-echo $ij_dir
+echo "ij_dir = $ij_dir"
 python setup.py install
 
 # -- run test with debug flag --
 cd test
-python -O test_imagej.py --ij $ij_dir
-
+python -O test_imagej.py --ij "$ij_dir"
