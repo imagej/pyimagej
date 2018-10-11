@@ -1,33 +1,26 @@
-# Python client for ImageJ
+# Python wrapper for ImageJ
 
-[`imagej.py`](https://github.com/imagej/imagej.py) provides a set of wrapper
-functions for integration between imagej and python. It also provides a
-high-level entry point `imagej.IJ` for invoking `imagej-server` APIs.
+[`imagej.py`](https://github.com/imagej/imagej.py) provides a set of
+wrapper functions for integration between ImageJ and Python.
 
-## Requirements:
+It also provides a high-level entry point `imagej.IJ` for invoking
+[ImageJ Server](https://github.com/imagej/imagej-server) APIs;
+see "ImageJ Server" below for details.
+
+## Requirements
 
     default:
-    - pyjnius
-    - imglib2-imglyb
+    - imglyb
 
-Refer to Pyjnius installation guide for installing
-[Pyjnius](http://pyjnius.readthedocs.io/en/latest/installation.html).
+Install imglyb using `conda install -c hanslovsky imglyb`.
 
-For imglib2-imglyb installation, you can simply use `conda install -c
-hanslovsky imglib2-imglyb`. Other infomation regarding imglyb can be found in
-imglyb [git repo](https://github.com/hanslovsky/imglib2-imglyb).
-
-    imagej_server:
-    - requests
-    - Pillow
-
-Use `pip install -r server_requirements.txt` to install requirements for server.
-
-`Pillow` is required for the imagej.server module's `IJ.show()` function.
-In addition, `display` or `xv` needs to exist in your system to view the image.
+Further information regarding imglyb can be found in the
+[imglyb GitHub repository](https://github.com/imglib/imglyb).
 
 ## Usage
+
 In this example, replace `/Applications/Fiji.app` with the location of your Fiji installation.
+
 ```python
 # Spin up ImageJ.
 import imagej
@@ -47,5 +40,23 @@ import imglyb
 ij.op().filter().frangiVesselness(imglyb.to_imglib(vessels), imglyb.to_imglib(img), [1, 1], 20)
 ```
 
-For imagej-server, there is a short usage example
-[here](https://github.com/imagej/imagej.py/tree/master/imagej/server).
+See also `test/test_imagej.py` for other examples of usage.
+
+
+# ImageJ Server
+
+## Requirements
+
+    imagej_server:
+    - requests
+    - Pillow
+
+Use `pip install -r server_requirements.txt` to install requirements for server.
+
+`Pillow` is required for the imagej.server module's `IJ.show()` function.
+In addition, `display` or `xv` needs to exist in your system to view the image.
+
+## Usage
+
+There is a short usage example
+[here](https://github.com/imagej/imagej.py/blob/master/imagej/server/usage.py).
