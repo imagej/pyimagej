@@ -43,7 +43,7 @@ echo "--> Updating Fiji"
 Fiji.app/$launcher --update update-force-pristine
 
 # -- install imglyb --
-conda install -c hanslovsky imglib2-imglyb
+conda install -c hanslovsky imglyb
 
 # -- clone testing unit --
 git clone git://github.com/imagej/imagej.py

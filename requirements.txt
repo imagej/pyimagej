@@ -1,4 +1,4 @@
 scandir
 conda
-imglib2-imglyb
+imglyb
 Pyjnius
