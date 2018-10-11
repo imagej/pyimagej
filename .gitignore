@@ -2,4 +2,5 @@
 /bin/
 /build/
 /dist/
+/imagej.egg-info/
 MANIFEST
