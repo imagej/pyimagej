@@ -52,7 +52,7 @@ def set_ij_env(ij_dir):
     jars.extend(search_for_jars(ij_dir, '/plugins'))
     # add to classpath
     num_jars = len(jars)
-    jnius_config.add_classpath(":".join(jars))
+    jnius_config.add_classpath(os.pathsep.join(jars))
     return num_jars
 
 
