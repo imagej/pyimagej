@@ -3,7 +3,7 @@ wrapper for imagej and python integration using ImgLyb
 
 """
 
-__version__ = '0.3.0'
+__version__ = '0.3.1'
 __author__ = 'Yang Liu & Curtis Rueden'
 
 import os
