@@ -56,15 +56,17 @@ def set_ij_env(ij_dir):
     return num_jars
 
 
-def init(ij_dir):
+def init(ij_dir, headless=True):
     """
     quietly set up the whole environment
 
     :param ij_dir: System path for Fiji.app
     :return: an instance of the net.imagej.ImageJ gateway
     """
-
-    jnius_config.add_options('-Djava.awt.headless=true')
+    
+    if headless:
+        jnius_config.add_options('-Djava.awt.headless=true')
+    
     num_jars = set_ij_env(ij_dir)
     print("Added " + str(num_jars + 1) + " JARs to the Java classpath.")
     import imglyb
