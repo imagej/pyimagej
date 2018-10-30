@@ -1,4 +1,4 @@
-#!/bin/bash
+!/bin/bash
 
 sudo apt-get update
 
@@ -44,10 +44,8 @@ Fiji.app/$launcher --update update-force-pristine
 # -- install imglyb --
 conda install -c hanslovsky imglyb
 
-# -- clone testing unit --
-git clone git://github.com/imagej/imagej.py
-cd imagej.py
-git checkout pyjnius
+# -- run the Python code --
+cd $TRAVIS_BUILD_DIR
 
 # -- set ij dirctory --
 ij_dir=$HOME/Fiji.app
