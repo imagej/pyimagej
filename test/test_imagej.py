@@ -82,6 +82,22 @@ class TestImageJ(unittest.TestCase):
             result.append(itr.next().get())
         self.assertEqual(result, correct_result)
 
+    def testPluginsLoadUsingPairwiseStitching(self):
+        macro = """
+        
+        newImage("Tile1", "8-bit random", 512, 512, 1);
+        newImage("Tile2", "8-bit random", 512, 512, 1);
+        run("Pairwise stitching", "first_image=Tile1 second_image=Tile2");"""
+        
+        ij.script().run('macro.ijm', macro, True).get()
+        WindowManager = autoclass('ij.WindowManager')
+        result_name = WindowManager.getCurrentImage().getTitle()
+        
+        ij.script().run('macro.ijm', 'run("Close All");', True).get()
+        
+        self.assertEqual(result_name, 'Tile1<->Tile2')
+        
+
     def main(self):
         unittest.main()
 
