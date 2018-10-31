@@ -8,6 +8,7 @@ __author__ = 'Yang Liu & Curtis Rueden'
 
 import os
 import jnius_config
+from pathlib import Path
 
 
 def _debug(message):
@@ -66,6 +67,9 @@ def init(ij_dir, headless=True):
     
     if headless:
         jnius_config.add_options('-Djava.awt.headless=true')
+    
+    plugins_dir = str(Path(ij_dir, 'plugins'))
+    jnius_config.add_options('-Dplugins.dir=' + plugins_dir)
     
     num_jars = set_ij_env(ij_dir)
     print("Added " + str(num_jars + 1) + " JARs to the Java classpath.")
