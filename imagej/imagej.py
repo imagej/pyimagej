@@ -73,6 +73,8 @@ def init(ij_dir, headless=True):
     
     num_jars = set_ij_env(ij_dir)
     print("Added " + str(num_jars + 1) + " JARs to the Java classpath.")
+    
+    # It is necessary to import imglyb before jnius because it sets options for the JVM and jnius starts up the JVM
     import imglyb
     from jnius import autoclass
     ImageJ = autoclass('net.imagej.ImageJ')
