@@ -64,16 +64,16 @@ def init(ij_dir, headless=True):
     :param ij_dir: System path for Fiji.app
     :return: an instance of the net.imagej.ImageJ gateway
     """
-    
+
     if headless:
         jnius_config.add_options('-Djava.awt.headless=true')
-    
+
     plugins_dir = str(Path(ij_dir, 'plugins'))
     jnius_config.add_options('-Dplugins.dir=' + plugins_dir)
-    
+
     num_jars = set_ij_env(ij_dir)
     print("Added " + str(num_jars + 1) + " JARs to the Java classpath.")
-    
+
     # It is necessary to import imglyb before jnius because it sets options for the JVM and jnius starts up the JVM
     import imglyb
     from jnius import autoclass
@@ -88,6 +88,6 @@ def help():
     :return:
     """
 
-    print(("Please set the environment variables first:\n" 
+    print(("Please set the environment variables first:\n"
            "Fiji.app:   ij_dir = 'your local fiji.app path'\n"
            "Then call init(ij_dir)"))
