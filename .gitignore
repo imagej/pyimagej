@@ -1,4 +1,6 @@
 *.pyc
+/.idea/
+/.pytest_cache/
 /bin/
 /build/
 /dist/
