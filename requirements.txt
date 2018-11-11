@@ -1,4 +1,0 @@
-scandir
-conda
-imglyb
-Pyjnius

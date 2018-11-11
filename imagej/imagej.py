@@ -6,11 +6,12 @@ wrapper for imagej and python integration using ImgLyb
 # TODO: Unify version declaration to one place.
 # https://www.python.org/dev/peps/pep-0396/#deriving
 __version__ = '0.4.0.dev0'
-__author__ = 'Yang Liu & Curtis Rueden'
+__author__ = 'Curtis Rueden & Yang Liu'
 
 import os
-import jnius_config
+import scyjava_config
 from pathlib import Path
+import numpy
 
 
 def _debug(message):
@@ -55,32 +56,117 @@ def set_ij_env(ij_dir):
     jars.extend(search_for_jars(ij_dir, '/plugins'))
     # add to classpath
     num_jars = len(jars)
-    jnius_config.add_classpath(os.pathsep.join(jars))
+    scyjava_config.add_classpath(os.pathsep.join(jars))
     return num_jars
 
 
 def init(ij_dir, headless=True):
     """
-    quietly set up the whole environment
+    Initialize the ImageJ environment.
 
-    :param ij_dir: System path for Fiji.app
+    :param ij_dir: System path for local ImageJ installation (e.g. Fiji.app)
+    :param headless: Whether to start the JVM in headless or gui mode
     :return: an instance of the net.imagej.ImageJ gateway
     """
 
     if headless:
-        jnius_config.add_options('-Djava.awt.headless=true')
+        scyjava_config.add_options('-Djava.awt.headless=true')
 
     plugins_dir = str(Path(ij_dir, 'plugins'))
-    jnius_config.add_options('-Dplugins.dir=' + plugins_dir)
+    scyjava_config.add_options('-Dplugins.dir=' + plugins_dir)
 
     num_jars = set_ij_env(ij_dir)
     print("Added " + str(num_jars + 1) + " JARs to the Java classpath.")
 
-    # It is necessary to import imglyb before jnius because it sets options for the JVM and jnius starts up the JVM
+    # Must import imglyb (not scyjava) to spin up the JVM now.
     import imglyb
     from jnius import autoclass
+
+    # Initialize ImageJ.
     ImageJ = autoclass('net.imagej.ImageJ')
-    return ImageJ()
+    ij = ImageJ()
+
+    # Append some useful utility functions to the ImageJ gateway.
+
+    from scyjava import jclass, isjava, to_java, to_python
+    from matplotlib import pyplot
+
+    Dataset                  = autoclass('net.imagej.Dataset')
+    RandomAccessibleInterval = autoclass('net.imglib2.RandomAccessibleInterval')
+
+    class ImageJPython:
+        def __init__(self, ij):
+            self._ij = ij
+
+        def dims(self, image):
+            if isinstance(image, numpy.ndarray):
+                return image.shape
+            if not isjava(image):
+                raise TypeError('Unsupported type: ' + str(type(image)))
+            if jclass('net.imglib2.Dimensions').isInstance(image):
+                return [image.dimension(d) for d in range(image.numDimensions() -1, -1, -1)]
+            if jclass('ij.ImagePlus').isInstance(image):
+                dims = image.getDimensions()
+                dims.reverse()
+                dims = [dim for dim in dims if dim > 1]
+                return dims
+            raise TypeError('Unsupported Java type: ' + str(jclass(image).getName()))
+
+        def new_numpy_image(self, image):
+            """
+            Creates a numpy image (NOT a Java image)
+            dimensioned the same as the given image.
+            """
+            return numpy.zeros(self.dims(image))
+
+        def rai_to_numpy(self, rai):
+            result = self.new_numpy_image(rai)
+            self._ij.op().run("copy.rai", self.to_java(result), rai)
+            return result
+
+        def run_macro(self, macro, args=None):
+            return self._ij.script().run("macro.ijm", macro, True, to_java(args)).get()
+
+        def run_script(self, language, script, args=None):
+            script_lang = self._ij.script().getLanguageByName(language)
+            if script_lang is None:
+                script_lang = self._ij.script().getLanguageByExtension(language)
+            if script_lang is None:
+                raise ValueError("Unknown script language: " + language)
+            exts = script_lang.getExtensions()
+            if exts.isEmpty():
+                raise ValueError("Script language '" + script_lang.getLanguageName() + "' has no extensions")
+            ext = exts.get(0)
+            return self._ij.script().run("script." + ext, script, True, to_java(args)).get()
+
+        def to_java(self, data):
+            if type(data) == numpy.ndarray:
+                return imglyb.to_imglib(data)
+            return to_java(data)
+
+        def to_dataset(self, data):
+            if self._ij.convert().supports(data, Dataset):
+                return self._ij.convert().convert(data, Dataset)
+            raise TypeError('Cannot convert to dataset: ' + str(type(data)))
+
+        def from_java(self, data):
+            if not isjava(data): return data
+            if self._ij.convert().supports(data, Dataset):
+                # HACK: Converter exists for ImagePlus -> Dataset, but not ImagePlus -> RAI.
+                data = self._ij.convert().convert(data, Dataset)
+            if (self._ij.convert().supports(data, RandomAccessibleInterval)):
+                rai = self._ij.convert().convert(data, RandomAccessibleInterval)
+                return self.rai_to_numpy(rai)
+            return to_python(data)
+
+        def show(self, image):
+            if image is None:
+                raise TypeError('Image must not be None')
+            pyplot.imshow(self.from_java(image), interpolation='nearest')
+            pyplot.show()
+
+    ij.py = ImageJPython(ij)
+    return ij
 
 
 def help():
