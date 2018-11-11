@@ -74,12 +74,34 @@ def init(ij_dir, headless=True):
     num_jars = set_ij_env(ij_dir)
     print("Added " + str(num_jars + 1) + " JARs to the Java classpath.")
 
-    # It is necessary to import imglyb before jnius because it sets options for the JVM and jnius starts up the JVM
+    # It is necessary to import imglyb before jnius because
+    # it sets options for the JVM and jnius starts up the JVM.
     import imglyb
     from jnius import autoclass
-    ImageJ = autoclass('net.imagej.ImageJ')
-    return ImageJ()
 
+    # Initialize ImageJ.
+    ImageJ = autoclass('net.imagej.ImageJ')
+    ij = ImageJ()
+
+    # Append some useful utility functions.
+    class ImageJUtil:
+        def __init__(self, ij):
+            self._ij = ij
+
+        def ij1_to_numpy(self, imp):
+            Dataset = autoclass('net.imagej.Dataset')
+            dataset = self._ij.convert().convert(imp, Dataset)
+            return self.rai_to_numpy(dataset)
+
+        def rai_to_numpy(self, rai):
+            result = numpy.zeros([rai.dimension(d) for d in range(rai.numDimensions() -1, -1, -1)])
+            self._ij.op().run("copy.rai", imglyb.to_imglib(result), rai)
+            return result
+    ij.util = ImageJUtil(ij)
+    return ij
+
+def asdf():
+    print('it works')
 
 def help():
     """
