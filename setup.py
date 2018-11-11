@@ -9,7 +9,7 @@ with open(path.join(here, 'README.md')) as f:
 
 setup(
     name='imagej',
-    version= '0.3.1',
+    version= '0.4.0-dev',
     author='Yang Liu, Leon Yang, Curtis Rueden',
     author_email='ctrueden@wisc.edu',
     url='https://github.com/imagej/imagej.py',
@@ -18,5 +18,6 @@ setup(
     description='Python wrapper for ImageJ',
     long_description=imagej_long_description,
     long_description_content_type='text/markdown',
-    license='Apache 2.0'
+    license='Apache 2.0',
+    install_requires=['pyjnius', 'scyjava', 'imglyb']
 )
