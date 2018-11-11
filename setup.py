@@ -9,7 +9,9 @@ with open(path.join(here, 'README.md')) as f:
 
 setup(
     name='imagej',
-    version= '0.3.1',
+    # TODO: Unify version declaration to one place.
+    # https://www.python.org/dev/peps/pep-0396/#deriving
+    version= '0.4.0.dev0',
     author='Yang Liu, Leon Yang, Curtis Rueden',
     author_email='ctrueden@wisc.edu',
     url='https://github.com/imagej/imagej.py',

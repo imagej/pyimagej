@@ -3,7 +3,9 @@ wrapper for imagej and python integration using ImgLyb
 
 """
 
-__version__ = '0.3.1'
+# TODO: Unify version declaration to one place.
+# https://www.python.org/dev/peps/pep-0396/#deriving
+__version__ = '0.4.0.dev0'
 __author__ = 'Yang Liu & Curtis Rueden'
 
 import os
