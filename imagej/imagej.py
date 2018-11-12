@@ -9,6 +9,7 @@ __author__ = 'Yang Liu & Curtis Rueden'
 import os
 import jnius_config
 from pathlib import Path
+import numpy
 
 
 def _debug(message):
@@ -62,6 +63,7 @@ def init(ij_dir, headless=True):
     quietly set up the whole environment
 
     :param ij_dir: System path for Fiji.app
+    :param headless: Whether to start the JVM in headless or gui mode
     :return: an instance of the net.imagej.ImageJ gateway
     """
 
@@ -100,8 +102,6 @@ def init(ij_dir, headless=True):
     ij.util = ImageJUtil(ij)
     return ij
 
-def asdf():
-    print('it works')
 
 def help():
     """
