@@ -43,6 +43,15 @@ class JavaNumber(object):
 def is_java(data):
     return isinstance(data, jnius.JavaClass) or isinstance(data, jnius.MetaJavaClass)
 
+def jclass(data):
+    if isinstance(data, jnius.JavaClass):
+        return data.getClass()
+    if isinstance(data, jnius.MetaJavaClass):
+        return jnius.find_javaclass(data.__name__)
+    if type(data) == str:
+        return jnius.find_javaclass(data)
+    raise TypeError('Cannot glean class from data of type: ' + str(type(data)))
+
 def to_java(data):
     '''
     Recursively convert Python object to Java object

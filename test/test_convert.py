@@ -1,7 +1,16 @@
 import unittest
-from imagej.convert import to_java, to_python
+from imagej.convert import jclass, to_java, to_python
 
 class TestConvert(unittest.TestCase):
+
+    def testClass(self):
+        # Test class detection from Java objects.
+        list_class = jclass(to_java([1, 2, 3]))
+        self.assertEqual('java.util.ArrayList', list_class.getName())
+        map_class = jclass(to_java({'a':'b'}))
+        self.assertEqual('java.util.LinkedHashMap', map_class.getName())
+        # Test class detection of interface from string.
+        self.assertEqual('java.util.Map', jclass('java.util.Map').getName())
 
     def testList(self):
         l = 'The quick brown fox jumps over the lazy dogs'.split()
