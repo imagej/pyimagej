@@ -124,7 +124,10 @@ def init(ij_dir, headless=True):
             return result
 
         def run_macro(self, macro, args=None):
-            return self._ij.script().run("macro.ijm", macro, True, to_java(args)).get()
+            if args is None:
+                return self._ij.script().run("macro.ijm", macro, True).get()
+            else:
+                return self._ij.script().run("macro.ijm", macro, True, to_java(args)).get()
 
         def run_script(self, language, script, args=None):
             script_lang = self._ij.script().getLanguageByName(language)
