@@ -169,6 +169,8 @@ def init(ij_dir, headless=True):
             if exts.isEmpty():
                 raise ValueError("Script language '" + script_lang.getLanguageName() + "' has no extensions")
             ext = exts.get(0)
+            if args is None:
+                return self._ij.script().run("script." + ext, script, True).get()
             return self._ij.script().run("script." + ext, script, True, to_java(args)).get()
 
         def to_java(self, data):
