@@ -152,6 +152,17 @@ def init(ij_dir_or_version_or_endpoint=None, headless=True):
             self._ij.op().run("copy.rai", self.to_java(result), rai)
             return result
 
+        def run_plugin(self, plugin, args=None, ij1_style=True):
+            """
+            Run an ImageJ plugin
+            :param plugin: The string name for the plugin command
+            :param args: A dict of macro arguments in key/value pairs
+            :param ij1_style: Whether to use implicit booleans in IJ1 style or explicit booleans in IJ2 style
+            :return: The plugin output
+            """
+            macro = self._assemble_plugin_macro(plugin, args=args, ij1_style=ij1_style)
+            return self.run_macro(macro)
+
         def run_macro(self, macro, args=None):
             """
             Run an ImageJ1 style macro script
@@ -217,6 +228,48 @@ def init(ij_dir_or_version_or_endpoint=None, headless=True):
                 raise TypeError('Image must not be None')
             pyplot.imshow(self.from_java(image), interpolation='nearest')
             pyplot.show()
+
+        def _assemble_plugin_macro(self, plugin: str, args=None, ij1_style=True):
+            """
+            Assemble an ImageJ macro string given a plugin to run and optional arguments in a dict
+            :param plugin: The string call for the function to run
+            :param args: A dict of macro arguments in key/value pairs
+            :param ij1_style: Whether to use implicit booleans in IJ1 style or explicit booleans in IJ2 style
+            :return: A string version of the macro run
+            """
+            if args is None:
+                    macro = "run(\"{}\");".format(plugin)
+                    return macro
+            macro = """run("{0}", \"""".format(plugin)
+            for key, value in args.items():
+                    argument = self._format_argument(key, value, ij1_style)
+                    if argument is not None:
+                            macro = macro + ' {}'.format(argument)
+            macro = macro + """\");"""
+            return macro
+
+        def _format_argument(self, key, value, ij1_style):
+            if value is True:
+                    argument = '{}'.format(key)
+                    if not ij1_style:
+                            argument = argument + '=true'
+            elif value is False:
+                    argument = None
+                    if not ij1_style:
+                            argument = '{0}=false'.format(key)
+            elif value is None:
+                    raise NotImplementedError('Conversion for None is not yet implemented')
+            else:
+                    val_str = self._format_value(value)
+                    argument = '{0}={1}'.format(key, val_str)
+            return argument
+
+        def _format_value(self, value):
+            temp_value = str(value).replace('\\', '/')
+            if temp_value.startswith('[') and temp_value.endswith(']'):
+                    return temp_value
+            final_value = '[' + temp_value + ']'
+            return final_value
 
     ij.py = ImageJPython(ij)
     return ij
