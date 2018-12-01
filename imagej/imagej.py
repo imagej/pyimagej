@@ -225,10 +225,16 @@ def init(ij_dir_or_version_or_endpoint=None, headless=True):
                 return self.rai_to_numpy(rai)
             return to_python(data)
 
-        def show(self, image):
+        def show(self, image, cmap=None):
+            """
+            Display a java or python 2D image.
+            :param image: A java or python image that can be converted to a numpy array
+            :param cmap: The colormap of the image, if it is not RGB
+            :return:
+            """
             if image is None:
                 raise TypeError('Image must not be None')
-            pyplot.imshow(self.from_java(image), interpolation='nearest')
+            pyplot.imshow(self.from_java(image), interpolation='nearest', cmap=cmap)
             pyplot.show()
 
         def _assemble_plugin_macro(self, plugin: str, args=None, ij1_style=True):
