@@ -84,12 +84,14 @@ class TestImageJ(unittest.TestCase):
 
     def testPluginsLoadUsingPairwiseStitching(self):
         macro = """
-
         newImage("Tile1", "8-bit random", 512, 512, 1);
         newImage("Tile2", "8-bit random", 512, 512, 1);
-        run("Pairwise stitching", "first_image=Tile1 second_image=Tile2");"""
+        """
+        plugin = 'Pairwise stitching'
+        args = {'first_image': 'Tile1', 'second_image': 'Tile2'}
 
         ij.script().run('macro.ijm', macro, True).get()
+        ij.py.run_plugin(plugin, args)
         WindowManager = autoclass('ij.WindowManager')
         result_name = WindowManager.getCurrentImage().getTitle()
 
