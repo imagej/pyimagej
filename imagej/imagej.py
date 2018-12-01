@@ -121,6 +121,9 @@ def init(ij_dir_or_version_or_endpoint=None, headless=True):
             self._ij = ij
 
         def dims(self, image):
+            """
+            Return the dimensions of the equivalent numpy array for the image.  Reverse dimension order from Java.
+            """
             if isinstance(image, numpy.ndarray):
                 return image.shape
             if not isjava(image):
@@ -142,17 +145,33 @@ def init(ij_dir_or_version_or_endpoint=None, headless=True):
             return numpy.zeros(self.dims(image))
 
         def rai_to_numpy(self, rai):
+            """
+            Convert a RandomAccessibleInterval into a numpy array
+            """
             result = self.new_numpy_image(rai)
             self._ij.op().run("copy.rai", self.to_java(result), rai)
             return result
 
         def run_macro(self, macro, args=None):
+            """
+            Run an ImageJ1 style macro script
+            :param macro: The macro code
+            :param args: Arguments for the script as a dictionary of key/value pairs
+            :return:
+            """
             if args is None:
                 return self._ij.script().run("macro.ijm", macro, True).get()
             else:
                 return self._ij.script().run("macro.ijm", macro, True, to_java(args)).get()
 
         def run_script(self, language, script, args=None):
+            """
+            Run a script in an IJ scripting language
+            :param language: The file extension for the scripting language
+            :param script: A string containing the script code
+            :param args: Arguments for the script as a dictionary of key/value pairs
+            :return:
+            """
             script_lang = self._ij.script().getLanguageByName(language)
             if script_lang is None:
                 script_lang = self._ij.script().getLanguageByExtension(language)
@@ -165,16 +184,25 @@ def init(ij_dir_or_version_or_endpoint=None, headless=True):
             return self._ij.script().run("script." + ext, script, True, to_java(args)).get()
 
         def to_java(self, data):
+            """
+            Converts the data into a java equivalent.  For numpy arrays, the java image points to the python array
+            """
             if type(data) == numpy.ndarray:
                 return imglyb.to_imglib(data)
             return to_java(data)
 
         def to_dataset(self, data):
+            """
+            Converts the data into a ImageJ Dataset
+            """
             if self._ij.convert().supports(data, Dataset):
                 return self._ij.convert().convert(data, Dataset)
             raise TypeError('Cannot convert to dataset: ' + str(type(data)))
 
         def from_java(self, data):
+            """
+            Converts the data into a python equivalent
+            """
             if not isjava(data): return data
             if self._ij.convert().supports(data, Dataset):
                 # HACK: Converter exists for ImagePlus -> Dataset, but not ImagePlus -> RAI.
