@@ -47,14 +47,11 @@ See also `test/test_imagej.py` for other examples of usage.
 
 ## Requirements
 
-    imagej_server:
-    - requests
-    - Pillow
+The imagej.server module has its own requirements:
 
-Use `pip install -r server_requirements.txt` to install requirements for server.
-
-`Pillow` is required for the imagej.server module's `IJ.show()` function.
-In addition, `display` or `xv` needs to exist in your system to view the image.
+* `requests` is required to communicate with the ImageJ server.
+* `pillow` is required for the `imagej.server.IJ.show()` function.
+  In addition, `display` or `xv` must be available to view the image.
 
 ## Usage
 

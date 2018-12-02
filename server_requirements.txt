@@ -1,3 +1,0 @@
-# for server only
-requests
-Pillow
