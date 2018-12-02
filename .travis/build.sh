@@ -1,16 +1,25 @@
 #!/bin/bash
 
-sudo apt-get update
+die () {
+	echo "$*" >&2
+	exit 1
+}
+
+check () {
+	while test $# -gt 0
+	do
+		which "$1" || sudo apt -y install "$1" || die "Could not install $1"
+		shift
+	done
+}
 
 # -- create a test enviroment --
 conda create -q -f environment.yml
 source activate imagej
 conda install -q -y python=$TRAVIS_PYTHON_VERSION
 
-# -- install supporting tools --
-sudo apt -y install curl
-sudo apt -y install git
-sudo apt -y install unzip
+# -- ensure supporting tools are available --
+check curl git unzip
 
 cd
 
