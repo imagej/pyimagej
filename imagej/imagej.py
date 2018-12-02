@@ -194,6 +194,16 @@ def init(ij_dir_or_version_or_endpoint=None, headless=True):
     return ij
 
 
+def imagej_main():
+    import sys
+    args = []
+    for i in range(1, len(sys.argv)):
+        args.append(sys.argv[i])
+    ij = init(headless='--headless' in args)
+    # TODO: Investigate why ij.launch(args) doesn't work.
+    ij.ui().showUI()
+
+
 def help():
     """
     print the instruction for using imagej module

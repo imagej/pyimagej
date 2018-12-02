@@ -29,5 +29,10 @@ setup(
         'scyjava',
         'pillow', # for server
         'requests' # for server
-    ]
+    ],
+    entry_points={
+        'console_scripts': [
+            'imagej=imagej.imagej:imagej_main'
+        ]
+    }
 )
