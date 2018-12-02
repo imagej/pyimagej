@@ -12,7 +12,7 @@ if "--ij" in sys.argv:
     ij = imagej.init(ij_dir)
     sys.argv = sys.argv[2:]
 else:
-    ij_dir = '/Applications/Fiji.app'
+    ij_dir = None # Use newest release version, downloaded from Maven.
     ij = imagej.init(ij_dir)
 
 
@@ -82,6 +82,10 @@ class TestImageJ(unittest.TestCase):
         self.assertEqual(result, correct_result)
 
     def testPluginsLoadUsingPairwiseStitching(self):
+        if ij_dir is None:
+            # HACK: Skip test if not testing with a local Fiji.app.
+            return
+
         macro = """
 
         newImage("Tile1", "8-bit random", 512, 512, 1);
