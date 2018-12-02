@@ -3,11 +3,9 @@
 sudo apt-get update
 
 # -- create a test enviroment --
-conda create -q -n imagej python=$TRAVIS_PYTHON_VERSION
+conda create -q -f environment.yml
 source activate imagej
-
-# -- install dependencies --
-conda install -c hanslovsky imglyb
+conda install -q -y python=$TRAVIS_PYTHON_VERSION
 
 # -- install supporting tools --
 sudo apt -y install curl
@@ -40,9 +38,6 @@ esac
 echo
 echo "--> Updating Fiji"
 Fiji.app/$launcher --update update-force-pristine
-
-# -- install imglyb --
-conda install -c hanslovsky imglyb
 
 # -- run the Python code --
 cd $TRAVIS_BUILD_DIR

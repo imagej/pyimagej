@@ -21,5 +21,13 @@ setup(
     long_description=pyimagej_long_description,
     long_description_content_type='text/markdown',
     license='Apache 2.0',
-    install_requires=['pyjnius', 'scyjava', 'imglyb']
+    install_requires=[
+        'imglyb',
+        'matplotlib',
+        'numpy',
+        'pyjnius',
+        'scyjava',
+        'pillow', # for server
+        'requests' # for server
+    ]
 )

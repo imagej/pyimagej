@@ -1,0 +1,12 @@
+name: imagej
+channels:
+  - conda-forge
+dependencies:
+  - imglyb
+  - matplotlib
+  - numpy
+  - openjdk=8
+  - pyjnius
+  - scyjava
+  - pillow # for server
+  - requests # for server
