@@ -56,6 +56,8 @@ ij_dir=$HOME/Fiji.app
 echo "ij_dir = $ij_dir"
 python setup.py install
 
-# -- run test with debug flag --
-cd test
-python -O test_imagej.py --ij "$ij_dir"
+# -- run tests with local Fiji.app --
+python -O test/test_imagej.py --ij "$ij_dir"
+
+# -- run tests with ImageJ from Maven repository --
+python -m unittest discover test -v
