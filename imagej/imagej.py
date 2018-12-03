@@ -85,7 +85,7 @@ def init(ij_dir_or_version_or_endpoint=None, headless=True):
         _debug('Local path to ImageJ installation given: ' + path)
         num_jars = set_ij_env(path)
         print("Added " + str(num_jars + 1) + " JARs to the Java classpath.")
-        plugins_dir = str(Path(ij_dir, 'plugins'))
+        plugins_dir = str(Path(path, 'plugins'))
         scyjava_config.add_options('-Dplugins.dir=' + plugins_dir)
 
     elif ':' in ij_dir_or_version_or_endpoint:
