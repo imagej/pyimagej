@@ -6,7 +6,7 @@ wrapper for imagej and python integration using ImgLyb
 # TODO: Unify version declaration to one place.
 # https://www.python.org/dev/peps/pep-0396/#deriving
 __version__ = '0.4.0.dev0'
-__author__ = 'Curtis Rueden & Yang Liu'
+__author__ = 'Curtis Rueden, Yang Liu, Michael Pinkert'
 
 import os
 import scyjava_config
