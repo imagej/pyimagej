@@ -111,7 +111,6 @@ def init(ij_dir_or_version_or_endpoint=None, headless=True):
     # Append some useful utility functions to the ImageJ gateway.
 
     from scyjava import jclass, isjava, to_java, to_python
-    from matplotlib import pyplot
 
     Dataset                  = autoclass('net.imagej.Dataset')
     RandomAccessibleInterval = autoclass('net.imglib2.RandomAccessibleInterval')
@@ -234,6 +233,12 @@ def init(ij_dir_or_version_or_endpoint=None, headless=True):
             """
             if image is None:
                 raise TypeError('Image must not be None')
+
+            # NB: Import this only here on demand, rather than above.
+            # Otherwise, some headless systems may experience errors
+            # like "ImportError: Failed to import any qt binding".
+            from matplotlib import pyplot
+
             pyplot.imshow(self.from_java(image), interpolation='nearest', cmap=cmap)
             pyplot.show()
 
