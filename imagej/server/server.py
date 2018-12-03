@@ -5,7 +5,7 @@ from requests.compat import urljoin
 
 # TODO: Unify version declaration to one place.
 # https://www.python.org/dev/peps/pep-0396/#deriving
-__version__ = '0.4.0'
+__version__ = '0.4.1.dev0'
 
 HOST = 'http://localhost:8080'
 
