@@ -39,6 +39,7 @@ If you want to have support for the graphical user interface:
 ```python
 import imagej
 ij = imagej.init(headless=False)
+ij.ui().showUI()
 ```
 
 Note there are issues with Java AWT via Python on macOS; see
@@ -49,7 +50,8 @@ for a workaround.
 
 By default, the ImageJ gateway will not include the
 [legacy layer](https://imagej.net/Legacy) for backwards compatibility with
-ImageJ 1.x. You can enable the legacy layer as follows:
+[ImageJ 1.x](https://imagej.net/ImageJ1).
+You can enable the legacy layer as follows:
 
 ```python
 import imagej
