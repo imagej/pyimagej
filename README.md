@@ -32,6 +32,16 @@ ij = imagej.init()
 This invocation will automatically download and cache the newest release of
 [net.imagej:imagej](http://maven.imagej.net/#nexus-search;gav~net.imagej~imagej~~~).
 
+#### Explicitly specified version
+
+You can specify a particular version, to facilitate reproducibility:
+
+```python
+import imagej
+ij = imagej.init('2.0.0-rc-68')
+ij.getVersion()
+```
+
 #### With graphical capabilities
 
 If you want to have support for the graphical user interface:
