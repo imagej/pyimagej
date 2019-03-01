@@ -18,6 +18,10 @@ See also:
 
 ## Usage
 
+### Quick start
+
+See [this Jupyter notebook](https://nbviewer.jupyter.org/github/imagej/tutorials/blob/master/notebooks/1-Using-ImageJ/6-ImageJ-with-Python-Kernel.ipynb).
+
 ### Creating the ImageJ gateway
 
 #### Newest available version
