@@ -7,9 +7,16 @@ It also provides a high-level entry point `imagej.IJ` for invoking
 [ImageJ Server](https://github.com/imagej/imagej-server) APIs;
 see "ImageJ Server" below for details.
 
-## Requirements
+## Installation
 
-Install dependencies using `conda env create -f environment.yml`.
+The recommended way to install `pyimagej` is to use the [Anaconda Python distribution](https://www.anaconda.com/distribution/).
+
+```python
+conda config --add channels conda-forge 
+conda install pyimagej
+```
+
+You can install the required dependencies using `conda env create -f environment.yml`.
 
 See also:
 
