@@ -9,6 +9,7 @@ __version__ = '0.4.1.dev0'
 __author__ = 'Curtis Rueden, Yang Liu, Michael Pinkert'
 
 import os
+import logging
 import scyjava_config
 import jnius_config
 from pathlib import Path
@@ -60,7 +61,7 @@ def set_ij_env(ij_dir):
     return len(jars)
 
 
-def init(ij_dir_or_version_or_endpoint=None, headless=True):
+def init(ij_dir_or_version_or_endpoint=None, headless=True, new_instance=False):
     """
     Initialize the ImageJ environment.
 
@@ -69,8 +70,16 @@ def init(ij_dir_or_version_or_endpoint=None, headless=True):
         OR version of net.imagej:imagej artifact to launch (e.g. 2.0.0-rc-67),
         OR endpoint of another artifact (e.g. sc.fiji:fiji) that uses imagej.
     :param headless: Whether to start the JVM in headless or gui mode.
+    :param new_instance: If JVM is already running, setting this parameter to
+        True will create a new ImageJ instance.
     :return: an instance of the net.imagej.ImageJ gateway
     """
+
+    global ij
+
+    if jnius_config.vm_running and not new_instance:
+        logging.warning('The JVM is already running.')
+        return ij
 
     if not jnius_config.vm_running:
 
