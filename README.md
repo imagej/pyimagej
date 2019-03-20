@@ -11,7 +11,7 @@ see "ImageJ Server" below for details.
 
 The recommended way to install `pyimagej` is to use the [Anaconda Python distribution](https://www.anaconda.com/distribution/).
 
-```python
+```bash
 conda config --add channels conda-forge 
 conda install pyimagej
 ```
