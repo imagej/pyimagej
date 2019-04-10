@@ -135,7 +135,7 @@ def init(ij_dir_or_version_or_endpoint=None, headless=True, new_instance=False):
             """
             Return the dimensions of the equivalent numpy array for the image.  Reverse dimension order from Java.
             """
-            if isinstance(image, numpy.ndarray):
+            if self._is_arraylike(image):
                 return image.shape
             if not isjava(image):
                 raise TypeError('Unsupported type: ' + str(type(image)))
@@ -211,7 +211,7 @@ def init(ij_dir_or_version_or_endpoint=None, headless=True, new_instance=False):
             """
             Converts the data into a java equivalent.  For numpy arrays, the java image points to the python array
             """
-            if type(data) == numpy.ndarray:
+            if self._is_memoryarraylike(data):
                 return imglyb.to_imglib(data)
             return to_java(data)
 
@@ -253,6 +253,17 @@ def init(ij_dir_or_version_or_endpoint=None, headless=True, new_instance=False):
 
             pyplot.imshow(self.from_java(image), interpolation='nearest', cmap=cmap)
             pyplot.show()
+
+        def _is_arraylike(self, arr):
+            return hasattr(arr, 'shape') and \
+                hasattr(arr, 'dtype') and \
+                hasattr(arr, '__array__') and \
+                hasattr(arr, 'ndim')
+
+        def _is_memoryarraylike(self, arr):
+            return self._is_arraylike(arr) and \
+                hasattr(arr, 'data') and \
+                type(arr.data).__name__ == 'memoryview'
 
         def _assemble_plugin_macro(self, plugin: str, args=None, ij1_style=True):
             """
