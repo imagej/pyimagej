@@ -15,16 +15,15 @@ import jnius_config
 from pathlib import Path
 import numpy
 
+_logger = logging.getLogger(__name__)
 
-def _debug(message):
-    """
-    print debug message
-
-    :param message: Debug message to be printed
-    :return: None
-    """
-    if not __debug__:
-        print(message)
+# Enable debug logging if DEBUG environment variable is set.
+try:
+    debug = os.environ['DEBUG']
+    if debug:
+        _logger.setLevel(logging.DEBUG)
+except KeyError as e:
+    pass
 
 
 def search_for_jars(ij_dir, subfolder):
@@ -40,7 +39,7 @@ def search_for_jars(ij_dir, subfolder):
             if f.endswith('.jar'):
                 path = root + '/' + f
                 jars.append(path)
-                _debug('Added ' + path)
+                _logger.debug('Added %s', path)
     return jars
 
 
@@ -88,28 +87,28 @@ def init(ij_dir_or_version_or_endpoint=None, headless=True, new_instance=False):
 
         if ij_dir_or_version_or_endpoint is None:
             # Use latest release of ImageJ.
-            _debug('Using newest ImageJ release')
+            _logger.debug('Using newest ImageJ release')
             scyjava_config.add_endpoints('net.imagej:imagej')
 
         elif os.path.isdir(ij_dir_or_version_or_endpoint):
             # Assume path to local ImageJ installation.
             path = ij_dir_or_version_or_endpoint
-            _debug('Local path to ImageJ installation given: ' + path)
+            _logger.debug('Local path to ImageJ installation given: %s', path)
             num_jars = set_ij_env(path)
-            print("Added " + str(num_jars + 1) + " JARs to the Java classpath.")
+            _logger.info("Added " + str(num_jars + 1) + " JARs to the Java classpath.")
             plugins_dir = str(Path(path, 'plugins'))
             scyjava_config.add_options('-Dplugins.dir=' + plugins_dir)
 
         elif ':' in ij_dir_or_version_or_endpoint:
             # Assume endpoint of an artifact.
             endpoint = ij_dir_or_version_or_endpoint
-            _debug('Maven coordinate given: ' + endpoint)
+            _logger.debug('Maven coordinate given: %s', endpoint)
             scyjava_config.add_endpoints(endpoint)
 
         else:
             # Assume version of net.imagej:imagej.
             version = ij_dir_or_version_or_endpoint
-            _debug('ImageJ version given: ' + version)
+            _logger.debug('ImageJ version given: %s', version)
             scyjava_config.add_endpoints('net.imagej:imagej:' + version)
 
     # Must import imglyb (not scyjava) to spin up the JVM now.
