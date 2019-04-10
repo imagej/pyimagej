@@ -9,19 +9,14 @@ see "ImageJ Server" below for details.
 
 ## Installation
 
-The recommended way to install `pyimagej` is to use the [Anaconda Python distribution](https://www.anaconda.com/distribution/).
+The recommended way to install `pyimagej` is with [Conda](https://conda.io/):
 
-```bash
+```
 conda config --add channels conda-forge 
-conda install pyimagej
+conda install pyimagej openjdk=8
 ```
 
-You can install the required dependencies using `conda env create -f environment.yml`.
-
-See also:
-
-* [scyjava](https://github.com/scijava/scyjava)
-* [imglyb](https://github.com/imglib/imglyb)
+The above installs it with OpenJDK 8; if you leave off the `openjdk=8` it will install OpenJDK 11 by default, which should also work, but is less well tested and may have more rough edges.
 
 ## Usage
 
