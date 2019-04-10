@@ -9,7 +9,9 @@ __version__ = '0.4.1.dev0'
 __author__ = 'Curtis Rueden, Yang Liu, Michael Pinkert'
 
 import os
+import logging
 import scyjava_config
+import jnius_config
 from pathlib import Path
 import numpy
 
@@ -59,7 +61,7 @@ def set_ij_env(ij_dir):
     return len(jars)
 
 
-def init(ij_dir_or_version_or_endpoint=None, headless=True):
+def init(ij_dir_or_version_or_endpoint=None, headless=True, new_instance=False):
     """
     Initialize the ImageJ environment.
 
@@ -68,37 +70,47 @@ def init(ij_dir_or_version_or_endpoint=None, headless=True):
         OR version of net.imagej:imagej artifact to launch (e.g. 2.0.0-rc-67),
         OR endpoint of another artifact (e.g. sc.fiji:fiji) that uses imagej.
     :param headless: Whether to start the JVM in headless or gui mode.
+    :param new_instance: If JVM is already running, setting this parameter to
+        True will create a new ImageJ instance.
     :return: an instance of the net.imagej.ImageJ gateway
     """
 
-    if headless:
-        scyjava_config.add_options('-Djava.awt.headless=true')
+    global ij
 
-    if ij_dir_or_version_or_endpoint is None:
-        # Use latest release of ImageJ.
-        _debug('Using newest ImageJ release')
-        scyjava_config.add_endpoints('net.imagej:imagej')
+    if jnius_config.vm_running and not new_instance:
+        logging.warning('The JVM is already running.')
+        return ij
 
-    elif os.path.isdir(ij_dir_or_version_or_endpoint):
-        # Assume path to local ImageJ installation.
-        path = ij_dir_or_version_or_endpoint
-        _debug('Local path to ImageJ installation given: ' + path)
-        num_jars = set_ij_env(path)
-        print("Added " + str(num_jars + 1) + " JARs to the Java classpath.")
-        plugins_dir = str(Path(path, 'plugins'))
-        scyjava_config.add_options('-Dplugins.dir=' + plugins_dir)
+    if not jnius_config.vm_running:
 
-    elif ':' in ij_dir_or_version_or_endpoint:
-        # Assume endpoint of an artifact.
-        endpoint = ij_dir_or_version_or_endpoint
-        _debug('Maven coordinate given: ' + endpoint)
-        scyjava_config.add_endpoints(endpoint)
+        if headless:
+            scyjava_config.add_options('-Djava.awt.headless=true')
 
-    else:
-        # Assume version of net.imagej:imagej.
-        version = ij_dir_or_version_or_endpoint
-        _debug('ImageJ version given: ' + version)
-        scyjava_config.add_endpoints('net.imagej:imagej:' + version)
+        if ij_dir_or_version_or_endpoint is None:
+            # Use latest release of ImageJ.
+            _debug('Using newest ImageJ release')
+            scyjava_config.add_endpoints('net.imagej:imagej')
+
+        elif os.path.isdir(ij_dir_or_version_or_endpoint):
+            # Assume path to local ImageJ installation.
+            path = ij_dir_or_version_or_endpoint
+            _debug('Local path to ImageJ installation given: ' + path)
+            num_jars = set_ij_env(path)
+            print("Added " + str(num_jars + 1) + " JARs to the Java classpath.")
+            plugins_dir = str(Path(path, 'plugins'))
+            scyjava_config.add_options('-Dplugins.dir=' + plugins_dir)
+
+        elif ':' in ij_dir_or_version_or_endpoint:
+            # Assume endpoint of an artifact.
+            endpoint = ij_dir_or_version_or_endpoint
+            _debug('Maven coordinate given: ' + endpoint)
+            scyjava_config.add_endpoints(endpoint)
+
+        else:
+            # Assume version of net.imagej:imagej.
+            version = ij_dir_or_version_or_endpoint
+            _debug('ImageJ version given: ' + version)
+            scyjava_config.add_endpoints('net.imagej:imagej:' + version)
 
     # Must import imglyb (not scyjava) to spin up the JVM now.
     import imglyb
