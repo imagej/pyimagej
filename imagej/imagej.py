@@ -26,6 +26,11 @@ except KeyError as e:
     pass
 
 
+def _dump_exception(exc):
+    if _logger.isEnabledFor(logging.DEBUG) and hasattr(exc, 'stacktrace'):
+        _logger.debug("\n\tat ".join([str(e) for e in exc.stacktrace]))
+
+
 def search_for_jars(ij_dir, subfolder):
     """
     Search and add .jars ile to a list
@@ -180,10 +185,14 @@ def init(ij_dir_or_version_or_endpoint=None, headless=True, new_instance=False):
             :param args: Arguments for the script as a dictionary of key/value pairs
             :return:
             """
-            if args is None:
-                return self._ij.script().run("macro.ijm", macro, True).get()
-            else:
-                return self._ij.script().run("macro.ijm", macro, True, to_java(args)).get()
+            try:
+                if args is None:
+                    return self._ij.script().run("macro.ijm", macro, True).get()
+                else:
+                    return self._ij.script().run("macro.ijm", macro, True, to_java(args)).get()
+            except Exception as exc:
+                _dump_exception(exc)
+                raise exc
 
         def run_script(self, language, script, args=None):
             """
@@ -202,9 +211,13 @@ def init(ij_dir_or_version_or_endpoint=None, headless=True, new_instance=False):
             if exts.isEmpty():
                 raise ValueError("Script language '" + script_lang.getLanguageName() + "' has no extensions")
             ext = exts.get(0)
-            if args is None:
-                return self._ij.script().run("script." + ext, script, True).get()
-            return self._ij.script().run("script." + ext, script, True, to_java(args)).get()
+            try:
+                if args is None:
+                    return self._ij.script().run("script." + ext, script, True).get()
+                return self._ij.script().run("script." + ext, script, True, to_java(args)).get()
+            except Exception as exc:
+                _dump_exception(exc)
+                raise exc
 
         def to_java(self, data):
             """
@@ -218,8 +231,12 @@ def init(ij_dir_or_version_or_endpoint=None, headless=True, new_instance=False):
             """
             Converts the data into a ImageJ Dataset
             """
-            if self._ij.convert().supports(data, Dataset):
-                return self._ij.convert().convert(data, Dataset)
+            try:
+                if self._ij.convert().supports(data, Dataset):
+                    return self._ij.convert().convert(data, Dataset)
+            except Exception as exc:
+                _dump_exception(exc)
+                raise exc
             raise TypeError('Cannot convert to dataset: ' + str(type(data)))
 
         def from_java(self, data):
@@ -227,12 +244,16 @@ def init(ij_dir_or_version_or_endpoint=None, headless=True, new_instance=False):
             Converts the data into a python equivalent
             """
             if not isjava(data): return data
-            if self._ij.convert().supports(data, Dataset):
-                # HACK: Converter exists for ImagePlus -> Dataset, but not ImagePlus -> RAI.
-                data = self._ij.convert().convert(data, Dataset)
-            if (self._ij.convert().supports(data, RandomAccessibleInterval)):
-                rai = self._ij.convert().convert(data, RandomAccessibleInterval)
-                return self.rai_to_numpy(rai)
+            try:
+                if self._ij.convert().supports(data, Dataset):
+                    # HACK: Converter exists for ImagePlus -> Dataset, but not ImagePlus -> RAI.
+                    data = self._ij.convert().convert(data, Dataset)
+                if (self._ij.convert().supports(data, RandomAccessibleInterval)):
+                    rai = self._ij.convert().convert(data, RandomAccessibleInterval)
+                    return self.rai_to_numpy(rai)
+            except Exception as exc:
+                _dump_exception(exc)
+                raise exc
             return to_python(data)
 
         def show(self, image, cmap=None):
