@@ -26,7 +26,14 @@ conda activate pyimagej
 
 2. The above command installs pyimagej with OpenJDK 8; if you leave off the `openjdk=8` it will install OpenJDK 11 by default, which should also work, but is less well tested and may have more rough edges.
 
-3. If you would prefer to install pyimagej via pip: more legwork is required. See [this thread](https://forum.image.sc/t/how-do-i-install-pyimagej/23189/4) for hints.
+3. It is possible to dynamically install pyimagej from within a Jupyter notebook:
+
+    ```
+    import sys
+    !conda install --yes --prefix {sys.prefix} -c conda-forge pyimagej openjdk=8
+    ```
+
+4. If you would prefer to install pyimagej via pip: more legwork is required. See [this thread](https://forum.image.sc/t/how-do-i-install-pyimagej/23189/4) for hints.
 
 ## Usage
 
