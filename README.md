@@ -9,12 +9,26 @@ see "ImageJ Server" below for details.
 
 ## Installation
 
-The recommended way to install `pyimagej` is with [Conda](https://conda.io/):
+1. Install [Conda](https://conda.io/):
+    * On Windows, install Conda using [Chocolatey](https://chocolatey.org): `choco install miniconda3`
+    * On macOS, install Conda using [Homebrew](https://brew.sh): `brew install miniconda`
+    * On Linux, install Conda using its [RPM or Debian package](https://www.anaconda.com/rpm-and-debian-repositories-for-miniconda/), or [with the Miniconda install script](https://docs.conda.io/projects/conda/en/latest/user-guide/install/linux.html).
 
-```
-conda create -n pyimagej pyimagej openjdk=8
-conda activate pyimagej
-```
+2. [Activate the conda-forge channel](https://conda-forge.org/docs/user/introduction.html#how-can-i-install-packages-from-conda-forge):
+    ```
+    conda config --add channels conda-forge
+    conda config --set channel_priority strict
+    ```
+
+3. Install pyimagej into a new conda environment:
+    ```
+    conda create -n pyimagej pyimagej openjdk=8
+    ```
+
+4. Whenever you want to use pyimagej, activate its environment:
+    ```
+    conda activate pyimagej
+    ```
 
 ### Installation asides
 
