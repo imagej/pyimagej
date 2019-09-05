@@ -40,6 +40,15 @@ see "ImageJ Server" below for details.
 
 * The above command installs pyimagej with OpenJDK 8; if you leave off the `openjdk=8` it will install OpenJDK 11 by default, which should also work, but is less well tested and may have more rough edges.
 
+* If you are using Windows and receive the error:
+    ```
+    ImportError: DLL load failed: The specified module could not be found.
+    ```
+    You can work around it by adding Java's `jre\bin\server` folder to your `PATH`:
+    ```
+    $env:Path += ";$Env:CONDA_PREFIX\Library\jre\bin\server"
+    ```
+
 * It is possible to dynamically install pyimagej from within a Jupyter notebook:
 
     ```
