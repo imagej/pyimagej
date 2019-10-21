@@ -1,5 +1,10 @@
 # Python wrapper for ImageJ
 
+CTR START HERE - see also imglib/imglyb - and TODO scijava/scyjava, scijava/jgo
+[![License](https://img.shields.io/pypi/l/pyimagej.svg)](https://github.com/imagej/pyimagej/raw/master/LICENSE)
+[![Conda](https://img.shields.io/conda/dn/conda-forge/pyimagej)
+[![PyPI](https://img.shields.io/pypi/v/pyimagej.svg)](https://pypi.org/project/pyimagej)
+
 [`pyimagej`](https://github.com/imagej/pyimagej) provides a set of
 wrapper functions for integration between ImageJ and Python.
 
