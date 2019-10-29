@@ -130,6 +130,21 @@ ij = imagej.init('/Applications/Fiji.app')
 
 Replace `/Applications/Fiji.app` with the actual location of your installation.
 
+#### With more memory available to Java
+
+Java's virtual machine (the JVM) has a "max heap" value limiting how much
+memory it can use. You can increase the value as follows:
+
+```python
+import scyjava_config
+scyjava_config.add_options('-Xmx6g')
+import imagej
+ij = imagej.init()
+```
+
+Replace `6g` with the amount of memory Java should have. You can also pass
+[other JVM arguments](https://docs.oracle.com/javase/8/docs/technotes/tools/unix/java.html).
+
 ### Using the ImageJ gateway
 
 Once you have your ImageJ gateway, you can start using it. Here is an example:
