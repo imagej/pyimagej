@@ -107,7 +107,7 @@ def init(ij_dir_or_version_or_endpoint=None, headless=True, new_instance=False):
         elif re.match('^(/|[A-Za-z]:)', ij_dir_or_version_or_endpoint):
             # Looks like a file path was intended, but it's not a folder.
             path = ij_dir_or_version_or_endpoint
-            _debug('Local path given is not a directory: ' + path)
+            _logger.error('Local path given is not a directory: %s', path)
             return False
 
         elif ':' in ij_dir_or_version_or_endpoint:
