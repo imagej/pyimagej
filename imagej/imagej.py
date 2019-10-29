@@ -8,7 +8,7 @@ wrapper for imagej and python integration using ImgLyb
 __version__ = '0.4.1.dev0'
 __author__ = 'Curtis Rueden, Yang Liu, Michael Pinkert'
 
-import os
+import os, re
 import logging
 import scyjava_config
 import jnius_config
@@ -103,6 +103,12 @@ def init(ij_dir_or_version_or_endpoint=None, headless=True, new_instance=False):
             _logger.info("Added " + str(num_jars + 1) + " JARs to the Java classpath.")
             plugins_dir = str(Path(path, 'plugins'))
             scyjava_config.add_options('-Dplugins.dir=' + plugins_dir)
+
+        elif re.match('^(/|[A-Za-z]:)', ij_dir_or_version_or_endpoint):
+            # Looks like a file path was intended, but it's not a folder.
+            path = ij_dir_or_version_or_endpoint
+            _debug('Local path given is not a directory: ' + path)
+            return False
 
         elif ':' in ij_dir_or_version_or_endpoint:
             # Assume endpoint of an artifact.
