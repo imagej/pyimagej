@@ -82,7 +82,7 @@ def init(ij_dir_or_version_or_endpoint=None, headless=True, new_instance=False):
     global ij
 
     if jnius_config.vm_running and not new_instance:
-        logging.warning('The JVM is already running.')
+        _logger.warning('The JVM is already running.')
         return ij
 
     if not jnius_config.vm_running:
