@@ -11,7 +11,7 @@ setup(
     name='pyimagej',
     # TODO: Unify version declaration to one place.
     # https://www.python.org/dev/peps/pep-0396/#deriving
-    version= '0.5.0',
+    version= '0.5.1.dev0',
     author='Curtis Rueden, Leon Yang, Yang Liu, Michael Pinkert',
     author_email='ctrueden@wisc.edu',
     url='https://github.com/imagej/pyimagej',
