@@ -334,6 +334,20 @@ def init(ij_dir_or_version_or_endpoint=None, headless=True, new_instance=False):
             return final_value
 
     ij.py = ImageJPython(ij)
+
+    if not headless:
+        WindowManager            = autoclass('ij.WindowManager')
+        ij.window = WindowManager
+        def to_window(array, name=None):
+            """
+            Converts the numpy array into an image window with the specified name
+            """
+            if name is None:
+                ij.ui().show(ij.py.to_java(array))
+            else:
+                ij.ui().show(name, ij.py.to_java(array))
+        ij.window.to_window = to_window
+
     return ij
 
 
