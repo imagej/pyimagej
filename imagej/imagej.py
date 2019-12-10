@@ -8,8 +8,7 @@ wrapper for imagej and python integration using ImgLyb
 __version__ = '0.5.1.dev0'
 __author__ = 'Curtis Rueden, Yang Liu, Michael Pinkert'
 
-import os, re
-import logging
+import logging, os, re, sys
 import scyjava_config
 import jnius_config
 from pathlib import Path
@@ -334,11 +333,32 @@ def init(ij_dir_or_version_or_endpoint=None, headless=True, new_instance=False):
             return final_value
 
     ij.py = ImageJPython(ij)
+
+    # Forward stdout and stderr from Java to Python.
+
+    from jnius import PythonJavaClass, java_method
+
+    class JavaOutputListener(PythonJavaClass):
+        __javainterfaces__ = ['org/scijava/console/OutputListener']
+
+        @java_method('(Lorg/scijava/console/OutputEvent;)V')
+        def outputOccurred(self, e):
+            source = e.getSource().toString()
+            output = e.getOutput()
+            if source == 'STDOUT':
+                sys.stdout.write(output)
+            elif source == 'STDERR':
+                sys.stderr.write(output)
+            else:
+                sys.stderr.write('[{}] {}'.format(source, output))
+
+    ij.py._outputMapper = JavaOutputListener()
+    ij.console().addOutputListener(ij.py._outputMapper)
+
     return ij
 
 
 def imagej_main():
-    import sys
     args = []
     for i in range(1, len(sys.argv)):
         args.append(sys.argv[i])
