@@ -5,7 +5,7 @@ wrapper for imagej and python integration using ImgLyb
 
 # TODO: Unify version declaration to one place.
 # https://www.python.org/dev/peps/pep-0396/#deriving
-__version__ = '0.5.1.dev0'
+__version__ = '0.6.0.dev0'
 __author__ = 'Curtis Rueden, Yang Liu, Michael Pinkert'
 
 import logging, os, re, sys
@@ -156,6 +156,61 @@ def init(ij_dir_or_version_or_endpoint=None, headless=True, new_instance=False):
                 dims = [dim for dim in dims if dim > 1]
                 return dims
             raise TypeError('Unsupported Java type: ' + str(jclass(image).getName()))
+
+        def dtype(self, image_or_type):
+            """
+            Return the dtype of the equivalent numpy array for the given image or type.
+            """
+            if type(image_or_type) == numpy.dtype:
+                return image_or_type
+            if self._is_arraylike(image_or_type):
+                return image_or_type.dtype
+            if not isjava(image_or_type):
+                raise TypeError('Unsupported type: ' + str(type(image_or_type)))
+
+            # -- ImgLib2 types --
+            if jclass('net.imglib2.type.Type').isInstance(image_or_type):
+                ij2_types = {
+                    'net.imglib2.type.numeric.integer.ByteType':          'int8',
+                    'net.imglib2.type.numeric.integer.ShortType':         'int16',
+                    'net.imglib2.type.numeric.integer.IntType':           'int32',
+                    'net.imglib2.type.numeric.integer.LongType':          'int64',
+                    'net.imglib2.type.numeric.integer.UnsignedByteType':  'uint8',
+                    'net.imglib2.type.numeric.integer.UnsignedShortType': 'uint16',
+                    'net.imglib2.type.numeric.integer.UnsignedIntType':   'uint32',
+                    'net.imglib2.type.numeric.integer.UnsignedLongType':  'uint64',
+                    'net.imglib2.type.numeric.real.FloatType':            'float32',
+                    'net.imglib2.type.numeric.real.DoubleType':           'float64',
+                }
+                for c in ij2_types:
+                    if jclass(c).isInstance(image_or_type):
+                        return numpy.dtype(ij2_types[c])
+                raise TypeError('Unsupported ImgLib2 type: {}'.format(image_or_type))
+
+            # -- ImgLib2 images --
+            if jclass('net.imglib2.IterableInterval').isInstance(image_or_type):
+                ij2_type = image_or_type.firstElement()
+                return self.dtype(ij2_type)
+            if jclass('net.imglib2.RandomAccessibleInterval').isInstance(image_or_type):
+                Util = autoclass('net.imglib2.util.Util')
+                ij2_type = Util.getTypeFromInterval(image_or_type)
+                return self.dtype(ij2_type)
+
+            # -- ImageJ1 images --
+            if jclass('ij.ImagePlus').isInstance(image_or_type):
+                ij1_type = image_or_type.getType()
+                ImagePlus = autoclass('ij.ImagePlus')
+                ij1_types = {
+                    ImagePlus.GRAY8:  'uint8',
+                    ImagePlus.GRAY16: 'uint16',
+                    ImagePlus.GRAY32: 'float32', # NB: ImageJ1's 32-bit type is float32, not uint32.
+                }
+                for t in ij1_types:
+                    if ij1_type == t:
+                        return numpy.dtype(ij1_types[c])
+                raise TypeError('Unsupported ImageJ1 type: {}'.format(ij1_type))
+
+            raise TypeError('Unsupported Java type: ' + str(jclass(image_or_type).getName()))
 
         def new_numpy_image(self, image):
             """
