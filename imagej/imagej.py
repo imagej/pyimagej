@@ -217,7 +217,11 @@ def init(ij_dir_or_version_or_endpoint=None, headless=True, new_instance=False):
             Creates a numpy image (NOT a Java image) dimensioned the same as
             the given image, and with the same pixel type as the given image.
             """
-            return numpy.zeros(self.dims(image), dtype=self.dtype(image))
+            try:
+                dtype_to_use = self.dtype(image)
+            except TypeError:
+                dtype_to_use = numpy.dtype('float64')
+            return numpy.zeros(self.dims(image), dtype=dtype_to_use)
 
         def rai_to_numpy(self, rai):
             """
