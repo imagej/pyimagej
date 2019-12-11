@@ -214,10 +214,10 @@ def init(ij_dir_or_version_or_endpoint=None, headless=True, new_instance=False):
 
         def new_numpy_image(self, image):
             """
-            Creates a numpy image (NOT a Java image)
-            dimensioned the same as the given image.
+            Creates a numpy image (NOT a Java image) dimensioned the same as
+            the given image, and with the same pixel type as the given image.
             """
-            return numpy.zeros(self.dims(image))
+            return numpy.zeros(self.dims(image), dtype=self.dtype(image))
 
         def rai_to_numpy(self, rai):
             """
