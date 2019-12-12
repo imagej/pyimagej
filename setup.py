@@ -1,4 +1,4 @@
-from setuptools import setup
+from setuptools import setup, find_packages
 from os import path
 
 here = path.abspath(path.dirname(__file__))
@@ -15,7 +15,7 @@ setup(
     author='Curtis Rueden, Leon Yang, Yang Liu, Michael Pinkert',
     author_email='ctrueden@wisc.edu',
     url='https://github.com/imagej/pyimagej',
-    packages=['imagej'],
+    packages=find_packages(),
     platforms=['any'],
     description='Python wrapper for ImageJ',
     long_description=pyimagej_long_description,
