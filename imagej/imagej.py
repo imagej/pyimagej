@@ -171,7 +171,7 @@ def init(ij_dir_or_version_or_endpoint=None, headless=True, new_instance=False):
             # -- ImgLib2 types --
             if jclass('net.imglib2.type.Type').isInstance(image_or_type):
                 ij2_types = {
-                    'net.imglib2.type.numeric.integer.BitType':           'bool',
+                    'net.imglib2.type.logic.BitType':                     'bool',
                     'net.imglib2.type.numeric.integer.ByteType':          'int8',
                     'net.imglib2.type.numeric.integer.ShortType':         'int16',
                     'net.imglib2.type.numeric.integer.IntType':           'int32',
