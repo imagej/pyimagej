@@ -55,6 +55,11 @@ see "ImageJ Server" below for details.
   notebook](https://github.com/InsightSoftwareConsortium/itkwidgets/blob/v0.24.2/examples/ImageJImgLib2.ipynb)
   for an example.
 
+* It is possible to dynamically install pyimagej on
+  [Google Colab](https://colab.research.google.com/). See
+  [this thread](https://forum.image.sc/t/pyimagej-on-google-colab/32804) for
+  guidance. A major advantage of Google Colab is free GPU in the cloud.
+
 * If you would prefer to install pyimagej via pip, more legwork is required.
   See [this thread](https://forum.image.sc/t/how-do-i-install-pyimagej/23189/4)
   for hints.
