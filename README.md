@@ -32,13 +32,15 @@ see "ImageJ Server" below for details.
 
 ### Installation asides
 
-* If you want to use [scikit-image](https://scikit-image.org/) in conjunction, as demonstrated below, you can install it also via:
-
+* If you want to use [scikit-image](https://scikit-image.org/) in conjunction,
+  as demonstrated below, you can install it also via:
     ```
     conda install scikit-image
     ```
 
-* The above command installs pyimagej with OpenJDK 8; if you leave off the `openjdk=8` it will install OpenJDK 11 by default, which should also work, but is less well tested and may have more rough edges.
+* The above command installs pyimagej with OpenJDK 8; if you leave off the
+  `openjdk=8` it will install OpenJDK 11 by default, which should also work, but
+  is less well tested and may have more rough edges.
 
 * It is possible to dynamically install pyimagej from within a Jupyter notebook:
 
@@ -47,7 +49,9 @@ see "ImageJ Server" below for details.
     !conda install --yes --prefix {sys.prefix} -c conda-forge pyimagej openjdk=8
     ```
 
-* If you would prefer to install pyimagej via pip, more legwork is required. See [this thread](https://forum.image.sc/t/how-do-i-install-pyimagej/23189/4) for hints.
+* If you would prefer to install pyimagej via pip, more legwork is required.
+  See [this thread](https://forum.image.sc/t/how-do-i-install-pyimagej/23189/4)
+  for hints.
 
 ## Usage
 
