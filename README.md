@@ -11,7 +11,7 @@ see "ImageJ Server" below for details.
 
 1. Install [Conda](https://conda.io/):
     * On Windows, install Conda using [Chocolatey](https://chocolatey.org): `choco install miniconda3`
-    * On macOS, install Conda using [Homebrew](https://brew.sh): `brew install miniconda`
+    * On macOS, install Conda using [Homebrew](https://brew.sh): `brew cask install miniconda`
     * On Linux, install Conda using its [RPM or Debian package](https://www.anaconda.com/rpm-and-debian-repositories-for-miniconda/), or [with the Miniconda install script](https://docs.conda.io/projects/conda/en/latest/user-guide/install/linux.html).
 
 2. [Activate the conda-forge channel](https://conda-forge.org/docs/user/introduction.html#how-can-i-install-packages-from-conda-forge):
