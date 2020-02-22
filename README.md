@@ -24,8 +24,15 @@ see "ImageJ Server" below for details.
     ```
     conda create -n pyimagej pyimagej openjdk=8
     ```
+4. Initialize conda for shell interaction
+Run `conda init` with your <SHELL_NAME>.
+For example:
+   ```
+   conda init bash
+   ```
+After initialization you might need to open a new shell.
 
-4. Whenever you want to use pyimagej, activate its environment:
+5. Whenever you want to use pyimagej, activate its environment:
     ```
     conda activate pyimagej
     ```
