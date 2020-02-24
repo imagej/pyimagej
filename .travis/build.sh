@@ -16,9 +16,9 @@ check () {
 }
 
 # -- create a test enviroment --
-conda env create -q -f environment.yml
+conda create -n imagej -y python=$TRAVIS_PYTHON_VERSION
 source activate imagej
-conda install -q -y python=$TRAVIS_PYTHON_VERSION
+conda env update -f environment.yml
 
 # -- ensure supporting tools are available --
 check curl git unzip
