@@ -2,11 +2,11 @@ name: imagej
 channels:
   - conda-forge
 dependencies:
-  - imglyb
+  - imglyb=0.3.5
   - matplotlib
   - numpy
   - openjdk=8
-  - pyjnius
+  - pyjnius=1.2.0
   - scyjava
   - pillow # for server
   - requests # for server
