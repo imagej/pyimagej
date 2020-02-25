@@ -58,6 +58,9 @@ ij_dir=$HOME/Fiji.app
 echo "ij_dir = $ij_dir"
 python setup.py install
 
+# -- unset JAVA_HOME in case it was set --
+unset JAVA_HOME
+
 # -- run tests with local Fiji.app --
 python -O test/test_imagej.py --ij "$ij_dir"
 
