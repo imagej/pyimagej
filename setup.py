@@ -27,6 +27,7 @@ setup(
         'numpy',
         'pyjnius',
         'scyjava',
+        'xarray',
         'pillow', # for server
         'requests' # for server
     ],

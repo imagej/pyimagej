@@ -344,9 +344,9 @@ def init(ij_dir_or_version_or_endpoint=None, headless=True, new_instance=False):
                 origin = self._get_origin(xarr.coords[axis])
                 scale = self._get_scale(xarr.coords[axis])
 
-                axisStr = self._pydim_to_ijdim(axis)
+                axis_str = self._pydim_to_ijdim(axis)
 
-                ax_type = Axes.get(axisStr)
+                ax_type = Axes.get(axis_str)
                 ax_num = self._get_axis_num(xarr, axis)
                 if scale is None:
                     java_axis = DefaultLinearAxis(ax_type)
@@ -380,9 +380,11 @@ def init(ij_dir_or_version_or_endpoint=None, headless=True, new_instance=False):
             if numpy.isfortran(xarr.values):
                 return py_axnum
 
-            if xarr.dims[2] == 'c' and len(xarr.dims) == 3:
-                if axis == 2: return 2
-                else: return 1 - py_axnum
+            if xarr.dims[len(xarr.dims)-1] == 'c':
+                if axis == len(xarr.dims) - 1:
+                    return axis
+                else:
+                    return len(xarr.dims) - py_axnum - 2
             else:
                 return len(xarr.dims) - py_axnum - 1
 
@@ -447,7 +449,7 @@ def init(ij_dir_or_version_or_endpoint=None, headless=True, new_instance=False):
                     # HACK: Converter exists for ImagePlus -> Dataset, but not ImagePlus -> RAI.
                     data = self._ij.convert().convert(data, Dataset)
                     return self._dataset_to_xarray(data)
-                if (self._ij.convert().supports(data, RandomAccessibleInterval)):
+                if self._ij.convert().supports(data, RandomAccessibleInterval):
                     rai = self._ij.convert().convert(data, RandomAccessibleInterval)
                     return self.rai_to_numpy(rai)
             except Exception as exc:
@@ -468,16 +470,27 @@ def init(ij_dir_or_version_or_endpoint=None, headless=True, new_instance=False):
             dims = [self._ijdim_to_pydim(axes[idx].type().getLabel()) for idx in range(len(axes))]
             values = self.rai_to_numpy(dataset)
 
-            if len(dims) == 3 and dims[2] == 'c':
-                shape = numpy.shape(values)
-                coords=self._get_axes_coords(axes, dims, [shape[1], shape[0], shape[2]])
-                xarr_dims = [dims[1], dims[0], dims[2]]
+            if dims[len(dims)-1] == 'c':
+                shape = self._invert_except_last_element(numpy.shape(values))
+                coords=self._get_axes_coords(axes, dims, shape)
+                xarr_dims = self._invert_except_last_element(dims)
             else:
                 coords = self._get_axes_coords(axes, dims, numpy.shape(numpy.transpose(values)))
                 xarr_dims = list(reversed(dims))
 
             xarr = xr.DataArray(values, dims=xarr_dims, coords=coords, attrs=attrs)
             return xarr
+
+        def _invert_except_last_element(self, lst):
+            """
+            Invert a list except for the last element.
+            :param lst:
+            :return:
+            """
+            cut_list = lst[0:-1]
+            reverse_cut = list(reversed(cut_list))
+            reverse_cut.append(lst[-1])
+            return reverse_cut
 
         def _get_axes_coords(self, axes, dims, shape):
             """
@@ -536,30 +549,30 @@ def init(ij_dir_or_version_or_endpoint=None, headless=True, new_instance=False):
             :return: A string version of the macro run
             """
             if args is None:
-                    macro = "run(\"{}\");".format(plugin)
-                    return macro
+                macro = "run(\"{}\");".format(plugin)
+                return macro
             macro = """run("{0}", \"""".format(plugin)
             for key, value in args.items():
-                    argument = self._format_argument(key, value, ij1_style)
-                    if argument is not None:
-                            macro = macro + ' {}'.format(argument)
+                argument = self._format_argument(key, value, ij1_style)
+                if argument is not None:
+                    macro = macro + ' {}'.format(argument)
             macro = macro + """\");"""
             return macro
 
         def _format_argument(self, key, value, ij1_style):
             if value is True:
-                    argument = '{}'.format(key)
-                    if not ij1_style:
-                            argument = argument + '=true'
+                argument = '{}'.format(key)
+                if not ij1_style:
+                    argument = argument + '=true'
             elif value is False:
-                    argument = None
-                    if not ij1_style:
-                            argument = '{0}=false'.format(key)
+                argument = None
+                if not ij1_style:
+                    argument = '{0}=false'.format(key)
             elif value is None:
-                    raise NotImplementedError('Conversion for None is not yet implemented')
+                raise NotImplementedError('Conversion for None is not yet implemented')
             else:
-                    val_str = self._format_value(value)
-                    argument = '{0}={1}'.format(key, val_str)
+                val_str = self._format_value(value)
+                argument = '{0}={1}'.format(key, val_str)
             return argument
 
         def _format_value(self, value):

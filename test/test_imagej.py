@@ -12,13 +12,14 @@ if "--ij" in sys.argv:
     ij = imagej.init(ij_dir)
     sys.argv = sys.argv[2:]
 else:
-    ij_dir = None # Use newest release version, downloaded from Maven.
+    ij_dir = None  # Use newest release version, downloaded from Maven.
     ij = imagej.init(ij_dir)
 
 
 from jnius import autoclass, cast
 import numpy as np
 import xarray as xr
+
 
 class TestImageJ(unittest.TestCase):
 
@@ -102,25 +103,21 @@ class TestImageJ(unittest.TestCase):
 
         self.assertEqual(result_name, 'Tile1<->Tile2')
 
-
     def main(self):
         unittest.main()
 
 
 class TestXarrayConversion(unittest.TestCase):
     @classmethod
-    def setUp(self):
-        self.xarr = xr.DataArray(np.random.rand(5, 4, 3, 6, 12), dims=['t', 'z', 'c', 'y', 'x'],
-                coords={'x': list(range(0, 12)), 'y': list(np.arange(0, 12, 2)), 'c': [0, 1, 2],
-                        'z': list(np.arange(10, 50, 10)), 't': list(np.arange(0, 0.05, 0.01))},
-                attrs={'Hello': 'Wrld'})
-        self.f_xarr = xr.DataArray(np.ndarray([5, 4, 3, 6, 12], order='F'), dims=['t', 'z', 'c', 'y', 'x'],
-                coords={'x': range(0, 12), 'y': np.arange(0, 12, 2),
-                        'z': np.arange(10, 50, 10), 't': np.arange(0, 0.05, 0.01)},
-                attrs={'Hello': 'Wrld'})
-        self.rgb_xarr = xr.DataArray(np.random.rand(4, 5, 3), dims=['y', 'x', 'c'],
-                                 coords={'y':list(range(0, 4)), 'x': list(range(0, 5)),
-                                         'c': ['R', 'G', 'B']})
+    def setUp(cls):
+        cls.xarr = xr.DataArray(np.random.rand(5, 4, 6, 12, 3), dims=['t', 'z', 'y', 'x', 'c'],
+                                coords={'x': list(range(0, 12)), 'y': list(np.arange(0, 12, 2)), 'c': [0, 1, 2],
+                                        'z': list(np.arange(10, 50, 10)), 't': list(np.arange(0, 0.05, 0.01))},
+                                attrs={'Hello': 'Wrld'})
+        cls.f_xarr = xr.DataArray(np.ndarray([5, 4, 3, 6, 12], order='F'), dims=['t', 'z', 'c', 'y', 'x'],
+                                  coords={'x': range(0, 12), 'y': np.arange(0, 12, 2),
+                                          'z': np.arange(10, 50, 10), 't': np.arange(0, 0.05, 0.01)},
+                                  attrs={'Hello': 'Wrld'})
 
     def testCstyleArrayWithLabeledDimsConverts(self):
         dataset = ij.py.to_java(self.xarr)
@@ -129,10 +126,10 @@ class TestXarrayConversion(unittest.TestCase):
         origins = [axis.origin() for axis in axes]
         scales = [axis.scale() for axis in axes]
 
-        self.assertListEqual(origins, [0, 0, 0, 10, 0])
-        self.assertListEqual(scales, [1, 2, 1, 10, 0.01])
+        self.assertListEqual(origins, [0, 0, 10, 0, 0])
+        self.assertListEqual(scales, [1, 2, 10, 0.01, 1])
 
-        self.assertListEqual(list(reversed(self.xarr.dims)), [label.lower() for label in labels])
+        self.assertListEqual(['X', 'Y', 'Z', 'T', 'C'], labels)
 
         self.assertEqual(self.xarr.attrs, ij.py.from_java(dataset.getProperties()))
 
@@ -160,21 +157,20 @@ class TestXarrayConversion(unittest.TestCase):
         self.assertEqual(self.xarr.attrs, invert_xarr.attrs)
 
     def testRGBImageMaintainsCorrectDimOrderOnConversion(self):
-        dataset = ij.py.to_java(self.rgb_xarr)
+        dataset = ij.py.to_java(self.xarr)
         # Transforming to dataset preserves location of c channel
-        axes = [cast('net.imagej.axis.LinearAxis', dataset.axis(axnum)) for axnum in range(3)]
+        axes = [cast('net.imagej.axis.LinearAxis', dataset.axis(axnum)) for axnum in range(5)]
         labels = [axis.type().getLabel() for axis in axes]
-        self.assertEqual(['X', 'Y', 'C'], labels)
+        self.assertEqual(['X', 'Y', 'Z', 'T', 'C'], labels)
 
         # Reversing back to xarray yields original results
         invert_xarr = ij.py.from_java(dataset)
-        self.assertTrue((self.rgb_xarr.values == invert_xarr.values).all())
-        self.assertEqual(list(self.rgb_xarr.dims), list(invert_xarr.dims))
-        for key in self.rgb_xarr.coords:
-            self.assertTrue((self.rgb_xarr.coords[key] == invert_xarr.coords[key]).all())
-        self.assertEqual(self.rgb_xarr.attrs, invert_xarr.attrs)
+        self.assertTrue((self.xarr.values == invert_xarr.values).all())
+        self.assertEqual(list(self.xarr.dims), list(invert_xarr.dims))
+        for key in self.xarr.coords:
+            self.assertTrue((self.xarr.coords[key] == invert_xarr.coords[key]).all())
+        self.assertEqual(self.xarr.attrs, invert_xarr.attrs)
+
 
 if __name__ == '__main__':
     unittest.main()
-
-
