@@ -320,7 +320,7 @@ def init(ij_dir_or_version_or_endpoint=None, headless=True, new_instance=False):
 
         def _xarray_to_dataset(self, xarr):
             """
-            Converts a xarray dataarray with specified dim order to an image
+            Converts a xarray dataarray to a dataset, inverting C-style (slow axis first) to F-style (slow-axis last)
             :param xarr: Pass an xarray dataarray and turn into a dataset.
             :return: The dataset
             """
@@ -459,7 +459,7 @@ def init(ij_dir_or_version_or_endpoint=None, headless=True, new_instance=False):
 
         def _dataset_to_xarray(self, dataset):
             """
-            Converts an ImageJ dataset into an xarray
+            Converts an ImageJ dataset into an xarray, inverting F-style (slow idx last) to C-style (slow idx first)
             :param dataset: ImageJ dataset
             :return: xarray with reversed (C-style) dims and coords as labeled by the dataset
             """
