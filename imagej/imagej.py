@@ -329,10 +329,6 @@ def init(ij_dir_or_version_or_endpoint=None, headless=True, new_instance=False):
             axes = self._assign_axes(xarr)
             dataset.setAxes(axes)
 
-            # Currently, we have no handling for nonlinear axes, but I thought it should warn instead of fail.
-            if not self._axis_is_linear(xarr.coords):
-                warnings.warn("Not all axes are linear.  The nonlinear axes are not mapped correctly.")
-            
             self._assign_dataset_metadata(dataset, xarr.attrs)
 
             return dataset
@@ -394,23 +390,6 @@ def init(ij_dir_or_version_or_endpoint=None, headless=True, new_instance=False):
             :param attrs: Dictionary containing metadata
             """
             dataset.getProperties().putAll(self.to_java(attrs))
-
-        def _axis_is_linear(self, coords):
-            """
-            Check if each axis has linear steps between grid points.  Skip over axes with non-numeric entries
-            :param coords: Xarray coords variable, which is a dict with axis: [axis values]
-            :return: Whether all axes are linear, or not.
-            """
-            linear = True
-            for coord, values in coords.items():
-                try:
-                    diff = numpy.diff(coords)
-                    if len(numpy.unique(diff)) > 1:
-                        warnings.warn(f'Axis {coord} is not linear')
-                        linear = False
-                except TypeError:
-                    continue
-            return linear
 
         def _get_origin(self, axis):
             """
