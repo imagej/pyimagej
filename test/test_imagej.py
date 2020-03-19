@@ -115,7 +115,7 @@ class TestXarrayConversion(unittest.TestCase):
                              attrs={'Hello': 'Wrld'})
 
         dataset = ij.py.to_java(xarr)
-        axes = [cast('net.imagej.axis.DefaultLinearAxis', dataset.axis(axnum)) for axnum in range(5)]
+        axes = [cast('net.imagej.axis.LinearAxis', dataset.axis(axnum)) for axnum in range(5)]
         labels = [axis.type().getLabel() for axis in axes]
         origins = [axis.origin() for axis in axes]
         scales = [axis.scale() for axis in axes]
@@ -127,14 +127,14 @@ class TestXarrayConversion(unittest.TestCase):
 
         self.assertEqual(xarr.attrs, ij.py.from_java(dataset.getProperties()))
 
-    def testFstyleArrayWiathLabeledDimsConverts(self):
+    def testFstyleArrayWithLabeledDimsConverts(self):
         xarr = xr.DataArray(np.ndarray([5, 4, 3, 6, 12], order='F'), dims=['t', 'z', 'c', 'y', 'x'],
                             coords={'x': range(0, 12), 'y': np.arange(0, 12, 2),
                                     'z': np.arange(10, 50, 10), 't': np.arange(0, 0.05, 0.01)},
                             attrs={'Hello': 'Wrld'})
 
         dataset = ij.py.to_java(xarr)
-        axes = [cast('net.imagej.axis.DefaultLinearAxis', dataset.axis(axnum)) for axnum in range(5)]
+        axes = [cast('net.imagej.axis.LinearAxis', dataset.axis(axnum)) for axnum in range(5)]
         labels = [axis.type().getLabel() for axis in axes]
         origins = [axis.origin() for axis in axes]
         scales = [axis.scale() for axis in axes]
@@ -161,7 +161,8 @@ class TestXarrayConversion(unittest.TestCase):
             self.assertTrue((xarr.coords[key] == invert_xarr.coords[key]).all())
         self.assertEqual(xarr.attrs, invert_xarr.attrs)
 
-
+    def testRGBImageMaintainsCorrectDimOrderOnConversion(self):
+        return
 
 if __name__ == '__main__':
     unittest.main()

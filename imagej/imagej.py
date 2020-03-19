@@ -14,7 +14,6 @@ import jnius_config
 from pathlib import Path
 import numpy
 import xarray as xr
-import warnings
 
 _logger = logging.getLogger(__name__)
 
@@ -332,10 +331,10 @@ def init(ij_dir_or_version_or_endpoint=None, headless=True, new_instance=False):
             self._assign_dataset_metadata(dataset, xarr.attrs)
 
             return dataset
-        
+
         def _assign_axes(self, xarr):
             """
-            Obtain xarray axes names, origin, and scale and convert into ImageJ Axis; currently supports DefaultLinearAxis.
+            Obtain xarray axes names, origin, and scale and convert into ImageJ Axis; currently supports LinearAxis.
             :param xarr: xarray that holds the units
             :return: A list of ImageJ Axis with the specified origin and scale
             """
@@ -414,6 +413,8 @@ def init(ij_dir_or_version_or_endpoint=None, headless=True, new_instance=False):
             """
             Converts the data into a ImageJ Dataset
             """
+            # This try checking is necessary because the set of ImageJ converters is not complete.  E.g., here is no way
+            # to directly go from Img to Dataset, instead you need to chain the Img->ImgPlus->Dataset converters.
             try:
                 if self._ij.convert().supports(data, Dataset):
                     return self._ij.convert().convert(data, Dataset)
@@ -458,7 +459,7 @@ def init(ij_dir_or_version_or_endpoint=None, headless=True, new_instance=False):
             :return: xarray with reversed (C-style) dims and coords as labeled by the dataset
             """
             attrs = self._ij.py.from_java(dataset.getProperties())
-            axes = [(cast('net.imagej.axis.DefaultLinearAxis', dataset.axis(idx)))
+            axes = [(cast('net.imagej.axis.CalibratedAxis', dataset.axis(idx)))
                     for idx in range(dataset.numDimensions())]
 
             dims = [self._ijdim_to_pydim(axes[idx].type().getLabel()) for idx in range(len(axes))]
@@ -476,8 +477,7 @@ def init(ij_dir_or_version_or_endpoint=None, headless=True, new_instance=False):
             :param shape: F-style, or reversed C-style, shape of axes numpy array.
             :return: Dictionary of coordinates for each axis.
             """
-            coords = {dims[idx]: numpy.arange(axes[idx].origin(), shape[idx]*axes[idx].scale() + axes[idx].origin(),
-                                              axes[idx].scale())
+            coords = {dims[idx]: [axes[idx].calibratedValue(position) for position in range(shape[idx])]
                       for idx in range(len(dims))}
             return coords
 
