@@ -364,7 +364,7 @@ def init(ij_dir_or_version_or_endpoint=None, headless=True, new_instance=False):
             return str(axis)
 
         def _ijdim_to_pydim(self, axis):
-            """Convert the IJ uppercase dimension convention (X, Y, Z< C, T) to lowercase python (x, y, z, c, t) """
+            """Convert the IJ uppercase dimension convention (X, Y, Z C, T) to lowercase python (x, y, z, c, t) """
             if str(axis) in ['X', 'Y', 'Z', 'C', 'T']:
                 return str(axis).lower()
             return str(axis)
@@ -380,8 +380,11 @@ def init(ij_dir_or_version_or_endpoint=None, headless=True, new_instance=False):
             if numpy.isfortran(xarr.values):
                 return py_axnum
 
-            return len(xarr.dims) - py_axnum - 1
-
+            if xarr.dims[2] == 'c' and len(xarr.dims) == 3:
+                if axis == 2: return 2
+                else: return 1 - py_axnum
+            else:
+                return len(xarr.dims) - py_axnum - 1
 
         def _assign_dataset_metadata(self, dataset, attrs):
             """
@@ -464,9 +467,16 @@ def init(ij_dir_or_version_or_endpoint=None, headless=True, new_instance=False):
 
             dims = [self._ijdim_to_pydim(axes[idx].type().getLabel()) for idx in range(len(axes))]
             values = self.rai_to_numpy(dataset)
-            coords = self._get_axes_coords(axes, dims, numpy.shape(numpy.transpose(values)))
 
-            xarr = xr.DataArray(values, dims=list(reversed(dims)), coords=coords, attrs=attrs)
+            if len(dims) == 3 and dims[2] == 'c':
+                shape = numpy.shape(values)
+                coords=self._get_axes_coords(axes, dims, [shape[1], shape[0], shape[2]])
+                xarr_dims = [dims[1], dims[0], dims[2]]
+            else:
+                coords = self._get_axes_coords(axes, dims, numpy.shape(numpy.transpose(values)))
+                xarr_dims = list(reversed(dims))
+
+            xarr = xr.DataArray(values, dims=xarr_dims, coords=coords, attrs=attrs)
             return xarr
 
         def _get_axes_coords(self, axes, dims, shape):
