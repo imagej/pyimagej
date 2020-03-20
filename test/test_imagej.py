@@ -12,7 +12,7 @@ if "--ij" in sys.argv:
     ij = imagej.init(ij_dir)
     sys.argv = sys.argv[2:]
 else:
-    ij_dir = None  # Use newest release version, downloaded from Maven.
+    ij_dir = 'net.imagej:imagej:222'
     ij = imagej.init(ij_dir)
 
 
@@ -121,30 +121,29 @@ class TestXarrayConversion(unittest.TestCase):
 
     def testCstyleArrayWithLabeledDimsConverts(self):
         dataset = ij.py.to_java(self.xarr)
-        axes = [cast('net.imagej.axis.LinearAxis', dataset.axis(axnum)) for axnum in range(5)]
+        axes = [cast('net.imagej.axis.EnumeratedAxis', dataset.axis(axnum)) for axnum in range(5)]
         labels = [axis.type().getLabel() for axis in axes]
-        origins = [axis.origin() for axis in axes]
-        scales = [axis.scale() for axis in axes]
 
-        self.assertListEqual(origins, [0, 0, 10, 0, 0])
-        self.assertListEqual(scales, [1, 2, 10, 0.01, 1])
+        for label, vals in self.xarr.coords.items():
+            cur_axis = axes[labels.index(label.upper())]
+            for loc in range(len(vals)):
+                self.assertEqual(vals[loc], cur_axis.calibratedValue(loc))
 
         self.assertListEqual(['X', 'Y', 'Z', 'T', 'C'], labels)
-
         self.assertEqual(self.xarr.attrs, ij.py.from_java(dataset.getProperties()))
 
     def testFstyleArrayWithLabeledDimsConverts(self):
         dataset = ij.py.to_java(self.f_xarr)
-        axes = [cast('net.imagej.axis.LinearAxis', dataset.axis(axnum)) for axnum in range(5)]
+        axes = [cast('net.imagej.axis.EnumeratedAxis', dataset.axis(axnum)) for axnum in range(5)]
         labels = [axis.type().getLabel() for axis in axes]
-        origins = [axis.origin() for axis in axes]
-        scales = [axis.scale() for axis in axes]
 
-        self.assertListEqual(origins, [0, 10, 0, 0, 0])
-        self.assertListEqual(scales, [0.01, 10, 1, 2, 1])
+        for label, vals in self.f_xarr.coords.items():
+            cur_axis = axes[labels.index(label.upper())]
+            for loc in range(len(vals)):
+                self.assertEqual(vals[loc], cur_axis.calibratedValue(loc))
 
         self.assertListEqual([dim.upper() for dim in self.f_xarr.dims], labels)
-        self.assertEqual(self.xarr.attrs, ij.py.from_java(dataset.getProperties()))
+        self.assertEqual(self.f_xarr.attrs, ij.py.from_java(dataset.getProperties()))
 
     def testDatasetConvertsToXarray(self):
         dataset = ij.py.to_java(self.xarr)
@@ -159,7 +158,7 @@ class TestXarrayConversion(unittest.TestCase):
     def testRGBImageMaintainsCorrectDimOrderOnConversion(self):
         dataset = ij.py.to_java(self.xarr)
         # Transforming to dataset preserves location of c channel
-        axes = [cast('net.imagej.axis.LinearAxis', dataset.axis(axnum)) for axnum in range(5)]
+        axes = [cast('net.imagej.axis.EnumeratedAxis', dataset.axis(axnum)) for axnum in range(5)]
         labels = [axis.type().getLabel() for axis in axes]
         self.assertEqual(['X', 'Y', 'Z', 'T', 'C'], labels)
 

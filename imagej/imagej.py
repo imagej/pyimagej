@@ -141,7 +141,8 @@ def init(ij_dir_or_version_or_endpoint=None, headless=True, new_instance=False):
     Img                      = autoclass('net.imglib2.img.Img')
     RandomAccessibleInterval = autoclass('net.imglib2.RandomAccessibleInterval')
     Axes                     = autoclass('net.imagej.axis.Axes')
-    DefaultLinearAxis        = autoclass('net.imagej.axis.DefaultLinearAxis')
+    EnumeratedAxis           = autoclass('net.imagej.axis.EnumeratedAxis')
+    Double                   = autoclass('java.lang.Double')
 
     class ImageJPython:
         def __init__(self, ij):
@@ -215,7 +216,7 @@ def init(ij_dir_or_version_or_endpoint=None, headless=True, new_instance=False):
                 }
                 for t in ij1_types:
                     if ij1_type == t:
-                        return numpy.dtype(ij1_types[c])
+                        return numpy.dtype(ij1_types[t])
                 raise TypeError('Unsupported ImageJ1 type: {}'.format(ij1_type))
 
             raise TypeError('Unsupported Java type: ' + str(jclass(image_or_type).getName()))
@@ -341,17 +342,18 @@ def init(ij_dir_or_version_or_endpoint=None, headless=True, new_instance=False):
             axes = ['']*len(xarr.dims)
 
             for axis in xarr.dims:
-                origin = self._get_origin(xarr.coords[axis])
-                scale = self._get_scale(xarr.coords[axis])
-
                 axis_str = self._pydim_to_ijdim(axis)
 
                 ax_type = Axes.get(axis_str)
                 ax_num = self._get_axis_num(xarr, axis)
+
+                scale = self._get_scale(xarr.coords[axis])
                 if scale is None:
-                    java_axis = DefaultLinearAxis(ax_type)
+                    logging.warning(f"The {ax_type.label} axis is non-numeric and is translated to a linear index.")
+                    doub_coords = [Double(numpy.double(x)) for x in numpy.arange(len(xarr.coords[axis]))]
                 else:
-                    java_axis = DefaultLinearAxis(ax_type, numpy.double(scale), numpy.double(origin))
+                    doub_coords = [Double(numpy.double(x)) for x in xarr.coords[axis]]
+                java_axis = EnumeratedAxis(ax_type, ij.py.to_java(doub_coords))
 
                 axes[ax_num] = java_axis
 
