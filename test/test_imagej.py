@@ -118,42 +118,35 @@ class TestXarrayConversion(unittest.TestCase):
                                   coords={'x': range(0, 12), 'y': np.arange(0, 12, 2),
                                           'z': np.arange(10, 50, 10), 't': np.arange(0, 0.05, 0.01)},
                                   attrs={'Hello': 'Wrld'})
+        cls.base_xarr = xr.DataArray(np.random.rand(1, 2, 3, 4, 5))
 
     def testCstyleArrayWithLabeledDimsConverts(self):
-        dataset = ij.py.to_java(self.xarr)
-        axes = [cast('net.imagej.axis.EnumeratedAxis', dataset.axis(axnum)) for axnum in range(5)]
-        labels = [axis.type().getLabel() for axis in axes]
-
-        for label, vals in self.xarr.coords.items():
-            cur_axis = axes[labels.index(label.upper())]
-            for loc in range(len(vals)):
-                self.assertEqual(vals[loc], cur_axis.calibratedValue(loc))
-
-        self.assertListEqual(['X', 'Y', 'Z', 'T', 'C'], labels)
-        self.assertEqual(self.xarr.attrs, ij.py.from_java(dataset.getProperties()))
+        self.assert_xarray_equal_to_dataset(self.xarr)
 
     def testFstyleArrayWithLabeledDimsConverts(self):
-        dataset = ij.py.to_java(self.f_xarr)
+        self.assert_xarray_equal_to_dataset(self.f_xarr)
+
+    def assert_xarray_equal_to_dataset(self, xarr):
+        dataset = ij.py.to_java(xarr)
         axes = [cast('net.imagej.axis.EnumeratedAxis', dataset.axis(axnum)) for axnum in range(5)]
         labels = [axis.type().getLabel() for axis in axes]
 
-        for label, vals in self.f_xarr.coords.items():
+        for label, vals in xarr.coords.items():
             cur_axis = axes[labels.index(label.upper())]
             for loc in range(len(vals)):
                 self.assertEqual(vals[loc], cur_axis.calibratedValue(loc))
 
-        self.assertListEqual([dim.upper() for dim in self.f_xarr.dims], labels)
-        self.assertEqual(self.f_xarr.attrs, ij.py.from_java(dataset.getProperties()))
+        if np.isfortran(xarr.values):
+            expected_labels = [dim.upper() for dim in self.f_xarr.dims]
+        else:
+            expected_labels = ['X', 'Y', 'Z', 'T', 'C']
+
+        self.assertListEqual(expected_labels, labels)
+        self.assertEqual(xarr.attrs, ij.py.from_java(dataset.getProperties()))
 
     def testDatasetConvertsToXarray(self):
         dataset = ij.py.to_java(self.xarr)
-
-        invert_xarr = ij.py.from_java(dataset)
-        self.assertTrue((self.xarr.values == invert_xarr.values).all())
-        self.assertEqual(list(self.xarr.dims), list(invert_xarr.dims))
-        for key in self.xarr.coords:
-            self.assertTrue((self.xarr.coords[key] == invert_xarr.coords[key]).all())
-        self.assertEqual(self.xarr.attrs, invert_xarr.attrs)
+        self.assert_inverted_xarr_equal_to_xarr(dataset, self.xarr)
 
     def testRGBImageMaintainsCorrectDimOrderOnConversion(self):
         dataset = ij.py.to_java(self.xarr)
@@ -161,14 +154,20 @@ class TestXarrayConversion(unittest.TestCase):
         axes = [cast('net.imagej.axis.EnumeratedAxis', dataset.axis(axnum)) for axnum in range(5)]
         labels = [axis.type().getLabel() for axis in axes]
         self.assertEqual(['X', 'Y', 'Z', 'T', 'C'], labels)
+        self.assert_inverted_xarr_equal_to_xarr(dataset, self.xarr)
 
+    def assert_inverted_xarr_equal_to_xarr(self, dataset, xarr):
         # Reversing back to xarray yields original results
         invert_xarr = ij.py.from_java(dataset)
-        self.assertTrue((self.xarr.values == invert_xarr.values).all())
-        self.assertEqual(list(self.xarr.dims), list(invert_xarr.dims))
-        for key in self.xarr.coords:
-            self.assertTrue((self.xarr.coords[key] == invert_xarr.coords[key]).all())
-        self.assertEqual(self.xarr.attrs, invert_xarr.attrs)
+        self.assertTrue((xarr.values == invert_xarr.values).all())
+        self.assertEqual(list(xarr.dims), list(invert_xarr.dims))
+        for key in xarr.coords:
+            self.assertTrue((xarr.coords[key] == invert_xarr.coords[key]).all())
+        self.assertEqual(xarr.attrs, invert_xarr.attrs)
+
+    def test_no_coords_or_dims_in_xarr(self):
+        dataset = ij.py.from_java(self.base_xarr)
+        self.assert_inverted_xarr_equal_to_xarr(dataset, self.base_xarr)
 
 
 if __name__ == '__main__':
