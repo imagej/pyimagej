@@ -2,6 +2,9 @@ import argparse
 import sys
 import unittest
 import imagej
+import pytest
+import numpy as np
+import xarray as xr
 
 if "--ij" in sys.argv:
     parser = argparse.ArgumentParser()
@@ -12,13 +15,11 @@ if "--ij" in sys.argv:
     ij = imagej.init(ij_dir)
     sys.argv = sys.argv[2:]
 else:
-    ij_dir = 'net.imagej:imagej:222'
+    ij_dir = 'net.imagej:imagej:222+net.imagej:imagej-legacy'
     ij = imagej.init(ij_dir)
 
 
 from jnius import autoclass, cast
-import numpy as np
-import xarray as xr
 
 
 class TestImageJ(unittest.TestCase):
@@ -168,6 +169,66 @@ class TestXarrayConversion(unittest.TestCase):
     def test_no_coords_or_dims_in_xarr(self):
         dataset = ij.py.from_java(self.base_xarr)
         self.assert_inverted_xarr_equal_to_xarr(dataset, self.base_xarr)
+
+
+@pytest.fixture(scope="module")
+def arr():
+    empty_array = np.zeros([512, 512])
+    return empty_array
+
+
+class TestIJ1ToIJ2Synchronization(object):
+    def testGetImagePlusSynchronizesFromIJ1ToIJ2(self, arr):
+        if not ij.legacy_enabled:
+            pytest.skip("No IJ1.  Skipping test.")
+        if ij.ui().isHeadless():
+            pytest.skip("No GUI.  Skipping test")
+
+        original = arr[0, 0]
+        ds = ij.py.to_java(arr)
+        ij.ui().show(ds)
+        macro = """run("Add...", "value=5");"""
+        ij.py.run_macro(macro)
+        imp = ij.py.get_image_plus()
+
+        assert arr[0, 0] == original + 5
+
+    def testSynchronizeFromIJ1ToNumpy(self, arr):
+        if not ij.legacy_enabled:
+            pytest.skip("No IJ1.  Skipping test.")
+        if ij.ui().isHeadless():
+            pytest.skip("No GUI.  Skipping test")
+
+        original = arr[0, 0]
+        ds = ij.py.to_dataset(arr)
+        ij.ui().show(ds)
+        imp = ij.py.get_image_plus()
+        imp.getProcessor().add(5)
+        ij.py.synchronize_ij1_to_ij2(imp)
+
+        assert arr[0, 0] == original + 5
+
+    def testWindowToNumpyConvertsActiveImageToXarray(self, arr):
+        if not ij.legacy_enabled:
+            pytest.skip("No IJ1.  Skipping test.")
+        if ij.ui().isHeadless():
+            pytest.skip("No GUI.  Skipping test")
+
+        ds = ij.py.to_dataset(arr)
+        ij.ui().show(ds)
+        new_arr = ij.py.window_to_xarray()
+        assert (arr == new_arr.values).all
+
+    def testFunctionsThrowWarningIfLegacyNotEnabled(self):
+        if ij.legacy_enabled:
+            pytest.skip("IJ1 installed.  Skipping test")
+
+        with pytest.raises(AttributeError):
+            ij.py.synchronize_ij1_to_ij2(None)
+        with pytest.raises(ImportError):
+            ij.py.get_image_plus()
+        with pytest.raises(ImportError):
+            ij.py.window_to_xarray()
 
 
 if __name__ == '__main__':

@@ -124,8 +124,7 @@ def init(ij_dir_or_version_or_endpoint=None, headless=True, new_instance=False):
 
     # Must import imglyb (not scyjava) to spin up the JVM now.
     import imglyb
-    from jnius import autoclass
-    from jnius import cast
+    from jnius import autoclass, JavaException, cast
     import scyjava
 
     # Initialize ImageJ.
@@ -143,6 +142,25 @@ def init(ij_dir_or_version_or_endpoint=None, headless=True, new_instance=False):
     Axes                     = autoclass('net.imagej.axis.Axes')
     EnumeratedAxis           = autoclass('net.imagej.axis.EnumeratedAxis')
     Double                   = autoclass('java.lang.Double')
+
+    try:
+        LegacyService = autoclass('net.imagej.legacy.LegacyService')
+        legacyService = cast(LegacyService, ij.get("net.imagej.legacy.LegacyService"))
+        ij.legacy_enabled = legacyService.isActive()
+        if ij.legacy_enabled:
+            WindowManager = autoclass('ij.WindowManager')
+    except JavaException:
+        ij.legacy_enabled = False
+
+    if not ij.legacy_enabled:
+        class WindowManager:
+            def getCurrentImage(self):
+                """
+                Throw an error saying IJ1 is not available
+                :return:
+                """
+                raise ImportError("Your ImageJ installation does not support IJ1.  This function does not work.")
+        WindowManager = WindowManager()
 
     class ImageJPython:
         def __init__(self, ij):
@@ -583,6 +601,42 @@ def init(ij_dir_or_version_or_endpoint=None, headless=True, new_instance=False):
                     return temp_value
             final_value = '[' + temp_value + ']'
             return final_value
+
+        def window_to_xarray(self, sync=True):
+            """
+            Convert the active image to a numpy array, synchronizing from IJ1 -> IJ2
+            :param sync: Manually synchronize the current IJ1 slice if True
+            :return: numpy array containing the image data
+            """
+            imp = self.get_image_plus(sync=sync)
+            return ij.py.from_java(imp)
+
+        def get_image_plus(self, sync=True):
+            """
+            Get the currently active IJ1 image, optionally synchronizing from IJ1 -> IJ2
+            :param sync: Manually synchronize the current IJ1 slice if True
+            :return: The ImagePlus corresponding to the active image
+            """
+            imp = WindowManager.getCurrentImage()
+            if sync:
+                self.synchronize_ij1_to_ij2(imp)
+            return imp
+
+        def synchronize_ij1_to_ij2(self, imp):
+            """
+            Synchronize between a Dataset or ImageDisplay linked to an ImagePlus by accepting the ImagePlus data as true
+            :param imp: The IJ1 ImagePlus that needs to be synchronized
+            """
+            # This code is necessary because an ImagePlus can sometimes be modified without modifying the
+            # linked Dataset/ImageDisplay.  This happens when someone uses the ImageProcessor of the ImagePlus to change
+            # values on a slice.  The imagej-legacy layer does not synchronize when this happens to prevent
+            # significant overhead, as otherwise changing a single pixel would mean syncing a whole slice.  The
+            # ImagePlus also has a stack, which in the legacy case links to the Dataset/ImageDisplay.  This stack is
+            # updated by the legacy layer when you change slices, using ImageJVirtualStack.setPixelsZeroBasedIndex().
+            # As such, we only need to make sure that the current 2D image slice is up to date.  We do this by manually
+            # setting the stack to be the same as the imageprocessor.
+            stack = imp.getStack()
+            stack.setPixels(imp.getProcessor().getPixels(), imp.getCurrentSlice())
 
     ij.py = ImageJPython(ij)
 
