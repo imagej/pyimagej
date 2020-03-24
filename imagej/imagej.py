@@ -140,8 +140,19 @@ def init(ij_dir_or_version_or_endpoint=None, headless=True, new_instance=False):
     Img                      = autoclass('net.imglib2.img.Img')
     RandomAccessibleInterval = autoclass('net.imglib2.RandomAccessibleInterval')
     Axes                     = autoclass('net.imagej.axis.Axes')
-    EnumeratedAxis           = autoclass('net.imagej.axis.EnumeratedAxis')
     Double                   = autoclass('java.lang.Double')
+
+    # EnumeratedAxis is a new axis made for xarray, so is only present in ImageJ versions that are released
+    # later than March 2020.  This check defaults to LinearAxis instead if Enumerated does not work.
+    try:
+        EnumeratedAxis           = autoclass('net.imagej.axis.EnumeratedAxis')
+    except JavaException:
+        DefaultLinearAxis = autoclass('net.imagej.axis.DefaultLinearAxis')
+        def EnumeratedAxis(axis_type, values):
+            origin = values[0]
+            scale = values[1] - values[0]
+            axis = DefaultLinearAxis(axis_type, scale, origin)
+            return axis
 
     try:
         LegacyService = autoclass('net.imagej.legacy.LegacyService')
@@ -371,6 +382,9 @@ def init(ij_dir_or_version_or_endpoint=None, headless=True, new_instance=False):
                     doub_coords = [Double(numpy.double(x)) for x in numpy.arange(len(xarr.coords[axis]))]
                 else:
                     doub_coords = [Double(numpy.double(x)) for x in xarr.coords[axis]]
+
+                # EnumeratedAxis is a new axis made for xarray, so is only present in ImageJ versions that are released
+                # later than March 2020.  This actually returns a LinearAxis if using an earlier version.
                 java_axis = EnumeratedAxis(ax_type, ij.py.to_java(doub_coords))
 
                 axes[ax_num] = java_axis

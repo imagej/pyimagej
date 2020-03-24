@@ -84,7 +84,7 @@ class TestImageJ(object):
         ij_fixture.script().run('macro.ijm', macro, True).get()
         ij_fixture.py.run_plugin(plugin, args)
         from jnius import autoclass
-        WindowManager = autoclass('ij_fixture.WindowManager')
+        WindowManager = autoclass('ij.WindowManager')
         result_name = WindowManager.getCurrentImage().getTitle()
 
         ij_fixture.script().run('macro.ijm', 'run("Close All");', True).get()
@@ -115,8 +115,12 @@ def get_xarr():
 def assert_xarray_equal_to_dataset(ij_fixture, xarr):
     dataset = ij_fixture.py.to_java(xarr)
 
-    from jnius import cast
-    axes = [cast('net.imagej.axis.EnumeratedAxis', dataset.axis(axnum)) for axnum in range(5)]
+    from jnius import cast, JavaException
+    try:
+        axes = [cast('net.imagej.axis.EnumeratedAxis', dataset.axis(axnum)) for axnum in range(5)]
+    except JavaException:
+        axes = [cast('net.imagej.axis.DefaultLinearAxis', dataset.axis(axnum)) for axnum in range(5)]
+
     labels = [axis.type().getLabel() for axis in axes]
 
     for label, vals in xarr.coords.items():
@@ -159,8 +163,12 @@ class TestXarrayConversion(object):
         xarr = get_xarr()
         dataset = ij_fixture.py.to_java(xarr)
         # Transforming to dataset preserves location of c channel
-        from jnius import cast
-        axes = [cast('net.imagej.axis.EnumeratedAxis', dataset.axis(axnum)) for axnum in range(5)]
+        from jnius import cast, JavaException
+        try:
+            axes = [cast('net.imagej.axis.EnumeratedAxis', dataset.axis(axnum)) for axnum in range(5)]
+        except JavaException:
+            axes = [cast('net.imagej.axis.DefaultLinearAxis', dataset.axis(axnum)) for axnum in range(5)]
+
         labels = [axis.type().getLabel() for axis in axes]
         assert ['X' == 'Y', 'Z', 'T', 'C'], labels
         assert_inverted_xarr_equal_to_xarr(dataset, ij_fixture, xarr)
