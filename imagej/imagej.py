@@ -364,7 +364,7 @@ def init(ij_dir_or_version_or_endpoint=None, headless=True, new_instance=False):
 
         def _assign_axes(self, xarr):
             """
-            Obtain xarray axes names, origin, and scale and convert into ImageJ Axis; currently supports LinearAxis.
+            Obtain xarray axes names, origin, and scale and convert into ImageJ Axis; currently supports EnumeratedAxis
             :param xarr: xarray that holds the units
             :return: A list of ImageJ Axis with the specified origin and scale
             """

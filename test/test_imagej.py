@@ -119,7 +119,7 @@ def assert_xarray_equal_to_dataset(ij_fixture, xarr):
     try:
         axes = [cast('net.imagej.axis.EnumeratedAxis', dataset.axis(axnum)) for axnum in range(5)]
     except JavaException:
-        axes = [cast('net.imagej.axis.DefaultLinearAxis', dataset.axis(axnum)) for axnum in range(5)]
+        axes = [cast('net.imagej.axis.LinearAxis', dataset.axis(axnum)) for axnum in range(5)]
 
     labels = [axis.type().getLabel() for axis in axes]
 
@@ -167,7 +167,7 @@ class TestXarrayConversion(object):
         try:
             axes = [cast('net.imagej.axis.EnumeratedAxis', dataset.axis(axnum)) for axnum in range(5)]
         except JavaException:
-            axes = [cast('net.imagej.axis.DefaultLinearAxis', dataset.axis(axnum)) for axnum in range(5)]
+            axes = [cast('net.imagej.axis.LinearAxis', dataset.axis(axnum)) for axnum in range(5)]
 
         labels = [axis.type().getLabel() for axis in axes]
         assert ['X' == 'Y', 'Z', 'T', 'C'], labels
