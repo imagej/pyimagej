@@ -13,6 +13,7 @@ import scyjava_config
 import jnius_config
 from pathlib import Path
 import numpy
+import xarray as xr
 
 _logger = logging.getLogger(__name__)
 
@@ -123,7 +124,8 @@ def init(ij_dir_or_version_or_endpoint=None, headless=True, new_instance=False):
 
     # Must import imglyb (not scyjava) to spin up the JVM now.
     import imglyb
-    from jnius import autoclass
+    from jnius import autoclass, JavaException, cast
+    import scyjava
 
     # Initialize ImageJ.
     ImageJ = autoclass('net.imagej.ImageJ')
@@ -134,7 +136,42 @@ def init(ij_dir_or_version_or_endpoint=None, headless=True, new_instance=False):
     from scyjava import jclass, isjava, to_java, to_python
 
     Dataset                  = autoclass('net.imagej.Dataset')
+    ImgPlus                  = autoclass('net.imagej.ImgPlus')
+    Img                      = autoclass('net.imglib2.img.Img')
     RandomAccessibleInterval = autoclass('net.imglib2.RandomAccessibleInterval')
+    Axes                     = autoclass('net.imagej.axis.Axes')
+    Double                   = autoclass('java.lang.Double')
+
+    # EnumeratedAxis is a new axis made for xarray, so is only present in ImageJ versions that are released
+    # later than March 2020.  This check defaults to LinearAxis instead if Enumerated does not work.
+    try:
+        EnumeratedAxis           = autoclass('net.imagej.axis.EnumeratedAxis')
+    except JavaException:
+        DefaultLinearAxis = autoclass('net.imagej.axis.DefaultLinearAxis')
+        def EnumeratedAxis(axis_type, values):
+            origin = values[0]
+            scale = values[1] - values[0]
+            axis = DefaultLinearAxis(axis_type, scale, origin)
+            return axis
+
+    try:
+        LegacyService = autoclass('net.imagej.legacy.LegacyService')
+        legacyService = cast(LegacyService, ij.get("net.imagej.legacy.LegacyService"))
+        ij.legacy_enabled = legacyService.isActive()
+        if ij.legacy_enabled:
+            WindowManager = autoclass('ij.WindowManager')
+    except JavaException:
+        ij.legacy_enabled = False
+
+    if not ij.legacy_enabled:
+        class WindowManager:
+            def getCurrentImage(self):
+                """
+                Throw an error saying IJ1 is not available
+                :return:
+                """
+                raise ImportError("Your ImageJ installation does not support IJ1.  This function does not work.")
+        WindowManager = WindowManager()
 
     class ImageJPython:
         def __init__(self, ij):
@@ -208,7 +245,7 @@ def init(ij_dir_or_version_or_endpoint=None, headless=True, new_instance=False):
                 }
                 for t in ij1_types:
                     if ij1_type == t:
-                        return numpy.dtype(ij1_types[c])
+                        return numpy.dtype(ij1_types[t])
                 raise TypeError('Unsupported ImageJ1 type: {}'.format(ij1_type))
 
             raise TypeError('Unsupported Java type: ' + str(jclass(image_or_type).getName()))
@@ -286,19 +323,149 @@ def init(ij_dir_or_version_or_endpoint=None, headless=True, new_instance=False):
 
         def to_java(self, data):
             """
-            Converts the data into a java equivalent.  For numpy arrays, the java image points to the python array
+            Converts the data into a java equivalent.  For numpy arrays, the java image points to the python array.
+
+            In addition to the scyjava types, we allow ndarray-like and xarray-like variables
             """
             if self._is_memoryarraylike(data):
                 return imglyb.to_imglib(data)
+            if self._is_xarraylike(data):
+                return self.to_dataset(data)
             return to_java(data)
 
         def to_dataset(self, data):
+            """Converts the data into an ImageJ dataset"""
+            if self._is_xarraylike(data):
+                return self._xarray_to_dataset(data)
+            if self._is_arraylike(data):
+                return self._numpy_to_dataset(data)
+            if scyjava.isjava(data):
+                return self._java_to_dataset(data)
+
+            raise TypeError(f'Type not supported: {type(data)}')
+
+        def _numpy_to_dataset(self, data):
+            rai = imglyb.to_imglib(data)
+            return self._java_to_dataset(rai)
+
+        def _xarray_to_dataset(self, xarr):
+            """
+            Converts a xarray dataarray to a dataset, inverting C-style (slow axis first) to F-style (slow-axis last)
+            :param xarr: Pass an xarray dataarray and turn into a dataset.
+            :return: The dataset
+            """
+            dataset = self._numpy_to_dataset(xarr.values)
+            axes = self._assign_axes(xarr)
+            dataset.setAxes(axes)
+
+            self._assign_dataset_metadata(dataset, xarr.attrs)
+
+            return dataset
+
+        def _assign_axes(self, xarr):
+            """
+            Obtain xarray axes names, origin, and scale and convert into ImageJ Axis; currently supports EnumeratedAxis
+            :param xarr: xarray that holds the units
+            :return: A list of ImageJ Axis with the specified origin and scale
+            """
+            axes = ['']*len(xarr.dims)
+
+            for axis in xarr.dims:
+                axis_str = self._pydim_to_ijdim(axis)
+
+                ax_type = Axes.get(axis_str)
+                ax_num = self._get_axis_num(xarr, axis)
+
+                scale = self._get_scale(xarr.coords[axis])
+                if scale is None:
+                    logging.warning(f"The {ax_type.label} axis is non-numeric and is translated to a linear index.")
+                    doub_coords = [Double(numpy.double(x)) for x in numpy.arange(len(xarr.coords[axis]))]
+                else:
+                    doub_coords = [Double(numpy.double(x)) for x in xarr.coords[axis]]
+
+                # EnumeratedAxis is a new axis made for xarray, so is only present in ImageJ versions that are released
+                # later than March 2020.  This actually returns a LinearAxis if using an earlier version.
+                java_axis = EnumeratedAxis(ax_type, ij.py.to_java(doub_coords))
+
+                axes[ax_num] = java_axis
+
+            return axes
+
+        def _pydim_to_ijdim(self, axis):
+            """Convert between the lowercase Python convention (x, y, z, c, t) to IJ (X, Y, Z, C, T)"""
+            if str(axis) in ['x', 'y', 'z', 'c', 't']:
+                return str(axis).upper()
+            return str(axis)
+
+        def _ijdim_to_pydim(self, axis):
+            """Convert the IJ uppercase dimension convention (X, Y, Z C, T) to lowercase python (x, y, z, c, t) """
+            if str(axis) in ['X', 'Y', 'Z', 'C', 'T']:
+                return str(axis).lower()
+            return str(axis)
+
+        def _get_axis_num(self, xarr, axis):
+            """
+            Get the xarray -> java axis number due to inverted axis order for C style numpy arrays (default)
+            :param xarr: Xarray to convert
+            :param axis: Axis number to convert
+            :return: Axis idx in java
+            """
+            py_axnum = xarr.get_axis_num(axis)
+            if numpy.isfortran(xarr.values):
+                return py_axnum
+
+            if xarr.dims[len(xarr.dims)-1] == 'c':
+                if axis == len(xarr.dims) - 1:
+                    return axis
+                else:
+                    return len(xarr.dims) - py_axnum - 2
+            else:
+                return len(xarr.dims) - py_axnum - 1
+
+        def _assign_dataset_metadata(self, dataset, attrs):
+            """
+            :param dataset: ImageJ Java dataset
+            :param attrs: Dictionary containing metadata
+            """
+            dataset.getProperties().putAll(self.to_java(attrs))
+
+        def _get_origin(self, axis):
+            """
+            Get the coordinate origin of an axis, assuming it is the first entry.
+            :param axis: A 1D list like entry accessible with indexing, which contains the axis coordinates
+            :return: The origin for this axis.
+            """
+            return axis.values[0]
+
+        def _get_scale(self, axis):
+            """
+            Get the scale of an axis, assuming it is linear and so the scale is simply second - first coordinate.
+            :param axis: A 1D list like entry accessible with indexing, which contains the axis coordinates
+            :return: The scale for this axis or None if it is a non-numeric scale.
+            """
+            try:
+                return axis.values[1] - axis.values[0]
+            except TypeError:
+                return None
+
+        def _java_to_dataset(self, data):
             """
             Converts the data into a ImageJ Dataset
             """
+            # This try checking is necessary because the set of ImageJ converters is not complete.  E.g., here is no way
+            # to directly go from Img to Dataset, instead you need to chain the Img->ImgPlus->Dataset converters.
             try:
                 if self._ij.convert().supports(data, Dataset):
                     return self._ij.convert().convert(data, Dataset)
+                if self._ij.convert().supports(data, ImgPlus):
+                    imgPlus = self._ij.convert().convert(data, ImgPlus)
+                    return self._ij.dataset().create(imgPlus)
+                if self._ij.convert().supports(data, Img):
+                    img = self._ij.convert().convert(data, Img)
+                    return self._ij.dataset().create(ImgPlus(img))
+                if self._ij.convert().supports(data, RandomAccessibleInterval):
+                    rai = self._ij.convert().convert(data, RandomAccessibleInterval)
+                    return self._ij.dataset().create(rai)
             except Exception as exc:
                 _dump_exception(exc)
                 raise exc
@@ -308,18 +475,69 @@ def init(ij_dir_or_version_or_endpoint=None, headless=True, new_instance=False):
             """
             Converts the data into a python equivalent
             """
+            # todo: convert a datset to xarray
+
             if not isjava(data): return data
             try:
                 if self._ij.convert().supports(data, Dataset):
                     # HACK: Converter exists for ImagePlus -> Dataset, but not ImagePlus -> RAI.
                     data = self._ij.convert().convert(data, Dataset)
-                if (self._ij.convert().supports(data, RandomAccessibleInterval)):
+                    return self._dataset_to_xarray(data)
+                if self._ij.convert().supports(data, RandomAccessibleInterval):
                     rai = self._ij.convert().convert(data, RandomAccessibleInterval)
                     return self.rai_to_numpy(rai)
             except Exception as exc:
                 _dump_exception(exc)
                 raise exc
             return to_python(data)
+
+        def _dataset_to_xarray(self, dataset):
+            """
+            Converts an ImageJ dataset into an xarray, inverting F-style (slow idx last) to C-style (slow idx first)
+            :param dataset: ImageJ dataset
+            :return: xarray with reversed (C-style) dims and coords as labeled by the dataset
+            """
+            attrs = self._ij.py.from_java(dataset.getProperties())
+            axes = [(cast('net.imagej.axis.CalibratedAxis', dataset.axis(idx)))
+                    for idx in range(dataset.numDimensions())]
+
+            dims = [self._ijdim_to_pydim(axes[idx].type().getLabel()) for idx in range(len(axes))]
+            values = self.rai_to_numpy(dataset)
+
+            if dims[len(dims)-1] == 'c':
+                shape = self._invert_except_last_element(numpy.shape(values))
+                coords=self._get_axes_coords(axes, dims, shape)
+                xarr_dims = self._invert_except_last_element(dims)
+            else:
+                coords = self._get_axes_coords(axes, dims, numpy.shape(numpy.transpose(values)))
+                xarr_dims = list(reversed(dims))
+
+            xarr = xr.DataArray(values, dims=xarr_dims, coords=coords, attrs=attrs)
+            return xarr
+
+        def _invert_except_last_element(self, lst):
+            """
+            Invert a list except for the last element.
+            :param lst:
+            :return:
+            """
+            cut_list = lst[0:-1]
+            reverse_cut = list(reversed(cut_list))
+            reverse_cut.append(lst[-1])
+            return reverse_cut
+
+        def _get_axes_coords(self, axes, dims, shape):
+            """
+            Get xarray style coordinate list dictionary from a dataset
+            :param axes: List of ImageJ axes
+            :param dims: List of axes labels for each dataset axis
+            :param shape: F-style, or reversed C-style, shape of axes numpy array.
+            :return: Dictionary of coordinates for each axis.
+            """
+            coords = {dims[idx]: [axes[idx].calibratedValue(position) for position in range(shape[idx])]
+                      for idx in range(len(dims))}
+            return coords
+
 
         def show(self, image, cmap=None):
             """
@@ -350,6 +568,12 @@ def init(ij_dir_or_version_or_endpoint=None, headless=True, new_instance=False):
                 hasattr(arr, 'data') and \
                 type(arr.data).__name__ == 'memoryview'
 
+        def _is_xarraylike(self, xarr):
+            return hasattr(xarr, 'values') and \
+                hasattr(xarr, 'dims') and \
+                hasattr(xarr, 'coords') and \
+                self._is_arraylike(xarr.values)
+
         def _assemble_plugin_macro(self, plugin: str, args=None, ij1_style=True):
             """
             Assemble an ImageJ macro string given a plugin to run and optional arguments in a dict
@@ -359,30 +583,30 @@ def init(ij_dir_or_version_or_endpoint=None, headless=True, new_instance=False):
             :return: A string version of the macro run
             """
             if args is None:
-                    macro = "run(\"{}\");".format(plugin)
-                    return macro
+                macro = "run(\"{}\");".format(plugin)
+                return macro
             macro = """run("{0}", \"""".format(plugin)
             for key, value in args.items():
-                    argument = self._format_argument(key, value, ij1_style)
-                    if argument is not None:
-                            macro = macro + ' {}'.format(argument)
+                argument = self._format_argument(key, value, ij1_style)
+                if argument is not None:
+                    macro = macro + ' {}'.format(argument)
             macro = macro + """\");"""
             return macro
 
         def _format_argument(self, key, value, ij1_style):
             if value is True:
-                    argument = '{}'.format(key)
-                    if not ij1_style:
-                            argument = argument + '=true'
+                argument = '{}'.format(key)
+                if not ij1_style:
+                    argument = argument + '=true'
             elif value is False:
-                    argument = None
-                    if not ij1_style:
-                            argument = '{0}=false'.format(key)
+                argument = None
+                if not ij1_style:
+                    argument = '{0}=false'.format(key)
             elif value is None:
-                    raise NotImplementedError('Conversion for None is not yet implemented')
+                raise NotImplementedError('Conversion for None is not yet implemented')
             else:
-                    val_str = self._format_value(value)
-                    argument = '{0}={1}'.format(key, val_str)
+                val_str = self._format_value(value)
+                argument = '{0}={1}'.format(key, val_str)
             return argument
 
         def _format_value(self, value):
@@ -391,6 +615,42 @@ def init(ij_dir_or_version_or_endpoint=None, headless=True, new_instance=False):
                     return temp_value
             final_value = '[' + temp_value + ']'
             return final_value
+
+        def window_to_xarray(self, sync=True):
+            """
+            Convert the active image to a numpy array, synchronizing from IJ1 -> IJ2
+            :param sync: Manually synchronize the current IJ1 slice if True
+            :return: numpy array containing the image data
+            """
+            imp = self.get_image_plus(sync=sync)
+            return ij.py.from_java(imp)
+
+        def get_image_plus(self, sync=True):
+            """
+            Get the currently active IJ1 image, optionally synchronizing from IJ1 -> IJ2
+            :param sync: Manually synchronize the current IJ1 slice if True
+            :return: The ImagePlus corresponding to the active image
+            """
+            imp = WindowManager.getCurrentImage()
+            if sync:
+                self.synchronize_ij1_to_ij2(imp)
+            return imp
+
+        def synchronize_ij1_to_ij2(self, imp):
+            """
+            Synchronize between a Dataset or ImageDisplay linked to an ImagePlus by accepting the ImagePlus data as true
+            :param imp: The IJ1 ImagePlus that needs to be synchronized
+            """
+            # This code is necessary because an ImagePlus can sometimes be modified without modifying the
+            # linked Dataset/ImageDisplay.  This happens when someone uses the ImageProcessor of the ImagePlus to change
+            # values on a slice.  The imagej-legacy layer does not synchronize when this happens to prevent
+            # significant overhead, as otherwise changing a single pixel would mean syncing a whole slice.  The
+            # ImagePlus also has a stack, which in the legacy case links to the Dataset/ImageDisplay.  This stack is
+            # updated by the legacy layer when you change slices, using ImageJVirtualStack.setPixelsZeroBasedIndex().
+            # As such, we only need to make sure that the current 2D image slice is up to date.  We do this by manually
+            # setting the stack to be the same as the imageprocessor.
+            stack = imp.getStack()
+            stack.setPixels(imp.getProcessor().getPixels(), imp.getCurrentSlice())
 
     ij.py = ImageJPython(ij)
 
