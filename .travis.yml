@@ -4,6 +4,8 @@ env:
   - TRAVIS_PYTHON_VERSION=3.7
 os:
   - linux
+  - osx
+osx_image: xcode9.1
 dist: xenial
 services:
   - xvfb

@@ -42,7 +42,7 @@ fi
 case "$(uname -s),$(uname -m)" in
 	Linux,x86_64) launcher=ImageJ-linux64 ;;
 	Linux,*) launcher=ImageJ-linux32 ;;
-	Darwin,*) launcher=Contents/MacOS/ImageJ-macosx ;;
+	Darwin,*) launcher=Contents/MacOS/ImageJ-macosx; skipGUI=1 ;;
 	MING*,*) launcher=ImageJ-win32.exe ;;
 	*) die "Unknown platform" ;;
 esac
@@ -64,7 +64,7 @@ unset JAVA_HOME
 
 # -- run tests with local Fiji.app --
 python -m pytest --ij="$ij_dir"
-python -m pytest --ij="$ij_dir" --headless=false
+test "$skipGUI" || python -m pytest --ij="$ij_dir" --headless=false
 
 # -- run tests with ImageJ from Maven repository --
 python -m pytest
