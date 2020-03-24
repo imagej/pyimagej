@@ -19,6 +19,7 @@ check () {
 conda create -n imagej -y python=$TRAVIS_PYTHON_VERSION
 source activate imagej
 conda env update -f environment.yml
+conda install pytest
 
 # -- ensure supporting tools are available --
 check curl git unzip
@@ -62,7 +63,9 @@ python setup.py install
 unset JAVA_HOME
 
 # -- run tests with local Fiji.app --
-python -O test/test_imagej.py --ij "$ij_dir"
+python -m pytest --ij="$ij_dir" --headless=false
 
 # -- run tests with ImageJ from Maven repository --
-python -m unittest discover test -v
+python -m pytest
+
+python -m pytest --ij="$ij_dir"

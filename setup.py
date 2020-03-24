@@ -31,6 +31,9 @@ setup(
         'pillow', # for server
         'requests' # for server
     ],
+    tests_require=[
+        'pytest'
+    ],
     entry_points={
         'console_scripts': [
             'imagej=imagej.imagej:imagej_main'
