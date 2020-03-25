@@ -287,6 +287,9 @@ def init(ij_dir_or_version_or_endpoint=None, headless=True, new_instance=False):
             :param args: Arguments for the script as a dictionary of key/value pairs
             :return:
             """
+            if not self._ij.legacy_enabled:
+                raise ImportError("Your IJ endpoint does not support IJ1, and thus cannot use IJ1 macros.")
+
             try:
                 if args is None:
                     return self._ij.script().run("macro.ijm", macro, True).get()
