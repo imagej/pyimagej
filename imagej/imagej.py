@@ -73,6 +73,7 @@ def init(ij_dir_or_version_or_endpoint=None, headless=True, new_instance=False):
         Path to a local ImageJ installation (e.g. /Applications/Fiji.app),
         OR version of net.imagej:imagej artifact to launch (e.g. 2.0.0-rc-67),
         OR endpoint of another artifact (e.g. sc.fiji:fiji) that uses imagej.
+        OR list of Maven artifacts to include (e.g. ['net.imagej:imagej-legacy', 'net.preibisch:BigStitcher'])
     :param headless: Whether to start the JVM in headless or gui mode.
     :param new_instance: If JVM is already running, setting this parameter to
         True will create a new ImageJ instance.
@@ -95,6 +96,12 @@ def init(ij_dir_or_version_or_endpoint=None, headless=True, new_instance=False):
             _logger.debug('Using newest ImageJ release')
             scyjava_config.add_endpoints('net.imagej:imagej')
 
+        elif isinstance(ij_dir_or_version_or_endpoint, list):
+            # Assume that this is a list of Maven endpoints
+            endpoint = '+'.join(ij_dir_or_version_or_endpoint)
+            _logger.debug('List of Maven coordinates given: %s', ij_dir_or_version_or_endpoint)
+            scyjava_config.add_endpoints(endpoint)
+
         elif os.path.isdir(ij_dir_or_version_or_endpoint):
             # Assume path to local ImageJ installation.
             path = ij_dir_or_version_or_endpoint
@@ -112,7 +119,8 @@ def init(ij_dir_or_version_or_endpoint=None, headless=True, new_instance=False):
 
         elif ':' in ij_dir_or_version_or_endpoint:
             # Assume endpoint of an artifact.
-            endpoint = ij_dir_or_version_or_endpoint
+            # Strip out white spaces
+            endpoint = ij_dir_or_version_or_endpoint.strip(" ", "")
             _logger.debug('Maven coordinate given: %s', endpoint)
             scyjava_config.add_endpoints(endpoint)
 

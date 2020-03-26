@@ -8,7 +8,6 @@ import xarray as xr
 
 
 class TestImageJ(object):
-
     def test_frangi(self, ij_fixture):
         input_array = np.array([[1000, 1000, 1000, 2000, 3000], [5000, 8000, 13000, 21000, 34000]])
         result = np.zeros(input_array.shape)
