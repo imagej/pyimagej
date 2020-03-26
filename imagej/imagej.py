@@ -357,7 +357,11 @@ def init(ij_dir_or_version_or_endpoint=None, headless=True, new_instance=False):
             :param xarr: Pass an xarray dataarray and turn into a dataset.
             :return: The dataset
             """
-            dataset = self._numpy_to_dataset(xarr.values)
+            if xarr.dims[len(xarr.dims)-1].lower() in ['c', 'channel']:
+                vals = numpy.moveaxis(xarr.values, -1, 0)
+                dataset = self._numpy_to_dataset(vals)
+            else:
+                dataset = self._numpy_to_dataset(xarr.values)
             axes = self._assign_axes(xarr)
             dataset.setAxes(axes)
 
@@ -417,7 +421,7 @@ def init(ij_dir_or_version_or_endpoint=None, headless=True, new_instance=False):
             if numpy.isfortran(xarr.values):
                 return py_axnum
 
-            if xarr.dims[len(xarr.dims)-1] == 'c':
+            if xarr.dims[len(xarr.dims)-1].lower() in ['c', 'channel']:
                 if axis == len(xarr.dims) - 1:
                     return axis
                 else:
@@ -506,13 +510,12 @@ def init(ij_dir_or_version_or_endpoint=None, headless=True, new_instance=False):
 
             dims = [self._ijdim_to_pydim(axes[idx].type().getLabel()) for idx in range(len(axes))]
             values = self.rai_to_numpy(dataset)
+            coords = self._get_axes_coords(axes, dims, numpy.shape(numpy.transpose(values)))
 
-            if dims[len(dims)-1] == 'c':
-                shape = self._invert_except_last_element(numpy.shape(values))
-                coords=self._get_axes_coords(axes, dims, shape)
+            if dims[len(dims)-1].lower() in ['c', 'channel']:
                 xarr_dims = self._invert_except_last_element(dims)
+                values = numpy.moveaxis(values, 0, -1)
             else:
-                coords = self._get_axes_coords(axes, dims, numpy.shape(numpy.transpose(values)))
                 xarr_dims = list(reversed(dims))
 
             xarr = xr.DataArray(values, dims=xarr_dims, coords=coords, attrs=attrs)

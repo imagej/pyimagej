@@ -162,7 +162,6 @@ class TestXarrayConversion(object):
     def test_rgb_image_maintains_correct_dim_order_on_conversion(self, ij_fixture, get_xarr):
         xarr = get_xarr()
         dataset = ij_fixture.py.to_java(xarr)
-        # Transforming to dataset preserves location of c channel
         from jnius import cast, JavaException
         try:
             axes = [cast('net.imagej.axis.EnumeratedAxis', dataset.axis(axnum)) for axnum in range(5)]
@@ -170,7 +169,12 @@ class TestXarrayConversion(object):
             axes = [cast('net.imagej.axis.LinearAxis', dataset.axis(axnum)) for axnum in range(5)]
 
         labels = [axis.type().getLabel() for axis in axes]
-        assert ['X' == 'Y', 'Z', 'T', 'C'], labels
+        assert ['X', 'Y', 'Z', 'T', 'C'] == labels
+
+        # Test that automatic axis swapping works correctly
+        raw_values = ij_fixture.py.rai_to_numpy(dataset)
+        assert (xarr.values == np.moveaxis(raw_values, 0, -1)).all()
+
         assert_inverted_xarr_equal_to_xarr(dataset, ij_fixture, xarr)
 
     def test_no_coords_or_dims_in_xarr(self, ij_fixture, get_xarr):
