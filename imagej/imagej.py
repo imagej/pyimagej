@@ -630,6 +630,18 @@ def init(ij_dir_or_version_or_endpoint=None, headless=True, new_instance=False):
             final_value = '[' + temp_value + ']'
             return final_value
 
+        def get_window_manager(self):
+            """
+            Get the ImageJ1 window manager if legacy mode is enabled.  It may not work properly if in headless mode.
+            :return: WindowManager
+            """
+            if not ij.legacy_enabled:
+                raise ImportError("Your ImageJ installation does not support IJ1.  This function does not work.")
+            elif ij.ui().isheadless():
+                logging.warning("Headless mode not enabled.  The WindowManager may not function as expected.")
+            else:
+                return WindowManager
+
         def window_to_xarray(self, sync=True):
             """
             Convert the active image to a numpy array, synchronizing from IJ1 -> IJ2
