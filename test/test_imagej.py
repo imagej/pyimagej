@@ -69,7 +69,7 @@ class TestImageJ(object):
         assert result == correct_result
 
     def test_plugins_load_using_pairwise_stitching(self, ij_fixture):
-        if not ij_fixture.legacy_enabled:
+        if not ij_fixture.legacy().isActive():
             # HACK: Skip test if not testing with a local Fiji.app.
             return
 
@@ -190,7 +190,7 @@ def arr():
 
 class TestIJ1ToIJ2Synchronization(object):
     def test_get_image_plus_synchronizes_from_ij1_to_ij2(self, ij_fixture, arr):
-        if not ij_fixture.legacy_enabled:
+        if not ij_fixture.legacy().isActive():
             pytest.skip("No IJ1.  Skipping test.")
         if ij_fixture.ui().isHeadless():
             pytest.skip("No GUI.  Skipping test")
@@ -200,12 +200,12 @@ class TestIJ1ToIJ2Synchronization(object):
         ij_fixture.ui().show(ds)
         macro = """run("Add...", "value=5");"""
         ij_fixture.py.run_macro(macro)
-        imp = ij_fixture.py.get_image_plus()
+        imp = ij_fixture.py.active_image_plus()
 
         assert arr[0, 0] == original + 5
 
     def test_synchronize_from_ij1_to_numpy(self, ij_fixture, arr):
-        if not ij_fixture.legacy_enabled:
+        if not ij_fixture.legacy().isActive():
             pytest.skip("No IJ1.  Skipping test.")
         if ij_fixture.ui().isHeadless():
             pytest.skip("No GUI.  Skipping test")
@@ -213,34 +213,28 @@ class TestIJ1ToIJ2Synchronization(object):
         original = arr[0, 0]
         ds = ij_fixture.py.to_dataset(arr)
         ij_fixture.ui().show(ds)
-        imp = ij_fixture.py.get_image_plus()
+        imp = ij_fixture.py.active_image_plus()
         imp.getProcessor().add(5)
         ij_fixture.py.synchronize_ij1_to_ij2(imp)
 
         assert arr[0, 0] == original + 5
 
     def test_window_to_numpy_converts_active_image_to_xarray(self, ij_fixture, arr):
-        if not ij_fixture.legacy_enabled:
+        if not ij_fixture.legacy().isActive():
             pytest.skip("No IJ1.  Skipping test.")
         if ij_fixture.ui().isHeadless():
             pytest.skip("No GUI.  Skipping test")
 
         ds = ij_fixture.py.to_dataset(arr)
         ij_fixture.ui().show(ds)
-        new_arr = ij_fixture.py.window_to_xarray()
+        new_arr = ij_fixture.py.active_xarray()
         assert (arr == new_arr.values).all
 
     def test_functions_throw_warning_if_legacy_not_enabled(self, ij_fixture):
-        if ij_fixture.legacy_enabled:
+        if ij_fixture.legacy().isActive():
             pytest.skip("IJ1 installed.  Skipping test")
 
         with pytest.raises(AttributeError):
             ij_fixture.py.synchronize_ij1_to_ij2(None)
         with pytest.raises(ImportError):
-            ij_fixture.py.get_image_plus()
-        with pytest.raises(ImportError):
-            ij_fixture.py.window_to_xarray()
-
-
-if __name__ == '__main__':
-    unittest.main()
+            ij_fixture.py.active_image_plus()

@@ -162,25 +162,33 @@ def init(ij_dir_or_version_or_endpoint=None, headless=True, new_instance=False):
             axis = DefaultLinearAxis(axis_type, scale, origin)
             return axis
 
+    # Try to define the legacy service, and create a dummy method if it doesn't exist.
     try:
         LegacyService = autoclass('net.imagej.legacy.LegacyService')
         legacyService = cast(LegacyService, ij.get("net.imagej.legacy.LegacyService"))
-        ij.legacy_enabled = legacyService.isActive()
-        if ij.legacy_enabled:
-            ij.legacy = legacyService
-            WindowManager = autoclass('ij.WindowManager')
     except JavaException:
-        ij.legacy_enabled = False
+        class NoLegacyService:
+            def isActive(self):
+                return False
+        legacyService = NoLegacyService()
 
-    if not ij.legacy_enabled:
-        class WindowManager:
+    # Create a method to get the legacy service that is similar to other ImageJ services
+    def legacy():
+        legacyService = cast(LegacyService, ij.get('net.imagej.legacy.LegacyService'))
+        return legacyService
+    setattr(ij, 'legacy', legacy)
+
+    if legacyService.isActive():
+            WindowManager = autoclass('ij.WindowManager')
+    else:
+        class NoWindowManager:
             def getCurrentImage(self):
                 """
                 Throw an error saying IJ1 is not available
                 :return:
                 """
                 raise ImportError("Your ImageJ installation does not support IJ1.  This function does not work.")
-        WindowManager = WindowManager()
+        WindowManager = NoWindowManager()
 
     class ImageJPython:
         def __init__(self, ij):
@@ -296,7 +304,7 @@ def init(ij_dir_or_version_or_endpoint=None, headless=True, new_instance=False):
             :param args: Arguments for the script as a dictionary of key/value pairs
             :return:
             """
-            if not self._ij.legacy_enabled:
+            if not ij.legacy().isActive():
                 raise ImportError("Your IJ endpoint does not support IJ1, and thus cannot use IJ1 macros.")
 
             try:
@@ -360,13 +368,17 @@ def init(ij_dir_or_version_or_endpoint=None, headless=True, new_instance=False):
             rai = imglyb.to_imglib(data)
             return self._java_to_dataset(rai)
 
+        def _ends_with_channel_axis(self, xarr):
+            ends_with_axis = xarr.dims[len(xarr.dims)-1].lower() in ['c', 'channel']
+            return ends_with_axis
+
         def _xarray_to_dataset(self, xarr):
             """
             Converts a xarray dataarray to a dataset, inverting C-style (slow axis first) to F-style (slow-axis last)
             :param xarr: Pass an xarray dataarray and turn into a dataset.
             :return: The dataset
             """
-            if xarr.dims[len(xarr.dims)-1].lower() in ['c', 'channel']:
+            if self._ends_with_channel_axis(xarr):
                 vals = numpy.moveaxis(xarr.values, -1, 0)
                 dataset = self._numpy_to_dataset(vals)
             else:
@@ -430,7 +442,7 @@ def init(ij_dir_or_version_or_endpoint=None, headless=True, new_instance=False):
             if numpy.isfortran(xarr.values):
                 return py_axnum
 
-            if xarr.dims[len(xarr.dims)-1].lower() in ['c', 'channel']:
+            if self._ends_with_channel_axis(xarr):
                 if axis == len(xarr.dims) - 1:
                     return axis
                 else:
@@ -631,28 +643,38 @@ def init(ij_dir_or_version_or_endpoint=None, headless=True, new_instance=False):
             final_value = '[' + temp_value + ']'
             return final_value
 
-        def get_window_manager(self):
+        def window_manager(self):
             """
             Get the ImageJ1 window manager if legacy mode is enabled.  It may not work properly if in headless mode.
             :return: WindowManager
             """
             if not ij.legacy_enabled:
                 raise ImportError("Your ImageJ installation does not support IJ1.  This function does not work.")
-            elif ij.ui().isheadless():
-                logging.warning("Headless mode not enabled.  The WindowManager may not function as expected.")
+            elif ij.ui().isHeadless():
+                logging.warning("Operating in headless mode - The WindowManager will not be fully funtional.")
             else:
                 return WindowManager
 
-        def window_to_xarray(self, sync=True):
+        def active_xarray(self, sync=True):
             """
-            Convert the active image to a numpy array, synchronizing from IJ1 -> IJ2
+            Convert the active image to a xarray.DataArray, synchronizing from IJ1 -> IJ2
             :param sync: Manually synchronize the current IJ1 slice if True
             :return: numpy array containing the image data
             """
-            imp = self.get_image_plus(sync=sync)
-            return ij.py.from_java(imp)
+            # todo: make the behavior use pure IJ2 if legacy is not active
 
-        def get_image_plus(self, sync=True):
+            if ij.legacy().isActive():
+                imp = self.active_image_plus(sync=sync)
+                return self._ij.py.from_java(imp)
+            else:
+                dataset = self.active_dataset()
+                return self._ij.py.from_java(dataset)
+
+        def active_dataset(self):
+            """Get the currently active Dataset from the Dataset service"""
+            return self._ij.imageDisplay().getActiveDataset()
+
+        def active_image_plus(self, sync=True):
             """
             Get the currently active IJ1 image, optionally synchronizing from IJ1 -> IJ2
             :param sync: Manually synchronize the current IJ1 slice if True
