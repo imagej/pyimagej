@@ -120,7 +120,7 @@ def init(ij_dir_or_version_or_endpoint=None, headless=True, new_instance=False):
         elif ':' in ij_dir_or_version_or_endpoint:
             # Assume endpoint of an artifact.
             # Strip out white spaces
-            endpoint = ij_dir_or_version_or_endpoint.strip(" ", "")
+            endpoint = ij_dir_or_version_or_endpoint.replace(" ", "")
             _logger.debug('Maven coordinate given: %s', endpoint)
             scyjava_config.add_endpoints(endpoint)
 
