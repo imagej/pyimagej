@@ -167,28 +167,31 @@ def init(ij_dir_or_version_or_endpoint=None, headless=True, new_instance=False):
         LegacyService = autoclass('net.imagej.legacy.LegacyService')
         legacyService = cast(LegacyService, ij.get("net.imagej.legacy.LegacyService"))
     except JavaException:
-        class NoLegacyService:
+        class LegacyService:
             def isActive(self):
                 return False
-        legacyService = NoLegacyService()
+        legacyService = LegacyService()
 
     # Create a method to get the legacy service that is similar to other ImageJ services
     def legacy():
-        legacyService = cast(LegacyService, ij.get('net.imagej.legacy.LegacyService'))
+        try:
+            legacyService = cast(LegacyService, ij.get('net.imagej.legacy.LegacyService'))
+        except JavaException:
+            legacyService = LegacyService()
         return legacyService
     setattr(ij, 'legacy', legacy)
 
     if legacyService.isActive():
             WindowManager = autoclass('ij.WindowManager')
     else:
-        class NoWindowManager:
+        class WindowManager:
             def getCurrentImage(self):
                 """
                 Throw an error saying IJ1 is not available
                 :return:
                 """
                 raise ImportError("Your ImageJ installation does not support IJ1.  This function does not work.")
-        WindowManager = NoWindowManager()
+        WindowManager = WindowManager()
 
     class ImageJPython:
         def __init__(self, ij):
