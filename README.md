@@ -17,14 +17,14 @@ conda create -n pyimagej -c conda-forge pyimagej openjdk=8
 conda activate pyimagej
 ```
 
-For detailed installation instructions and requirements, see [INSTALL.md](doc/Install.md)
+For detailed installation instructions and requirements, see [Install.md](doc/Install.md)
 
 ## Usage
 The basic usage of PyImageJ is to start up an ImageJ gateway that translates between Python and ImageJ/Java structures.
 This gateway can point to any official release of ImageJ or to a local installation.  
 
 For instructions on how to start up the gateway for various settings see 
-[INITIALIZATION.md](doc/Initialization.md)
+[Initialization.md](doc/Initialization.md)
 
 Once you have your ImageJ gateway, you can start using it. Here is an example of opening an image using ImageJ and 
 displaying it via a convenience function that calls matplotlib:

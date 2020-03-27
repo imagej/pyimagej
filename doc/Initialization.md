@@ -16,6 +16,7 @@ If all you need is an ImageJ2 gateway, with no additional memory or changed opti
 you may enter the following line to get the most recent version of ImageJ from Maven.
 
 ```python
+import imagej
 ij = imagej.init()
 ```
 
@@ -106,7 +107,7 @@ You can enable the legacy layer as follows:
 
 ```python
 import imagej
-ij = imagej.init('net.imagej:imagej+net.imagej:imagej-legacy')
+ij = imagej.init(['net.imagej:imagej', 'net.imagej:imagej-legacy'])
 ```
 
 #### Including Fiji plugins
@@ -153,15 +154,18 @@ Replace `6g` with the amount of memory Java should have. You can also pass
 For plugins that have Maven endpoints, you can specify them in the initialization call. 
 ```python
 import imagej
-ij = imagej.init('net.imagej:imagej+net.preibisch:BigStitcher')
+ij = imagej.init(['net.imagej:imagej', 'net.preibisch:BigStitcher'])
 ```
 This can be done for the latest version as above, or for a specific version, as below.
 ```python
 import imagej
-ij=imagej.init('net.imagej:imagej:2.0.0-rc-71+net.preibisch:BigStitcher:0.4.1')
+ij=imagej.init(['net.imagej:imagej:2.0.0-rc-71', 'net.preibisch:BigStitcher:0.4.1'])
 ```
 
-# Plugins without Maven endpoints
+#### Plugins without Maven endpoints
+For plugins that are published to a Maven repository, it is preferred to simply add them to the endpoint,
+rather than using the below approaches.
+
 If you wish to use plugins that do not have Maven artifacts, you have a few main options.  
 
 * Use a local installation of ImageJ that has the plugins, as described above.
