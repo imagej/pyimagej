@@ -167,6 +167,7 @@ def init(ij_dir_or_version_or_endpoint=None, headless=True, new_instance=False):
         legacyService = cast(LegacyService, ij.get("net.imagej.legacy.LegacyService"))
         ij.legacy_enabled = legacyService.isActive()
         if ij.legacy_enabled:
+            ij.legacy = legacyService
             WindowManager = autoclass('ij.WindowManager')
     except JavaException:
         ij.legacy_enabled = False
@@ -676,7 +677,12 @@ def init(ij_dir_or_version_or_endpoint=None, headless=True, new_instance=False):
             # As such, we only need to make sure that the current 2D image slice is up to date.  We do this by manually
             # setting the stack to be the same as the imageprocessor.
             stack = imp.getStack()
-            stack.setPixels(imp.getProcessor().getPixels(), imp.getCurrentSlice())
+            pixels = imp.getProcessor().getPixels()
+            # Don't sync if the ImagePlus is not linked back to a corresponding dataset
+            if str(type(pixels)) == '<class \'jnius.ByteArray\'>':
+                return
+
+            stack.setPixels(pixels, imp.getCurrentSlice())
 
     ij.py = ImageJPython(ij)
 
