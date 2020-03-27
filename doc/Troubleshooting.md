@@ -35,10 +35,10 @@ You cannot import jnius before ImageJ.  Both use the Java Virtual Machine (JVM),
 
 ## ImageJ1 classes not found
 If you try to load an ImageJ1 class of path `ij.X`, and get a `JavaException: Class not found`
-error, this is because ImageJ was initialized without ImageJ1.  See [INITIALIZATION.md](INITIALIZATION.md)
+error, this is because ImageJ was initialized without ImageJ1.  See [INITIALIZATION.md](Initialization.md)
 
 ## Not enough memory
-You can increase the memory available to the JVM before starting ImageJ.  See [INITIALIZATION.md](INITIALIZATION.md)
+You can increase the memory available to the JVM before starting ImageJ.  See [INITIALIZATION.md](Initialization.md)
 
 ## log4j:WARN 
 PyImageJ does not currently ship a log4j implementation, which results in an obnoxious warning at startup:
