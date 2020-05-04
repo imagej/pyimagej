@@ -6,8 +6,9 @@ dependencies:
   - matplotlib
   - numpy
   - openjdk=8
-  - pyjnius=1.2.0
   - scyjava
   - pillow # for server
   - requests # for server
   - xarray
+  - pip:
+    - pyjnius
