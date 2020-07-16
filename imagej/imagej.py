@@ -73,6 +73,7 @@ def init(ij_dir_or_version_or_endpoint=None, headless=True, new_instance=False):
         Path to a local ImageJ installation (e.g. /Applications/Fiji.app),
         OR version of net.imagej:imagej artifact to launch (e.g. 2.0.0-rc-67),
         OR endpoint of another artifact (e.g. sc.fiji:fiji) that uses imagej.
+        OR list of Maven artifacts to include (e.g. ['net.imagej:imagej-legacy', 'net.preibisch:BigStitcher'])
     :param headless: Whether to start the JVM in headless or gui mode.
     :param new_instance: If JVM is already running, setting this parameter to
         True will create a new ImageJ instance.
@@ -95,6 +96,12 @@ def init(ij_dir_or_version_or_endpoint=None, headless=True, new_instance=False):
             _logger.debug('Using newest ImageJ release')
             scyjava_config.add_endpoints('net.imagej:imagej')
 
+        elif isinstance(ij_dir_or_version_or_endpoint, list):
+            # Assume that this is a list of Maven endpoints
+            endpoint = '+'.join(ij_dir_or_version_or_endpoint)
+            _logger.debug('List of Maven coordinates given: %s', ij_dir_or_version_or_endpoint)
+            scyjava_config.add_endpoints(endpoint)
+
         elif os.path.isdir(ij_dir_or_version_or_endpoint):
             # Assume path to local ImageJ installation.
             path = ij_dir_or_version_or_endpoint
@@ -112,7 +119,8 @@ def init(ij_dir_or_version_or_endpoint=None, headless=True, new_instance=False):
 
         elif ':' in ij_dir_or_version_or_endpoint:
             # Assume endpoint of an artifact.
-            endpoint = ij_dir_or_version_or_endpoint
+            # Strip out white spaces
+            endpoint = ij_dir_or_version_or_endpoint.replace(" ", "")
             _logger.debug('Maven coordinate given: %s', endpoint)
             scyjava_config.add_endpoints(endpoint)
 
@@ -154,16 +162,28 @@ def init(ij_dir_or_version_or_endpoint=None, headless=True, new_instance=False):
             axis = DefaultLinearAxis(axis_type, scale, origin)
             return axis
 
+    # Try to define the legacy service, and create a dummy method if it doesn't exist.
     try:
         LegacyService = autoclass('net.imagej.legacy.LegacyService')
         legacyService = cast(LegacyService, ij.get("net.imagej.legacy.LegacyService"))
-        ij.legacy_enabled = legacyService.isActive()
-        if ij.legacy_enabled:
-            WindowManager = autoclass('ij.WindowManager')
     except JavaException:
-        ij.legacy_enabled = False
+        class LegacyService:
+            def isActive(self):
+                return False
+        legacyService = LegacyService()
 
-    if not ij.legacy_enabled:
+    # Create a method to get the legacy service that is similar to other ImageJ services
+    def legacy():
+        try:
+            legacyService = cast(LegacyService, ij.get('net.imagej.legacy.LegacyService'))
+        except JavaException:
+            legacyService = LegacyService()
+        return legacyService
+    setattr(ij, 'legacy', legacy)
+
+    if legacyService.isActive():
+            WindowManager = autoclass('ij.WindowManager')
+    else:
         class WindowManager:
             def getCurrentImage(self):
                 """
@@ -287,6 +307,9 @@ def init(ij_dir_or_version_or_endpoint=None, headless=True, new_instance=False):
             :param args: Arguments for the script as a dictionary of key/value pairs
             :return:
             """
+            if not ij.legacy().isActive():
+                raise ImportError("Your IJ endpoint does not support IJ1, and thus cannot use IJ1 macros.")
+
             try:
                 if args is None:
                     return self._ij.script().run("macro.ijm", macro, True).get()
@@ -348,13 +371,21 @@ def init(ij_dir_or_version_or_endpoint=None, headless=True, new_instance=False):
             rai = imglyb.to_imglib(data)
             return self._java_to_dataset(rai)
 
+        def _ends_with_channel_axis(self, xarr):
+            ends_with_axis = xarr.dims[len(xarr.dims)-1].lower() in ['c', 'channel']
+            return ends_with_axis
+
         def _xarray_to_dataset(self, xarr):
             """
             Converts a xarray dataarray to a dataset, inverting C-style (slow axis first) to F-style (slow-axis last)
             :param xarr: Pass an xarray dataarray and turn into a dataset.
             :return: The dataset
             """
-            dataset = self._numpy_to_dataset(xarr.values)
+            if self._ends_with_channel_axis(xarr):
+                vals = numpy.moveaxis(xarr.values, -1, 0)
+                dataset = self._numpy_to_dataset(vals)
+            else:
+                dataset = self._numpy_to_dataset(xarr.values)
             axes = self._assign_axes(xarr)
             dataset.setAxes(axes)
 
@@ -414,7 +445,7 @@ def init(ij_dir_or_version_or_endpoint=None, headless=True, new_instance=False):
             if numpy.isfortran(xarr.values):
                 return py_axnum
 
-            if xarr.dims[len(xarr.dims)-1] == 'c':
+            if self._ends_with_channel_axis(xarr):
                 if axis == len(xarr.dims) - 1:
                     return axis
                 else:
@@ -503,13 +534,12 @@ def init(ij_dir_or_version_or_endpoint=None, headless=True, new_instance=False):
 
             dims = [self._ijdim_to_pydim(axes[idx].type().getLabel()) for idx in range(len(axes))]
             values = self.rai_to_numpy(dataset)
+            coords = self._get_axes_coords(axes, dims, numpy.shape(numpy.transpose(values)))
 
-            if dims[len(dims)-1] == 'c':
-                shape = self._invert_except_last_element(numpy.shape(values))
-                coords=self._get_axes_coords(axes, dims, shape)
+            if dims[len(dims)-1].lower() in ['c', 'channel']:
                 xarr_dims = self._invert_except_last_element(dims)
+                values = numpy.moveaxis(values, 0, -1)
             else:
-                coords = self._get_axes_coords(axes, dims, numpy.shape(numpy.transpose(values)))
                 xarr_dims = list(reversed(dims))
 
             xarr = xr.DataArray(values, dims=xarr_dims, coords=coords, attrs=attrs)
@@ -616,16 +646,38 @@ def init(ij_dir_or_version_or_endpoint=None, headless=True, new_instance=False):
             final_value = '[' + temp_value + ']'
             return final_value
 
-        def window_to_xarray(self, sync=True):
+        def window_manager(self):
             """
-            Convert the active image to a numpy array, synchronizing from IJ1 -> IJ2
+            Get the ImageJ1 window manager if legacy mode is enabled.  It may not work properly if in headless mode.
+            :return: WindowManager
+            """
+            if not ij.legacy_enabled:
+                raise ImportError("Your ImageJ installation does not support IJ1.  This function does not work.")
+            elif ij.ui().isHeadless():
+                logging.warning("Operating in headless mode - The WindowManager will not be fully funtional.")
+            else:
+                return WindowManager
+
+        def active_xarray(self, sync=True):
+            """
+            Convert the active image to a xarray.DataArray, synchronizing from IJ1 -> IJ2
             :param sync: Manually synchronize the current IJ1 slice if True
             :return: numpy array containing the image data
             """
-            imp = self.get_image_plus(sync=sync)
-            return ij.py.from_java(imp)
+            # todo: make the behavior use pure IJ2 if legacy is not active
 
-        def get_image_plus(self, sync=True):
+            if ij.legacy().isActive():
+                imp = self.active_image_plus(sync=sync)
+                return self._ij.py.from_java(imp)
+            else:
+                dataset = self.active_dataset()
+                return self._ij.py.from_java(dataset)
+
+        def active_dataset(self):
+            """Get the currently active Dataset from the Dataset service"""
+            return self._ij.imageDisplay().getActiveDataset()
+
+        def active_image_plus(self, sync=True):
             """
             Get the currently active IJ1 image, optionally synchronizing from IJ1 -> IJ2
             :param sync: Manually synchronize the current IJ1 slice if True
@@ -650,7 +702,12 @@ def init(ij_dir_or_version_or_endpoint=None, headless=True, new_instance=False):
             # As such, we only need to make sure that the current 2D image slice is up to date.  We do this by manually
             # setting the stack to be the same as the imageprocessor.
             stack = imp.getStack()
-            stack.setPixels(imp.getProcessor().getPixels(), imp.getCurrentSlice())
+            pixels = imp.getProcessor().getPixels()
+            # Don't sync if the ImagePlus is not linked back to a corresponding dataset
+            if str(type(pixels)) == '<class \'jnius.ByteArray\'>':
+                return
+
+            stack.setPixels(pixels, imp.getCurrentSlice())
 
     ij.py = ImageJPython(ij)
 
