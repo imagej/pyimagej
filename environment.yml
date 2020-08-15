@@ -1,13 +1,71 @@
-name: imagej
+name: jpype
 channels:
   - conda-forge
+  - defaults
 dependencies:
-  - imglyb=0.3.5
-  - matplotlib
-  - numpy
-  - openjdk=8
-  - pyjnius=1.2.0
-  - scyjava
-  - pillow # for server
-  - requests # for server
-  - xarray
+  - _libgcc_mutex=0.1=conda_forge
+  - _openmp_mutex=4.5=1_gnu
+  - brotlipy=0.7.0=py37h8f50634_1000
+  - ca-certificates=2020.6.24=0
+  - certifi=2020.6.20=py37hc8dfbb8_0
+  - cffi=1.14.1=py37he30daa8_0
+  - chardet=3.0.4=py37hc8dfbb8_1006
+  - cryptography=3.0=py37hb09aad4_0
+  - cycler=0.10.0=py_2
+  - freetype=2.10.2=he06d7ca_0
+  - idna=2.10=pyh9f0ad1d_0
+  - imglyb=0.3.5=py37h5ca1d4c_0
+  - jgo=0.5.0=py37hc8dfbb8_1
+  - jpeg=9d=h516909a_0
+  - kiwisolver=1.2.0=py37h99015e2_0
+  - lcms2=2.11=hbd6801e_0
+  - ld_impl_linux-64=2.34=hc38a660_9
+  - libblas=3.8.0=17_openblas
+  - libcblas=3.8.0=17_openblas
+  - libffi=3.3=he6710b0_2
+  - libgcc-ng=9.3.0=h24d8f2e_15
+  - libgfortran-ng=7.5.0=hdf63c60_15
+  - libgomp=9.3.0=h24d8f2e_15
+  - liblapack=3.8.0=17_openblas
+  - libopenblas=0.3.10=pthreads_hb3c22a3_4
+  - libpng=1.6.37=hed695b0_2
+  - libstdcxx-ng=9.3.0=hdf63c60_15
+  - libtiff=4.1.0=hc7e4089_6
+  - libwebp-base=1.1.0=h516909a_3
+  - lz4-c=1.9.2=he1b5a44_1
+  - matplotlib=3.3.1=0
+  - matplotlib-base=3.3.1=py37hd478181_0
+  - maven=3.6.0=0
+  - ncurses=6.2=he1b5a44_1
+  - numpy=1.19.1=py37h8960a57_0
+  - olefile=0.46=py_0
+  - openjdk=8.0.192=h516909a_1005
+  - openssl=1.1.1g=h516909a_1
+  - pandas=1.1.0=py37h3340039_0
+  - pillow=7.2.0=py37h718be6c_1
+  - pip=20.2.2=py_0
+  - psutil=5.7.2=py37h8f50634_0
+  - pycparser=2.20=pyh9f0ad1d_2
+  - pyjnius=1.2.1=py37h5f5fb70_1
+  - pyopenssl=19.1.0=py_1
+  - pyparsing=2.4.7=pyh9f0ad1d_0
+  - pysocks=1.7.1=py37hc8dfbb8_1
+  - python=3.7.7=hcff3b4d_5
+  - python-dateutil=2.8.1=py_0
+  - python_abi=3.7=1_cp37m
+  - pytz=2020.1=pyh9f0ad1d_0
+  - readline=8.0=he28a2e2_2
+  - requests=2.24.0=pyh9f0ad1d_0
+  - scyjava=0.4.0=py37_0
+  - setuptools=49.6.0=py37hc8dfbb8_0
+  - six=1.15.0=pyh9f0ad1d_0
+  - sqlite=3.32.3=h4cf870e_1
+  - tk=8.6.10=hed695b0_0
+  - tornado=6.0.4=py37h8f50634_1
+  - urllib3=1.25.10=py_0
+  - wheel=0.35.1=pyh9f0ad1d_0
+  - xarray=0.16.0=py_0
+  - xz=5.2.5=h516909a_1
+  - zlib=1.2.11=h516909a_1007
+  - zstd=1.4.5=h6597ccf_2
+prefix: /home/edward/Documents/Software/Development/linux/anaconda/envs/jpype
