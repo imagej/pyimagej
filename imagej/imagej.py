@@ -10,6 +10,7 @@ __author__ = 'Curtis Rueden, Yang Liu, Michael Pinkert'
 
 import logging, os, re, sys
 import scyjava_config
+import jpype
 import jnius_config
 from pathlib import Path
 import numpy
@@ -33,7 +34,7 @@ def _dump_exception(exc):
 
 def search_for_jars(ij_dir, subfolder):
     """
-    Search and add .jars ile to a list
+    Search and add .jar files to a list
     :param ij_dir: System path for Fiji.app
     :param subfolder: the folder needs to be searched
     :return: a list of jar files
@@ -61,6 +62,8 @@ def set_ij_env(ij_dir):
     # search plugins directory
     jars.extend(search_for_jars(ij_dir, '/plugins'))
     # add to classpath
+    jpype.addClassPath(os.pathsep.join(jars))
+    print('jpype classpath: {0}'.format(jpype.getClassPath()))
     scyjava_config.add_classpath(os.pathsep.join(jars))
     return len(jars)
 
