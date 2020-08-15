@@ -1,6 +1,8 @@
 # PyImageJ: Python wrapper for ImageJ
 [![Build Status](https://travis-ci.org/imagej/pyimagej.svg?branch=master)](https://travis-ci.org/imagej/pyimagej)
 
+## ! WARNING: This branch is testing [JPype](https://jpype.readthedocs.io/en/latest/) !
+
 [PyImageJ](https://github.com/imagej/pyimagej) provides a set of
 wrapper functions for integration between ImageJ and Python.
 A major advantage of this approach is the ability to combine ImageJ with other tools 
