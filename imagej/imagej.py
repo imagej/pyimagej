@@ -62,9 +62,10 @@ def set_ij_env(ij_dir):
     # search plugins directory
     jars.extend(search_for_jars(ij_dir, '/plugins'))
     # add to classpath
+    scyjava_config.add_classpath(os.pathsep.join(jars))
+    # EE: Add .jar classpaths
     jpype.addClassPath(os.pathsep.join(jars))
     print('jpype classpath: {0}'.format(jpype.getClassPath()))
-    scyjava_config.add_classpath(os.pathsep.join(jars))
     return len(jars)
 
 
@@ -83,12 +84,19 @@ def init(ij_dir_or_version_or_endpoint=None, headless=True, new_instance=False):
     :return: an instance of the net.imagej.ImageJ gateway
     """
 
-    global ij
+    global ij    
+
+    # EE: Check if JPype JVM is already running
+    jvm_status = jpype.isJVMStarted()
+    if jvm_status == True:
+        print('The JPype JVM is already running.')
 
     if jnius_config.vm_running and not new_instance:
         _logger.warning('The JVM is already running.')
         return ij
 
+    ## EE: Configure the JPype JVM
+    
     if not jnius_config.vm_running:
 
         if headless:
