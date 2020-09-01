@@ -142,9 +142,9 @@ def init(ij_dir_or_version_or_endpoint=None, headless=True, new_instance=False):
             _logger.debug('ImageJ version given: %s', version)
             scyjava_config.add_endpoints('net.imagej:imagej:' + version)
 
-    # Start jpype jvm here?
-    # Must import imglyb (not scyjava) to spin up the JVM now.
-    #from jnius import autoclass, JavaException, cast
+    # start jvm via imglyb?
+    # Initialize JPype JVM with options.
+    jpype.startJVM(jvm_options)
 
     # Initialize ImageJ.
     ImageJ = jpype.JClass('net.imagej.ImageJ')
@@ -165,7 +165,7 @@ def init(ij_dir_or_version_or_endpoint=None, headless=True, new_instance=False):
     # later than March 2020.  This check defaults to LinearAxis instead if Enumerated does not work.
     try:
         EnumeratedAxis           = jpype.JClass('net.imagej.axis.EnumeratedAxis')
-    except JavaException:
+    except jpype.JException:
         DefaultLinearAxis = jpype.JClass('net.imagej.axis.DefaultLinearAxis')
         def EnumeratedAxis(axis_type, values):
             origin = values[0]
@@ -176,8 +176,9 @@ def init(ij_dir_or_version_or_endpoint=None, headless=True, new_instance=False):
     # Try to define the legacy service, and create a dummy method if it doesn't exist.
     try:
         LegacyService = jpype.JClass('net.imagej.legacy.LegacyService')
-        legacyService = cast(LegacyService, ij.get("net.imagej.legacy.LegacyService"))
-    except JavaException:
+        legacyService = jpype.JObject(LegacyService, ij.get('net.imagej.legacy.LegacyService'))
+        #legacyService = cast(LegacyService, ij.get("net.imagej.legacy.LegacyService"))
+    except jpype.JException:
         class LegacyService:
             def isActive(self):
                 return False
@@ -186,8 +187,9 @@ def init(ij_dir_or_version_or_endpoint=None, headless=True, new_instance=False):
     # Create a method to get the legacy service that is similar to other ImageJ services
     def legacy():
         try:
-            legacyService = cast(LegacyService, ij.get('net.imagej.legacy.LegacyService'))
-        except JavaException:
+            legacyService = jpype.JObject(LegacyService, ij.get('net.imagej.legacy.LegacyService'))
+            #legacyService = cast(LegacyService, ij.get('net.imagej.legacy.LegacyService'))
+        except jpype.JException:
             legacyService = LegacyService()
         return legacyService
     setattr(ij, 'legacy', legacy)
@@ -261,14 +263,14 @@ def init(ij_dir_or_version_or_endpoint=None, headless=True, new_instance=False):
                 ij2_type = image_or_type.firstElement()
                 return self.dtype(ij2_type)
             if jclass('net.imglib2.RandomAccessibleInterval').isInstance(image_or_type):
-                Util = autoclass('net.imglib2.util.Util')
+                Util = jpype.JClass('net.imglib2.util.Util')
                 ij2_type = Util.getTypeFromInterval(image_or_type)
                 return self.dtype(ij2_type)
 
             # -- ImageJ1 images --
             if jclass('ij.ImagePlus').isInstance(image_or_type):
                 ij1_type = image_or_type.getType()
-                ImagePlus = autoclass('ij.ImagePlus')
+                ImagePlus = jpype.JClass('ij.ImagePlus')
                 ij1_types = {
                     ImagePlus.GRAY8:  'uint8',
                     ImagePlus.GRAY16: 'uint16',
@@ -540,8 +542,10 @@ def init(ij_dir_or_version_or_endpoint=None, headless=True, new_instance=False):
             :return: xarray with reversed (C-style) dims and coords as labeled by the dataset
             """
             attrs = self._ij.py.from_java(dataset.getProperties())
-            axes = [(cast('net.imagej.axis.CalibratedAxis', dataset.axis(idx)))
+            axes = [(jpype.JObject('net.imagej.axis.CalibratedAxis', dataset.axis(idx)))
                     for idx in range(dataset.numDimensions())]
+            #axes = [(cast('net.imagej.axis.CalibratedAxis', dataset.axis(idx)))
+            #        for idx in range(dataset.numDimensions())]
 
             dims = [self._ijdim_to_pydim(axes[idx].type().getLabel()) for idx in range(len(axes))]
             values = self.rai_to_numpy(dataset)
@@ -722,26 +726,30 @@ def init(ij_dir_or_version_or_endpoint=None, headless=True, new_instance=False):
 
     ij.py = ImageJPython(ij)
 
+    ############################################################
+    # EE: This is just an std error output.
+    # Disabled for now, Jpype is weird...needs to be re-written.
     # Forward stdout and stderr from Java to Python.
+    ############################################################
 
-    from jnius import PythonJavaClass, java_method
+    #from jnius import PythonJavaClass, java_method
 
-    class JavaOutputListener(PythonJavaClass):
-        __javainterfaces__ = ['org/scijava/console/OutputListener']
-
-        @java_method('(Lorg/scijava/console/OutputEvent;)V')
-        def outputOccurred(self, e):
-            source = e.getSource().toString()
-            output = e.getOutput()
-            if source == 'STDOUT':
-                sys.stdout.write(output)
-            elif source == 'STDERR':
-                sys.stderr.write(output)
-            else:
-                sys.stderr.write('[{}] {}'.format(source, output))
-
-    ij.py._outputMapper = JavaOutputListener()
-    ij.console().addOutputListener(ij.py._outputMapper)
+    #class JavaOutputListener(PythonJavaClass):
+    #    __javainterfaces__ = ['org/scijava/console/OutputListener']
+#
+    #    @java_method('(Lorg/scijava/console/OutputEvent;)V')
+    #    def outputOccurred(self, e):
+    #        source = e.getSource().toString()
+    #        output = e.getOutput()
+    #        if source == 'STDOUT':
+    #            sys.stdout.write(output)
+    #        elif source == 'STDERR':
+    #            sys.stderr.write(output)
+    #        else:
+    #            sys.stderr.write('[{}] {}'.format(source, output))
+#
+    #ij.py._outputMapper = JavaOutputListener()
+    #ij.console().addOutputListener(ij.py._outputMapper)
 
     return ij
 
