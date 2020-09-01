@@ -11,7 +11,9 @@ __author__ = 'Curtis Rueden, Yang Liu, Michael Pinkert'
 import logging, os, re, sys
 import scyjava_config
 import jpype
-import jnius_config
+import jpype.imports
+import imglyb
+import scyjava
 from pathlib import Path
 import numpy
 import xarray as xr
@@ -62,10 +64,9 @@ def set_ij_env(ij_dir):
     # search plugins directory
     jars.extend(search_for_jars(ij_dir, '/plugins'))
     # add to classpath
-    scyjava_config.add_classpath(os.pathsep.join(jars))
-    # EE: Add .jar classpaths
     jpype.addClassPath(os.pathsep.join(jars))
     print('jpype classpath: {0}'.format(jpype.getClassPath()))
+    scyjava_config.add_classpath(os.pathsep.join(jars))
     return len(jars)
 
 
@@ -91,16 +92,16 @@ def init(ij_dir_or_version_or_endpoint=None, headless=True, new_instance=False):
     if jvm_status == True:
         print('The JPype JVM is already running.')
 
-    if jnius_config.vm_running and not new_instance:
-        _logger.warning('The JVM is already running.')
-        return ij
+    #if jnius_config.vm_running and not new_instance:
+    #    _logger.warning('The JVM is already running.')
+    #    return ij
 
     ## EE: Configure the JPype JVM
     
-    if not jnius_config.vm_running:
+    if not jvm_status:
 
         if headless:
-            scyjava_config.add_options('-Djava.awt.headless=true')
+            jvm_options = '-Djava.awt.headless=true'
 
         if ij_dir_or_version_or_endpoint is None:
             # Use latest release of ImageJ.
@@ -120,7 +121,7 @@ def init(ij_dir_or_version_or_endpoint=None, headless=True, new_instance=False):
             num_jars = set_ij_env(path)
             _logger.info("Added " + str(num_jars + 1) + " JARs to the Java classpath.")
             plugins_dir = str(Path(path, 'plugins'))
-            scyjava_config.add_options('-Dplugins.dir=' + plugins_dir)
+            jvm_options = '-Dplugins.dir=' + plugins_dir
 
         elif re.match('^(/|[A-Za-z]:)', ij_dir_or_version_or_endpoint):
             # Looks like a file path was intended, but it's not a folder.
@@ -141,32 +142,31 @@ def init(ij_dir_or_version_or_endpoint=None, headless=True, new_instance=False):
             _logger.debug('ImageJ version given: %s', version)
             scyjava_config.add_endpoints('net.imagej:imagej:' + version)
 
+    # Start jpype jvm here?
     # Must import imglyb (not scyjava) to spin up the JVM now.
-    import imglyb
-    from jnius import autoclass, JavaException, cast
-    import scyjava
+    #from jnius import autoclass, JavaException, cast
 
     # Initialize ImageJ.
-    ImageJ = autoclass('net.imagej.ImageJ')
+    ImageJ = jpype.JClass('net.imagej.ImageJ')
     ij = ImageJ()
 
     # Append some useful utility functions to the ImageJ gateway.
 
     from scyjava import jclass, isjava, to_java, to_python
 
-    Dataset                  = autoclass('net.imagej.Dataset')
-    ImgPlus                  = autoclass('net.imagej.ImgPlus')
-    Img                      = autoclass('net.imglib2.img.Img')
-    RandomAccessibleInterval = autoclass('net.imglib2.RandomAccessibleInterval')
-    Axes                     = autoclass('net.imagej.axis.Axes')
-    Double                   = autoclass('java.lang.Double')
+    Dataset                  = jpype.JClass('net.imagej.Dataset')
+    ImgPlus                  = jpype.JClass('net.imagej.ImgPlus')
+    Img                      = jpype.JClass('net.imglib2.img.Img')
+    RandomAccessibleInterval = jpype.JClass('net.imglib2.RandomAccessibleInterval')
+    Axes                     = jpype.JClass('net.imagej.axis.Axes')
+    Double                   = jpype.JClass('java.lang.Double')
 
     # EnumeratedAxis is a new axis made for xarray, so is only present in ImageJ versions that are released
     # later than March 2020.  This check defaults to LinearAxis instead if Enumerated does not work.
     try:
-        EnumeratedAxis           = autoclass('net.imagej.axis.EnumeratedAxis')
+        EnumeratedAxis           = jpype.JClass('net.imagej.axis.EnumeratedAxis')
     except JavaException:
-        DefaultLinearAxis = autoclass('net.imagej.axis.DefaultLinearAxis')
+        DefaultLinearAxis = jpype.JClass('net.imagej.axis.DefaultLinearAxis')
         def EnumeratedAxis(axis_type, values):
             origin = values[0]
             scale = values[1] - values[0]
@@ -175,7 +175,7 @@ def init(ij_dir_or_version_or_endpoint=None, headless=True, new_instance=False):
 
     # Try to define the legacy service, and create a dummy method if it doesn't exist.
     try:
-        LegacyService = autoclass('net.imagej.legacy.LegacyService')
+        LegacyService = jpype.JClass('net.imagej.legacy.LegacyService')
         legacyService = cast(LegacyService, ij.get("net.imagej.legacy.LegacyService"))
     except JavaException:
         class LegacyService:
@@ -193,7 +193,7 @@ def init(ij_dir_or_version_or_endpoint=None, headless=True, new_instance=False):
     setattr(ij, 'legacy', legacy)
 
     if legacyService.isActive():
-            WindowManager = autoclass('ij.WindowManager')
+            WindowManager = jpype.JClass('ij.WindowManager')
     else:
         class WindowManager:
             def getCurrentImage(self):
