@@ -24,10 +24,10 @@ ij = imagej.init('/Applications/Fiji.app', headless=False)
 ij.ui().showUI("swing")
 ```
 
-See [this thread](issues/23) for additional information and updates.
+See [this thread](https://github.com/imagej/pyimagej/issues/23) for additional information and updates.
 
 ## Tab completion crashes the kernel
-This is a known error.  While we do not have a direct solution, see [this thread](issues/34) for a work around
+This is a known error.  While we do not have a direct solution, see [this thread](https://github.com/imagej/pyimagej/issues/34) for a work around
 
 ## Pyjnius 1.2.1 incompatibility
 Version 1.2.1 of pyjnius causes several bugs with pyimagej.  These bugs can be fixed by using
