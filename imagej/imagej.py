@@ -13,7 +13,7 @@ import scyjava_config
 import jpype
 import jpype.imports
 import imglyb
-import scyjava
+import scyjava # JVM is started here --> _convert.py, line 13
 from pathlib import Path
 import numpy
 import xarray as xr
@@ -96,8 +96,8 @@ def init(ij_dir_or_version_or_endpoint=None, headless=True, new_instance=False):
     #    _logger.warning('The JVM is already running.')
     #    return ij
 
-    ## EE: Configure the JPype JVM
-    
+    # EE: jvm configuration below needs to be moved into scyjava. JVM is already
+    # EE: running by this point and cannot be modified.
     if not jvm_status:
 
         if headless:
@@ -141,10 +141,6 @@ def init(ij_dir_or_version_or_endpoint=None, headless=True, new_instance=False):
             version = ij_dir_or_version_or_endpoint
             _logger.debug('ImageJ version given: %s', version)
             scyjava_config.add_endpoints('net.imagej:imagej:' + version)
-
-    # start jvm via imglyb?
-    # Initialize JPype JVM with options.
-    jpype.startJVM(jvm_options)
 
     # Initialize ImageJ.
     ImageJ = jpype.JClass('net.imagej.ImageJ')
