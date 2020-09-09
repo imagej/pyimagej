@@ -12,8 +12,8 @@ import logging, os, re, sys
 import scyjava_config
 import jpype
 import jpype.imports
-import imglyb
 import scyjava # JVM is started here --> _convert.py, line 13
+import imglyb # must import after JVM is started
 from pathlib import Path
 import numpy
 import xarray as xr
