@@ -10,10 +10,10 @@ __author__ = 'Curtis Rueden, Yang Liu, Michael Pinkert'
 
 import logging, os, re, sys
 import scyjava_config
-import jpype
-import jpype.imports
-import scyjava # JVM is started here --> _convert.py, line 13
-import imglyb # must import after JVM is started
+import jpype # remove -- imports done in scyjava
+import jpype.imports # remove -- imports done in scyjava
+import scyjava # all other scyjava fucntions
+import scyjava.jvm # JVM control
 from pathlib import Path
 import numpy
 import xarray as xr
@@ -64,8 +64,6 @@ def set_ij_env(ij_dir):
     # search plugins directory
     jars.extend(search_for_jars(ij_dir, '/plugins'))
     # add to classpath
-    jpype.addClassPath(os.pathsep.join(jars))
-    print('jpype classpath: {0}'.format(jpype.getClassPath()))
     scyjava_config.add_classpath(os.pathsep.join(jars))
     return len(jars)
 
@@ -88,8 +86,7 @@ def init(ij_dir_or_version_or_endpoint=None, headless=True, new_instance=False):
     global ij    
 
     # EE: Check if JPype JVM is already running
-    jvm_status = jpype.isJVMStarted()
-    if jvm_status == True:
+    if scyjava.jvm.JVM_status():
         print('The JPype JVM is already running.')
 
     #if jnius_config.vm_running and not new_instance:
@@ -98,7 +95,7 @@ def init(ij_dir_or_version_or_endpoint=None, headless=True, new_instance=False):
 
     # EE: jvm configuration below needs to be moved into scyjava. JVM is already
     # EE: running by this point and cannot be modified.
-    if not jvm_status:
+    if not scyjava.jvm.JVM_status():
 
         if headless:
             jvm_options = '-Djava.awt.headless=true'
@@ -142,12 +139,15 @@ def init(ij_dir_or_version_or_endpoint=None, headless=True, new_instance=False):
             _logger.debug('ImageJ version given: %s', version)
             scyjava_config.add_endpoints('net.imagej:imagej:' + version)
 
+    # EE: Start JVM here
+    scyjava.jvm.start_JVM()
+
     # Initialize ImageJ.
     ImageJ = jpype.JClass('net.imagej.ImageJ')
     ij = ImageJ()
 
-    # Append some useful utility functions to the ImageJ gateway.
-
+    # Import imglyb and append some useful utility functions to the ImageJ gateway.
+    import imglyb
     from scyjava import jclass, isjava, to_java, to_python
 
     Dataset                  = jpype.JClass('net.imagej.Dataset')
