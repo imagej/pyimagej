@@ -11,7 +11,7 @@ setup(
     name='pyimagej',
     # TODO: Unify version declaration to one place.
     # https://www.python.org/dev/peps/pep-0396/#deriving
-    version= '0.6.0.dev0',
+    version= '0.6.1.dev0',
     author='Curtis Rueden, Leon Yang, Yang Liu, Michael Pinkert',
     author_email='ctrueden@wisc.edu',
     url='https://github.com/imagej/pyimagej',
@@ -22,11 +22,8 @@ setup(
     long_description_content_type='text/markdown',
     license='Apache 2.0',
     install_requires=[
-        'imglyb',
         'matplotlib',
         'numpy',
-        'pyjnius',
-        'scyjava',
         'xarray',
         'pillow', # for server
         'requests' # for server
