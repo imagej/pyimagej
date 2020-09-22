@@ -12,7 +12,6 @@ import logging, os, re, sys
 import scyjava_config
 import jpype # remove -- imports done in scyjava
 import jpype.imports # remove -- imports done in scyjava
-import scyjava # all other scyjava fucntions
 import scyjava.jvm # JVM control
 from pathlib import Path
 import numpy
@@ -148,7 +147,7 @@ def init(ij_dir_or_version_or_endpoint=None, headless=True, new_instance=False):
 
     # Import imglyb and append some useful utility functions to the ImageJ gateway.
     import imglyb
-    from scyjava import jclass, isjava, to_java, to_python
+    from scyjava.convert import jclass, isjava, to_java, to_python
 
     Dataset                  = jpype.JClass('net.imagej.Dataset')
     ImgPlus                  = jpype.JClass('net.imagej.ImgPlus')
