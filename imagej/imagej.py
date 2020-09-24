@@ -10,12 +10,12 @@ __author__ = 'Curtis Rueden, Yang Liu, Michael Pinkert'
 
 import logging, os, re, sys
 import scyjava_config
-import jpype # remove -- imports done in scyjava
-import jpype.imports # remove -- imports done in scyjava
 import scyjava.jvm # JVM control
-from pathlib import Path
 import numpy
 import xarray as xr
+
+from pathlib import Path
+from jpype import JClass, JException, JObject
 
 _logger = logging.getLogger(__name__)
 
@@ -88,12 +88,6 @@ def init(ij_dir_or_version_or_endpoint=None, headless=True, new_instance=False):
     if scyjava.jvm.JVM_status():
         print('The JPype JVM is already running.')
 
-    #if jnius_config.vm_running and not new_instance:
-    #    _logger.warning('The JVM is already running.')
-    #    return ij
-
-    # EE: jvm configuration below needs to be moved into scyjava. JVM is already
-    # EE: running by this point and cannot be modified.
     if not scyjava.jvm.JVM_status():
 
         if headless:
@@ -138,30 +132,31 @@ def init(ij_dir_or_version_or_endpoint=None, headless=True, new_instance=False):
             _logger.debug('ImageJ version given: %s', version)
             scyjava_config.add_endpoints('net.imagej:imagej:' + version)
 
+    print('[DEBUG] jvm_options: {0}'.format(jvm_options))
     # EE: Start JVM here
-    scyjava.jvm.start_JVM()
+    scyjava.jvm.start_JVM(jvm_options)
 
     # Initialize ImageJ.
-    ImageJ = jpype.JClass('net.imagej.ImageJ')
+    ImageJ = JClass('net.imagej.ImageJ')
     ij = ImageJ()
 
     # Import imglyb and append some useful utility functions to the ImageJ gateway.
     import imglyb
     from scyjava.convert import jclass, isjava, to_java, to_python
 
-    Dataset                  = jpype.JClass('net.imagej.Dataset')
-    ImgPlus                  = jpype.JClass('net.imagej.ImgPlus')
-    Img                      = jpype.JClass('net.imglib2.img.Img')
-    RandomAccessibleInterval = jpype.JClass('net.imglib2.RandomAccessibleInterval')
-    Axes                     = jpype.JClass('net.imagej.axis.Axes')
-    Double                   = jpype.JClass('java.lang.Double')
+    Dataset                  = JClass('net.imagej.Dataset')
+    ImgPlus                  = JClass('net.imagej.ImgPlus')
+    Img                      = JClass('net.imglib2.img.Img')
+    RandomAccessibleInterval = JClass('net.imglib2.RandomAccessibleInterval')
+    Axes                     = JClass('net.imagej.axis.Axes')
+    Double                   = JClass('java.lang.Double')
 
     # EnumeratedAxis is a new axis made for xarray, so is only present in ImageJ versions that are released
     # later than March 2020.  This check defaults to LinearAxis instead if Enumerated does not work.
     try:
-        EnumeratedAxis           = jpype.JClass('net.imagej.axis.EnumeratedAxis')
-    except jpype.JException:
-        DefaultLinearAxis = jpype.JClass('net.imagej.axis.DefaultLinearAxis')
+        EnumeratedAxis           = JClass('net.imagej.axis.EnumeratedAxis')
+    except JException:
+        DefaultLinearAxis = JClass('net.imagej.axis.DefaultLinearAxis')
         def EnumeratedAxis(axis_type, values):
             origin = values[0]
             scale = values[1] - values[0]
@@ -170,10 +165,10 @@ def init(ij_dir_or_version_or_endpoint=None, headless=True, new_instance=False):
 
     # Try to define the legacy service, and create a dummy method if it doesn't exist.
     try:
-        LegacyService = jpype.JClass('net.imagej.legacy.LegacyService')
-        legacyService = jpype.JObject(LegacyService, ij.get('net.imagej.legacy.LegacyService'))
+        LegacyService = JClass('net.imagej.legacy.LegacyService')
+        legacyService = JObject(LegacyService, ij.get('net.imagej.legacy.LegacyService'))
         #legacyService = cast(LegacyService, ij.get("net.imagej.legacy.LegacyService"))
-    except jpype.JException:
+    except JException:
         class LegacyService:
             def isActive(self):
                 return False
@@ -182,15 +177,15 @@ def init(ij_dir_or_version_or_endpoint=None, headless=True, new_instance=False):
     # Create a method to get the legacy service that is similar to other ImageJ services
     def legacy():
         try:
-            legacyService = jpype.JObject(LegacyService, ij.get('net.imagej.legacy.LegacyService'))
+            legacyService = JObject(LegacyService, ij.get('net.imagej.legacy.LegacyService'))
             #legacyService = cast(LegacyService, ij.get('net.imagej.legacy.LegacyService'))
-        except jpype.JException:
+        except JException:
             legacyService = LegacyService()
         return legacyService
     setattr(ij, 'legacy', legacy)
 
     if legacyService.isActive():
-            WindowManager = jpype.JClass('ij.WindowManager')
+            WindowManager = JClass('ij.WindowManager')
     else:
         class WindowManager:
             def getCurrentImage(self):
@@ -258,14 +253,14 @@ def init(ij_dir_or_version_or_endpoint=None, headless=True, new_instance=False):
                 ij2_type = image_or_type.firstElement()
                 return self.dtype(ij2_type)
             if jclass('net.imglib2.RandomAccessibleInterval').isInstance(image_or_type):
-                Util = jpype.JClass('net.imglib2.util.Util')
+                Util = JClass('net.imglib2.util.Util')
                 ij2_type = Util.getTypeFromInterval(image_or_type)
                 return self.dtype(ij2_type)
 
             # -- ImageJ1 images --
             if jclass('ij.ImagePlus').isInstance(image_or_type):
                 ij1_type = image_or_type.getType()
-                ImagePlus = jpype.JClass('ij.ImagePlus')
+                ImagePlus = JClass('ij.ImagePlus')
                 ij1_types = {
                     ImagePlus.GRAY8:  'uint8',
                     ImagePlus.GRAY16: 'uint16',
@@ -537,7 +532,7 @@ def init(ij_dir_or_version_or_endpoint=None, headless=True, new_instance=False):
             :return: xarray with reversed (C-style) dims and coords as labeled by the dataset
             """
             attrs = self._ij.py.from_java(dataset.getProperties())
-            axes = [(jpype.JObject('net.imagej.axis.CalibratedAxis', dataset.axis(idx)))
+            axes = [(JObject('net.imagej.axis.CalibratedAxis', dataset.axis(idx)))
                     for idx in range(dataset.numDimensions())]
             #axes = [(cast('net.imagej.axis.CalibratedAxis', dataset.axis(idx)))
             #        for idx in range(dataset.numDimensions())]
