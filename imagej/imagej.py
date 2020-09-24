@@ -12,6 +12,7 @@ import logging, os, re, sys
 import scyjava_config
 import scyjava.jvm # JVM control
 import numpy
+import debugtools as dt
 import xarray as xr
 
 from pathlib import Path
@@ -97,6 +98,8 @@ def init(ij_dir_or_version_or_endpoint=None, headless=True, new_instance=False):
             # Use latest release of ImageJ.
             _logger.debug('Using newest ImageJ release')
             scyjava_config.add_endpoints('net.imagej:imagej')
+            scyjava_config.add_endpoints('net.imglib2:imglib2-imglyb')
+            scyjava_config.add_endpoints('net.imagej:imagej-legacy')
 
         elif isinstance(ij_dir_or_version_or_endpoint, list):
             # Assume that this is a list of Maven endpoints
@@ -135,6 +138,7 @@ def init(ij_dir_or_version_or_endpoint=None, headless=True, new_instance=False):
     print('[DEBUG] jvm_options: {0}'.format(jvm_options))
     # EE: Start JVM here
     scyjava.jvm.start_JVM(jvm_options)
+    dt.print_endpoints()
 
     # Initialize ImageJ.
     ImageJ = JClass('net.imagej.ImageJ')
