@@ -143,6 +143,8 @@ def init(ij_dir_or_version_or_endpoint=None, headless=True, new_instance=False):
     # Initialize ImageJ.
     ImageJ = JClass('net.imagej.ImageJ')
     ij = ImageJ()
+    print('[DEBUG] ij version: {0}'.format(ij.getVersion()))
+    print('[DEBUG] dir: {0}'.format(dir(ij)))
 
     # Import imglyb and append some useful utility functions to the ImageJ gateway.
     import imglyb
@@ -170,7 +172,8 @@ def init(ij_dir_or_version_or_endpoint=None, headless=True, new_instance=False):
     # Try to define the legacy service, and create a dummy method if it doesn't exist.
     try:
         LegacyService = JClass('net.imagej.legacy.LegacyService')
-        legacyService = JObject(LegacyService, ij.get('net.imagej.legacy.LegacyService'))
+        #legacyService = JObject(LegacyService)
+        legacyService = JObject(ij.get('net.imagej.legacy.LegacyService'), LegacyService)
         #legacyService = cast(LegacyService, ij.get("net.imagej.legacy.LegacyService"))
     except JException:
         class LegacyService:
@@ -181,12 +184,12 @@ def init(ij_dir_or_version_or_endpoint=None, headless=True, new_instance=False):
     # Create a method to get the legacy service that is similar to other ImageJ services
     def legacy():
         try:
-            legacyService = JObject(LegacyService, ij.get('net.imagej.legacy.LegacyService'))
+            legacyService = JObject(ij.get('net.imagej.legacy.LegacyService'), LegacyService)
             #legacyService = cast(LegacyService, ij.get('net.imagej.legacy.LegacyService'))
         except JException:
             legacyService = LegacyService()
         return legacyService
-    setattr(ij, 'legacy', legacy)
+    setattr(ij, '_legacy', legacy)
 
     if legacyService.isActive():
             WindowManager = JClass('ij.WindowManager')
@@ -718,7 +721,8 @@ def init(ij_dir_or_version_or_endpoint=None, headless=True, new_instance=False):
 
             stack.setPixels(pixels, imp.getCurrentSlice())
 
-    ij.py = ImageJPython(ij)
+    #ij.py = ImageJPython(ij)
+    setattr(ij, '_py', ImageJPython(ij))
 
     ############################################################
     # EE: This is just an std error output.
