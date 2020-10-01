@@ -135,7 +135,7 @@ def init(ij_dir_or_version_or_endpoint=None, headless=True, new_instance=False):
             _logger.debug('ImageJ version given: %s', version)
             scyjava_config.add_endpoints('net.imagej:imagej:' + version)
 
-    print('[DEBUG] jvm_options: {0}'.format(jvm_options))
+    print('[DEBUG] JVM options: {0}'.format(jvm_options))
     # EE: Start JVM here
     scyjava.jvm.start_JVM(jvm_options)
     dt.print_endpoints()
@@ -717,30 +717,25 @@ def init(ij_dir_or_version_or_endpoint=None, headless=True, new_instance=False):
 
     setattr(ij, '_py', ImageJPython(ij))
 
-    ############################################################
-    # EE: This is just an std error output.
-    # Disabled for now, Jpype is weird...needs to be re-written.
     # Forward stdout and stderr from Java to Python.
-    ############################################################
 
-    #from jnius import PythonJavaClass, java_method
+    from jpype import JOverride, JImplements
+    @JImplements('org.scijava.console.OutputListener')
+    class JavaOutputListener():
 
-    #class JavaOutputListener(PythonJavaClass):
-    #    __javainterfaces__ = ['org/scijava/console/OutputListener']
-#
-    #    @java_method('(Lorg/scijava/console/OutputEvent;)V')
-    #    def outputOccurred(self, e):
-    #        source = e.getSource().toString()
-    #        output = e.getOutput()
-    #        if source == 'STDOUT':
-    #            sys.stdout.write(output)
-    #        elif source == 'STDERR':
-    #            sys.stderr.write(output)
-    #        else:
-    #            sys.stderr.write('[{}] {}'.format(source, output))
-#
-    #ij.py._outputMapper = JavaOutputListener()
-    #ij.console().addOutputListener(ij.py._outputMapper)
+        @JOverride
+        def outputOccurred(self, e):
+            source = e.getSource().toString
+            output = e.getOutput()
+            if source == 'STDOUT':
+                sys.stdout.write(output)
+            elif source == 'STDERR':
+                sys.stderr.write(output)
+            else:
+                sys.stderr.write('[{}] {}'.format(source, output))
+
+    ij._py._outputMapper = JavaOutputListener()
+    ij.console().addOutputListener(ij._py._outputMapper)
 
     return ij
 
