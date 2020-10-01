@@ -144,7 +144,6 @@ def init(ij_dir_or_version_or_endpoint=None, headless=True, new_instance=False):
     ImageJ = JClass('net.imagej.ImageJ')
     ij = ImageJ()
     print('[DEBUG] ij version: {0}'.format(ij.getVersion()))
-    print('[DEBUG] dir: {0}'.format(dir(ij)))
 
     # Import imglyb and append some useful utility functions to the ImageJ gateway.
     import imglyb
@@ -172,9 +171,7 @@ def init(ij_dir_or_version_or_endpoint=None, headless=True, new_instance=False):
     # Try to define the legacy service, and create a dummy method if it doesn't exist.
     try:
         LegacyService = JClass('net.imagej.legacy.LegacyService')
-        #legacyService = JObject(LegacyService)
         legacyService = JObject(ij.get('net.imagej.legacy.LegacyService'), LegacyService)
-        #legacyService = cast(LegacyService, ij.get("net.imagej.legacy.LegacyService"))
     except JException:
         class LegacyService:
             def isActive(self):
@@ -185,7 +182,6 @@ def init(ij_dir_or_version_or_endpoint=None, headless=True, new_instance=False):
     def legacy():
         try:
             legacyService = JObject(ij.get('net.imagej.legacy.LegacyService'), LegacyService)
-            #legacyService = cast(LegacyService, ij.get('net.imagej.legacy.LegacyService'))
         except JException:
             legacyService = LegacyService()
         return legacyService
@@ -541,8 +537,6 @@ def init(ij_dir_or_version_or_endpoint=None, headless=True, new_instance=False):
             attrs = self._ij.py.from_java(dataset.getProperties())
             axes = [(JObject('net.imagej.axis.CalibratedAxis', dataset.axis(idx)))
                     for idx in range(dataset.numDimensions())]
-            #axes = [(cast('net.imagej.axis.CalibratedAxis', dataset.axis(idx)))
-            #        for idx in range(dataset.numDimensions())]
 
             dims = [self._ijdim_to_pydim(axes[idx].type().getLabel()) for idx in range(len(axes))]
             values = self.rai_to_numpy(dataset)
@@ -721,7 +715,6 @@ def init(ij_dir_or_version_or_endpoint=None, headless=True, new_instance=False):
 
             stack.setPixels(pixels, imp.getCurrentSlice())
 
-    #ij.py = ImageJPython(ij)
     setattr(ij, '_py', ImageJPython(ij))
 
     ############################################################
