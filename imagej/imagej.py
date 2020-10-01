@@ -422,7 +422,7 @@ def init(ij_dir_or_version_or_endpoint=None, headless=True, new_instance=False):
 
                 # EnumeratedAxis is a new axis made for xarray, so is only present in ImageJ versions that are released
                 # later than March 2020.  This actually returns a LinearAxis if using an earlier version.
-                java_axis = EnumeratedAxis(ax_type, ij.py.to_java(doub_coords))
+                java_axis = EnumeratedAxis(ax_type, ij._py.to_java(doub_coords))
 
                 axes[ax_num] = java_axis
 
@@ -534,8 +534,9 @@ def init(ij_dir_or_version_or_endpoint=None, headless=True, new_instance=False):
             :param dataset: ImageJ dataset
             :return: xarray with reversed (C-style) dims and coords as labeled by the dataset
             """
-            attrs = self._ij.py.from_java(dataset.getProperties())
-            axes = [(JObject('net.imagej.axis.CalibratedAxis', dataset.axis(idx)))
+            attrs = self._ij._py.from_java(dataset.getProperties())
+            #axes = [(JObject('net.imagej.axis.CalibratedAxis', dataset.axis(idx)))
+            axes = [(JObject(ij.get('net.imagej.axis.CalibratedAxis', dataset.axis(idx))))
                     for idx in range(dataset.numDimensions())]
 
             dims = [self._ijdim_to_pydim(axes[idx].type().getLabel()) for idx in range(len(axes))]
@@ -674,10 +675,10 @@ def init(ij_dir_or_version_or_endpoint=None, headless=True, new_instance=False):
 
             if ij.legacy().isActive():
                 imp = self.active_image_plus(sync=sync)
-                return self._ij.py.from_java(imp)
+                return self._ij._py.from_java(imp)
             else:
                 dataset = self.active_dataset()
-                return self._ij.py.from_java(dataset)
+                return self._ij._py.from_java(dataset)
 
         def active_dataset(self):
             """Get the currently active Dataset from the Dataset service"""
