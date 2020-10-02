@@ -535,8 +535,7 @@ def init(ij_dir_or_version_or_endpoint=None, headless=True, new_instance=False):
             :return: xarray with reversed (C-style) dims and coords as labeled by the dataset
             """
             attrs = self._ij._py.from_java(dataset.getProperties())
-            #axes = [(JObject('net.imagej.axis.CalibratedAxis', dataset.axis(idx)))
-            axes = [(JObject(ij.get('net.imagej.axis.CalibratedAxis', dataset.axis(idx))))
+            axes = [(JObject(dataset.axis(idx), JClass('net.imagej.axis.CalibratedAxis')))
                     for idx in range(dataset.numDimensions())]
 
             dims = [self._ijdim_to_pydim(axes[idx].type().getLabel()) for idx in range(len(axes))]
