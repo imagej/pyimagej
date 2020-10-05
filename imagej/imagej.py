@@ -178,14 +178,7 @@ def init(ij_dir_or_version_or_endpoint=None, headless=True, new_instance=False):
                 return False
         legacyService = LegacyService()
 
-    # Create a method to get the legacy service that is similar to other ImageJ services
-    def legacy():
-        try:
-            legacyService = JObject(ij.get('net.imagej.legacy.LegacyService'), LegacyService)
-        except JException:
-            legacyService = LegacyService()
-        return legacyService
-    setattr(ij, '_legacy', legacy)
+    setattr(ij, '_legacy', legacyService)
 
     if legacyService.isActive():
             WindowManager = JClass('ij.WindowManager')
@@ -672,7 +665,7 @@ def init(ij_dir_or_version_or_endpoint=None, headless=True, new_instance=False):
             """
             # todo: make the behavior use pure IJ2 if legacy is not active
 
-            if ij.legacy().isActive():
+            if ij._legacy.isActive():
                 imp = self.active_image_plus(sync=sync)
                 return self._ij._py.from_java(imp)
             else:
