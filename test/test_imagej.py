@@ -70,7 +70,7 @@ class TestImageJ(object):
         assert result == correct_result
 
     def test_plugins_load_using_pairwise_stitching(self, ij_fixture):
-        if not ij_fixture.legacy().isActive():
+        if not ij_fixture._legacy.isActive():
             # HACK: Skip test if not testing with a local Fiji.app.
             return
 
@@ -82,9 +82,9 @@ class TestImageJ(object):
         args = {'first_image': 'Tile1', 'second_image': 'Tile2'}
 
         ij_fixture.script().run('macro.ijm', macro, True).get()
-        ij_fixture.py.run_plugin(plugin, args)
-        from jnius import autoclass
-        WindowManager = autoclass('ij.WindowManager')
+        ij_fixture._py.run_plugin(plugin, args)
+        from jpype import JClass
+        WindowManager = JClass('ij.WindowManager') # doesn't work -- no window manager?
         result_name = WindowManager.getCurrentImage().getTitle()
 
         ij_fixture.script().run('macro.ijm', 'run("Close All");', True).get()
@@ -113,13 +113,13 @@ def get_xarr():
 
 
 def assert_xarray_equal_to_dataset(ij_fixture, xarr):
-    dataset = ij_fixture.py.to_java(xarr)
+    dataset = ij_fixture._py.to_java(xarr)
 
-    from jnius import cast, JavaException
+    from jpype import JClass, JObject, JException
     try:
-        axes = [cast('net.imagej.axis.EnumeratedAxis', dataset.axis(axnum)) for axnum in range(5)]
-    except JavaException:
-        axes = [cast('net.imagej.axis.LinearAxis', dataset.axis(axnum)) for axnum in range(5)]
+        axes = [(JObject(dataset.axis(axnum), JClass('net.imagej.axis.EnumeratedAxis')) for axnum in range (5))]
+    except JException:
+        axes = [(JObject(dataset.axis(axnum), JClass('net.imagej.axis.LinearAxis')) for axnum in range (5))]
 
     labels = [axis.type().getLabel() for axis in axes]
 
@@ -134,12 +134,12 @@ def assert_xarray_equal_to_dataset(ij_fixture, xarr):
         expected_labels = ['X', 'Y', 'Z', 'T', 'C']
 
     assert expected_labels == labels
-    assert xarr.attrs == ij_fixture.py.from_java(dataset.getProperties())
+    assert xarr.attrs == ij_fixture._py.from_java(dataset.getProperties())
 
 
 def assert_inverted_xarr_equal_to_xarr(dataset, ij_fixture, xarr):
     # Reversing back to xarray yields original results
-    invert_xarr = ij_fixture.py.from_java(dataset)
+    invert_xarr = ij_fixture._py.from_java(dataset)
     assert (xarr.values == invert_xarr.values).all()
     assert list(xarr.dims) == list(invert_xarr.dims)
     for key in xarr.coords:
@@ -156,30 +156,30 @@ class TestXarrayConversion(object):
 
     def test_dataset_converts_to_xarray(self, ij_fixture, get_xarr):
         xarr = get_xarr()
-        dataset = ij_fixture.py.to_java(xarr)
+        dataset = ij_fixture._py.to_java(xarr)
         assert_inverted_xarr_equal_to_xarr(dataset, ij_fixture, xarr)
 
     def test_rgb_image_maintains_correct_dim_order_on_conversion(self, ij_fixture, get_xarr):
         xarr = get_xarr()
         dataset = ij_fixture.py.to_java(xarr)
-        from jnius import cast, JavaException
+        from jpype import JClass, JObject, JException
         try:
-            axes = [cast('net.imagej.axis.EnumeratedAxis', dataset.axis(axnum)) for axnum in range(5)]
-        except JavaException:
-            axes = [cast('net.imagej.axis.LinearAxis', dataset.axis(axnum)) for axnum in range(5)]
+            axes = [(JObject(dataset.axis(axnum), JClass('net.imagej.axis.EnumeratedAxis')) for axnum in range(5))]
+        except JException:
+            axes = [(JObject(dataset.axis(axnum), JClass('net.imagej.axis.LinearAxis')) for axnum in range(5))]
 
         labels = [axis.type().getLabel() for axis in axes]
         assert ['X', 'Y', 'Z', 'T', 'C'] == labels
 
         # Test that automatic axis swapping works correctly
-        raw_values = ij_fixture.py.rai_to_numpy(dataset)
+        raw_values = ij_fixture._py.rai_to_numpy(dataset)
         assert (xarr.values == np.moveaxis(raw_values, 0, -1)).all()
 
         assert_inverted_xarr_equal_to_xarr(dataset, ij_fixture, xarr)
 
     def test_no_coords_or_dims_in_xarr(self, ij_fixture, get_xarr):
         xarr = get_xarr('NoDims')
-        dataset = ij_fixture.py.from_java(xarr)
+        dataset = ij_fixture._py.from_java(xarr)
         assert_inverted_xarr_equal_to_xarr(dataset, ij_fixture, xarr)
 
 
@@ -191,61 +191,61 @@ def arr():
 
 class TestIJ1ToIJ2Synchronization(object):
     def test_get_image_plus_synchronizes_from_ij1_to_ij2(self, ij_fixture, arr):
-        if not ij_fixture.legacy().isActive():
+        if not ij_fixture._legacy.isActive():
             pytest.skip("No IJ1.  Skipping test.")
         if ij_fixture.ui().isHeadless():
             pytest.skip("No GUI.  Skipping test")
 
         original = arr[0, 0]
-        ds = ij_fixture.py.to_java(arr)
+        ds = ij_fixture._py.to_java(arr)
         ij_fixture.ui().show(ds)
         macro = """run("Add...", "value=5");"""
-        ij_fixture.py.run_macro(macro)
-        imp = ij_fixture.py.active_image_plus()
+        ij_fixture._py.run_macro(macro)
+        imp = ij_fixture._py.active_image_plus()
 
         assert arr[0, 0] == original + 5
 
     def test_synchronize_from_ij1_to_numpy(self, ij_fixture, arr):
-        if not ij_fixture.legacy().isActive():
+        if not ij_fixture._legacy.isActive():
             pytest.skip("No IJ1.  Skipping test.")
         if ij_fixture.ui().isHeadless():
             pytest.skip("No GUI.  Skipping test")
 
         original = arr[0, 0]
-        ds = ij_fixture.py.to_dataset(arr)
+        ds = ij_fixture._py.to_dataset(arr)
         ij_fixture.ui().show(ds)
-        imp = ij_fixture.py.active_image_plus()
+        imp = ij_fixture._py.active_image_plus()
         imp.getProcessor().add(5)
-        ij_fixture.py.synchronize_ij1_to_ij2(imp)
+        ij_fixture._py.synchronize_ij1_to_ij2(imp)
 
         assert arr[0, 0] == original + 5
 
     def test_window_to_numpy_converts_active_image_to_xarray(self, ij_fixture, arr):
-        if not ij_fixture.legacy().isActive():
+        if not ij_fixture._legacy.isActive():
             pytest.skip("No IJ1.  Skipping test.")
         if ij_fixture.ui().isHeadless():
             pytest.skip("No GUI.  Skipping test")
 
-        ds = ij_fixture.py.to_dataset(arr)
+        ds = ij_fixture._py.to_dataset(arr)
         ij_fixture.ui().show(ds)
-        new_arr = ij_fixture.py.active_xarray()
+        new_arr = ij_fixture._py.active_xarray()
         assert (arr == new_arr.values).all
 
     def test_functions_throw_warning_if_legacy_not_enabled(self, ij_fixture):
-        if ij_fixture.legacy().isActive():
+        if ij_fixture._legacy.isActive():
             pytest.skip("IJ1 installed.  Skipping test")
 
         with pytest.raises(AttributeError):
-            ij_fixture.py.synchronize_ij1_to_ij2(None)
+            ij_fixture._py.synchronize_ij1_to_ij2(None)
         with pytest.raises(ImportError):
-            ij_fixture.py.active_image_plus()
-
+            ij_fixture._py.active_image_plus()
+he two
 
 # initialize ij and begin tests
 
 ij = imagej.init()
 test = TestImageJ()
-test.test_frangi(ij)
-test.test_gaussian(ij)
-test.test_image_math(ij)
+#test.test_frangi(ij)
+#test.test_gaussian(ij)
+#test.test_image_math(ij)
 test.test_plugins_load_using_pairwise_stitching(ij)
