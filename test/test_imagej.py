@@ -239,7 +239,7 @@ class TestIJ1ToIJ2Synchronization(object):
             ij_fixture._py.synchronize_ij1_to_ij2(None)
         with pytest.raises(ImportError):
             ij_fixture._py.active_image_plus()
-he two
+
 
 # initialize ij and begin tests
 
