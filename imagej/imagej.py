@@ -16,7 +16,7 @@ import debugtools as dt
 import xarray as xr
 
 from pathlib import Path
-from jpype import JClass, JException, JObject
+from jpype import JClass, JException, JObject, JImplementationFor
 
 _logger = logging.getLogger(__name__)
 
@@ -83,7 +83,7 @@ def init(ij_dir_or_version_or_endpoint=None, headless=True, new_instance=False):
     :return: an instance of the net.imagej.ImageJ gateway
     """
 
-    global ij    
+    global ij
 
     # EE: Check if JPype JVM is already running
     if scyjava.jvm.JVM_status():
@@ -140,10 +140,10 @@ def init(ij_dir_or_version_or_endpoint=None, headless=True, new_instance=False):
     scyjava.jvm.start_JVM(jvm_options)
     dt.print_endpoints()
 
-    # Initialize ImageJ.
+    # Initialize ImageJ
     ImageJ = JClass('net.imagej.ImageJ')
     ij = ImageJ()
-    print('[DEBUG] ij version: {0}'.format(ij.getVersion()))
+    dt.print_ij_version(ij)
 
     # Import imglyb and append some useful utility functions to the ImageJ gateway.
     import imglyb
@@ -169,19 +169,21 @@ def init(ij_dir_or_version_or_endpoint=None, headless=True, new_instance=False):
             return axis
 
     # Try to define the legacy service, and create a dummy method if it doesn't exist.
-    try:
-        LegacyService = JClass('net.imagej.legacy.LegacyService')
-        legacyService = JObject(ij.get('net.imagej.legacy.LegacyService'), LegacyService)
-    except JException:
-        class LegacyService:
-            def isActive(self):
-                return False
-        legacyService = LegacyService()
 
-    setattr(ij, '_legacy', legacyService)
+    # create the legacy service object
+    legacyServiceObj = ij.get('net.imagej.legacy.LegacyService')
 
-    if legacyService.isActive():
-            WindowManager = JClass('ij.WindowManager')
+    # attach legacy to imagej
+
+    @JImplementationFor('net.imagej.ImageJ')
+    class LegacyServiceProto(object):
+        @property
+        def legacy(self):
+            return legacyServiceObj
+    # TODO: add try/except for no legacy service
+
+    if legacyServiceObj.isActive():
+        WindowManager = JClass('ij.WindowManager')
     else:
         class WindowManager:
             def getCurrentImage(self):
@@ -189,8 +191,9 @@ def init(ij_dir_or_version_or_endpoint=None, headless=True, new_instance=False):
                 Throw an error saying IJ1 is not available
                 :return:
                 """
-                raise ImportError("Your ImageJ installation does not support IJ1.  This function does not work.")
-        WindowManager = WindowManager()
+                raise ImportError("Your ImageJ installation does not support IJ1. This function does not work.")
+        WindowManager = JObject(WindowManager)
+
 
     class ImageJPython:
         def __init__(self, ij):
