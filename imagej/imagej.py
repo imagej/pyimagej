@@ -174,7 +174,6 @@ def init(ij_dir_or_version_or_endpoint=None, headless=True, new_instance=False):
     legacyServiceObj = ij.get('net.imagej.legacy.LegacyService')
 
     # attach legacy to imagej
-
     @JImplementationFor('net.imagej.ImageJ')
     class LegacyServiceProto(object):
         @property
@@ -193,7 +192,6 @@ def init(ij_dir_or_version_or_endpoint=None, headless=True, new_instance=False):
                 """
                 raise ImportError("Your ImageJ installation does not support IJ1. This function does not work.")
         WindowManager = JObject(WindowManager)
-
 
     class ImageJPython:
         def __init__(self, ij):
@@ -711,10 +709,16 @@ def init(ij_dir_or_version_or_endpoint=None, headless=True, new_instance=False):
 
             stack.setPixels(pixels, imp.getCurrentSlice())
 
-    setattr(ij, '_py', ImageJPython(ij))
+    # attach ImageJPython to imagej
+    imagejPythonObj = ImageJPython(ij)
+
+    @JImplementationFor('net.imagej.ImageJ')
+    class ImageJPythonProto(object):
+        @property
+        def py(self):
+            return imagejPythonObj
 
     # Forward stdout and stderr from Java to Python.
-
     from jpype import JOverride, JImplements
     @JImplements('org.scijava.console.OutputListener')
     class JavaOutputListener():
