@@ -22,3 +22,25 @@ def print_endpoints():
     print('[DEBUG] endpoints: {0}'.format(endpoints))
 
     return
+
+def print_ij_version(ij):
+
+    print('[DEBUG] ij version: {0}'.format(ij.getVersion()))
+
+    return
+
+def print_obj_dir(object):
+
+    obj_dir = dir(object)
+
+    print('[DEBUG] object name: {0}\n[DEBUG] dir:'.format(str(object)))
+    for x in obj_dir:
+        print(x)
+
+    return
+
+def print_obj_type(object):
+
+    print('[DEBUG] object name: {0}\n[DEBUG] type: {1}'.format(str(object), type(object)))
+
+    return
