@@ -9,18 +9,19 @@ import xarray as xr
 
 class TestImageJ(object):
     def test_frangi(self, ij_fixture):
+        print("[DEBUG] test_frangi: RUNNING")
         input_array = np.array([[1000, 1000, 1000, 2000, 3000], [5000, 8000, 13000, 21000, 34000]])
         result = np.zeros(input_array.shape)
-        ij_fixture.op().filter().frangiVesselness(ij_fixture._py.to_java(result), ij_fixture._py.to_java(input_array), [1, 1], 4)
+        ij_fixture.op().filter().frangiVesselness(ij_fixture.py.to_java(result), ij_fixture.py.to_java(input_array), [1, 1], 4)
         correct_result = np.array([[0, 0, 0, 0.94282, 0.94283], [0, 0, 0, 0.94283, 0.94283]])
         result = np.ndarray.round(result, decimals=5)
         assert (result == correct_result).all()
-        print('[DEBUG] test_frangi: {0}'.format(result))
+        print("[DEBUG] test_frangi: PASS")
 
     def test_gaussian(self, ij_fixture):
+        print("[DEBUG] test_gaussian: RUNNING")
         input_array = np.array([[1000, 1000, 1000, 2000, 3000], [5000, 8000, 13000, 21000, 34000]])
-
-        output_array = ij_fixture.op().filter().gauss(ij_fixture._py.to_java(input_array), 10)
+        output_array = ij_fixture.op().filter().gauss(ij_fixture.py.to_java(input_array), 10)
         result = []
         correct_result = [8440, 8440, 8439, 8444]
         ra = output_array.randomAccess()
@@ -29,6 +30,7 @@ class TestImageJ(object):
                 ra.setPosition(x, y)
                 result.append(ra.get().get())
         assert result == correct_result
+        print("[DEBUG] test_gaussian: PASS")
 
     """
     def testTopHat(self, ij_fixture):
@@ -55,22 +57,25 @@ class TestImageJ(object):
     """
 
     def test_image_math(self, ij_fixture):
+        print("[DEBUG] test_image_math: RUNNING")
         from jpype import JClass
         Views = JClass('net.imglib2.view.Views')
 
         input_array = np.array([[1, 1, 2], [3, 5, 8]])
         result = []
         correct_result = [192, 198, 205, 192, 198, 204]
-        java_in = Views.iterable(ij_fixture._py.to_java(input_array))
+        java_in = Views.iterable(ij_fixture.py.to_java(input_array))
         java_out = ij_fixture.op().image().equation(java_in, "64 * (Math.sin(0.1 * p[0]) + Math.cos(0.1 * p[1])) + 128")
 
         itr = java_out.iterator()
         while itr.hasNext():
             result.append(itr.next().get())
         assert result == correct_result
+        print("[DEBUG] test_image_math: PASS")
 
     def test_plugins_load_using_pairwise_stitching(self, ij_fixture):
-        if not ij_fixture._legacy.isActive():
+        print("[DEBUG] test_plugins_load_using_pairwise_stitching: RUNNING")
+        if not ij_fixture.legacy.isActive():
             # HACK: Skip test if not testing with a local Fiji.app.
             return
 
@@ -82,14 +87,15 @@ class TestImageJ(object):
         args = {'first_image': 'Tile1', 'second_image': 'Tile2'}
 
         ij_fixture.script().run('macro.ijm', macro, True).get()
-        ij_fixture._py.run_plugin(plugin, args)
+        ij_fixture.py.run_plugin(plugin, args)
         from jpype import JClass
-        WindowManager = JClass('ij.WindowManager') # doesn't work -- no window manager?
+        WindowManager = JClass('ij.WindowManager')
         result_name = WindowManager.getCurrentImage().getTitle()
 
         ij_fixture.script().run('macro.ijm', 'run("Close All");', True).get()
 
         assert result_name == 'Tile1<->Tile2'
+        print("[DEBUG] test_plugins_load_using_pairwise_stitching: PASS")
 
 
 @pytest.fixture(scope='module')
@@ -113,7 +119,7 @@ def get_xarr():
 
 
 def assert_xarray_equal_to_dataset(ij_fixture, xarr):
-    dataset = ij_fixture._py.to_java(xarr)
+    dataset = ij_fixture.py.to_java(xarr)
 
     from jpype import JClass, JObject, JException
     try:
@@ -134,12 +140,12 @@ def assert_xarray_equal_to_dataset(ij_fixture, xarr):
         expected_labels = ['X', 'Y', 'Z', 'T', 'C']
 
     assert expected_labels == labels
-    assert xarr.attrs == ij_fixture._py.from_java(dataset.getProperties())
+    assert xarr.attrs == ij_fixture.py.from_java(dataset.getProperties())
 
 
 def assert_inverted_xarr_equal_to_xarr(dataset, ij_fixture, xarr):
     # Reversing back to xarray yields original results
-    invert_xarr = ij_fixture._py.from_java(dataset)
+    invert_xarr = ij_fixture.py.from_java(dataset)
     assert (xarr.values == invert_xarr.values).all()
     assert list(xarr.dims) == list(invert_xarr.dims)
     for key in xarr.coords:
@@ -156,7 +162,7 @@ class TestXarrayConversion(object):
 
     def test_dataset_converts_to_xarray(self, ij_fixture, get_xarr):
         xarr = get_xarr()
-        dataset = ij_fixture._py.to_java(xarr)
+        dataset = ij_fixture.py.to_java(xarr)
         assert_inverted_xarr_equal_to_xarr(dataset, ij_fixture, xarr)
 
     def test_rgb_image_maintains_correct_dim_order_on_conversion(self, ij_fixture, get_xarr):
@@ -172,14 +178,14 @@ class TestXarrayConversion(object):
         assert ['X', 'Y', 'Z', 'T', 'C'] == labels
 
         # Test that automatic axis swapping works correctly
-        raw_values = ij_fixture._py.rai_to_numpy(dataset)
+        raw_values = ij_fixture.py.rai_to_numpy(dataset)
         assert (xarr.values == np.moveaxis(raw_values, 0, -1)).all()
 
         assert_inverted_xarr_equal_to_xarr(dataset, ij_fixture, xarr)
 
     def test_no_coords_or_dims_in_xarr(self, ij_fixture, get_xarr):
         xarr = get_xarr('NoDims')
-        dataset = ij_fixture._py.from_java(xarr)
+        dataset = ij_fixture.py.from_java(xarr)
         assert_inverted_xarr_equal_to_xarr(dataset, ij_fixture, xarr)
 
 
@@ -191,61 +197,61 @@ def arr():
 
 class TestIJ1ToIJ2Synchronization(object):
     def test_get_image_plus_synchronizes_from_ij1_to_ij2(self, ij_fixture, arr):
-        if not ij_fixture._legacy.isActive():
+        if not ij_fixture.legacy.isActive():
             pytest.skip("No IJ1.  Skipping test.")
         if ij_fixture.ui().isHeadless():
             pytest.skip("No GUI.  Skipping test")
 
         original = arr[0, 0]
-        ds = ij_fixture._py.to_java(arr)
+        ds = ij_fixture.py.to_java(arr)
         ij_fixture.ui().show(ds)
         macro = """run("Add...", "value=5");"""
-        ij_fixture._py.run_macro(macro)
-        imp = ij_fixture._py.active_image_plus()
+        ij_fixture.py.run_macro(macro)
+        imp = ij_fixture.py.active_image_plus()
 
         assert arr[0, 0] == original + 5
 
     def test_synchronize_from_ij1_to_numpy(self, ij_fixture, arr):
-        if not ij_fixture._legacy.isActive():
+        if not ij_fixture.legacy.isActive():
             pytest.skip("No IJ1.  Skipping test.")
         if ij_fixture.ui().isHeadless():
             pytest.skip("No GUI.  Skipping test")
 
         original = arr[0, 0]
-        ds = ij_fixture._py.to_dataset(arr)
+        ds = ij_fixture.py.to_dataset(arr)
         ij_fixture.ui().show(ds)
-        imp = ij_fixture._py.active_image_plus()
+        imp = ij_fixture.py.active_image_plus()
         imp.getProcessor().add(5)
-        ij_fixture._py.synchronize_ij1_to_ij2(imp)
+        ij_fixture.py.synchronize_ij1_to_ij2(imp)
 
         assert arr[0, 0] == original + 5
 
     def test_window_to_numpy_converts_active_image_to_xarray(self, ij_fixture, arr):
-        if not ij_fixture._legacy.isActive():
+        if not ij_fixture.legacy.isActive():
             pytest.skip("No IJ1.  Skipping test.")
         if ij_fixture.ui().isHeadless():
             pytest.skip("No GUI.  Skipping test")
 
-        ds = ij_fixture._py.to_dataset(arr)
+        ds = ij_fixture.py.to_dataset(arr)
         ij_fixture.ui().show(ds)
-        new_arr = ij_fixture._py.active_xarray()
+        new_arr = ij_fixture.py.active_xarray()
         assert (arr == new_arr.values).all
 
     def test_functions_throw_warning_if_legacy_not_enabled(self, ij_fixture):
-        if ij_fixture._legacy.isActive():
+        if ij_fixture.legacy.isActive():
             pytest.skip("IJ1 installed.  Skipping test")
 
         with pytest.raises(AttributeError):
-            ij_fixture._py.synchronize_ij1_to_ij2(None)
+            ij_fixture.py.synchronize_ij1_to_ij2(None)
         with pytest.raises(ImportError):
-            ij_fixture._py.active_image_plus()
+            ij_fixture.py.active_image_plus()
 
 
 # initialize ij and begin tests
 
 ij = imagej.init()
 test = TestImageJ()
-#test.test_frangi(ij)
+test.test_frangi(ij)
 #test.test_gaussian(ij)
-#test.test_image_math(ij)
+test.test_image_math(ij)
 test.test_plugins_load_using_pairwise_stitching(ij)
