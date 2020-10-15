@@ -125,9 +125,11 @@ def init(ij_dir_or_version_or_endpoint=None, headless=True, new_instance=False):
         elif ':' in ij_dir_or_version_or_endpoint:
             # Assume endpoint of an artifact.
             # Strip out white spaces
-            endpoint = ij_dir_or_version_or_endpoint.replace(" ", "")
+            endpoint = ij_dir_or_version_or_endpoint.replace("    ", "")
             _logger.debug('Maven coordinate given: %s', endpoint)
             scyjava_config.add_endpoints(endpoint)
+            scyjava_config.add_endpoints('net.imglib2:imglib2-imglyb')
+            scyjava_config.add_endpoints('net.imagej:imagej-legacy')
 
         else:
             # Assume version of net.imagej:imagej.
@@ -135,8 +137,15 @@ def init(ij_dir_or_version_or_endpoint=None, headless=True, new_instance=False):
             _logger.debug('ImageJ version given: %s', version)
             scyjava_config.add_endpoints('net.imagej:imagej:' + version)
 
+
+    # append user jvm options
+    additional_jvm_options = scyjava_config.get_options()
+    if additional_jvm_options == "":
+        pass
+    else:
+        jvm_options = jvm_options + " " + additional_jvm_options
+
     print('[DEBUG] JVM options: {0}'.format(jvm_options))
-    # EE: Start JVM here
     scyjava.jvm.start_JVM(jvm_options)
     dt.print_endpoints()
 
@@ -186,7 +195,7 @@ def init(ij_dir_or_version_or_endpoint=None, headless=True, new_instance=False):
     else:
         class WindowManager:
             def getCurrentImage(self):
-                """
+                """sudo
                 Throw an error saying IJ1 is not available
                 :return:
                 """
