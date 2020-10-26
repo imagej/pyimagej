@@ -9,9 +9,8 @@ import debugtools as dt
 import os
 import xarray as xr
 import numpy as np
-import imagej
 
-from jpype import JClass
+from jpype import JClass, JImplements, JLong, JArray
 
 _logger = logging.getLogger(__name__)
 
@@ -64,28 +63,47 @@ def debug_to_imglib(source):
 config_min_ij()
 jpype.startJVM()
 
-# imglib
+### imglyb code snippet -- begin
 NumpyToImgLibConversionsWithStride = JClass('net.imglib2.python.NumpyToImgLibConversionsWithStride')
+ReferenceGuardingRandomAccessibleInterval = JClass('net.imglib2.python.ReferenceGuardingRandomAccessibleInterval')
+
+@JImplements('net.imglib2.python.ReferenceGuardingRandomAccessibleInterval$ReferenceHolder')
+class ReferenceGuard():
+
+    def __init__(self, *args, **kwargs):
+        self.args = args
+
+### imglyb code snippet -- end
 
 # setup ij
-#ImageJ = JClass('net.imagej.ImageJ')
-#ij = ImageJ()
-ij = imagej.init()
+ImageJ = JClass('net.imagej.ImageJ')
+ij = ImageJ()
 dt.print_ij_version(ij)
 
 # debug here
-xarr = get_xarr()
-print("[DEBUG] xarr:")
-print(xarr)
+xarr = get_xarr() # ok
 print("[DEBUG] xarr type: {0}".format(type(xarr)))
-print("[DEBUG] xarr dir:")
-print(dir(xarr))
-
-# convert to dataset
-ds = ij.py.to_dataset(xarr)
-print("[DEBUG] ds:")
-print(ds)
-print("[DEBUG] ds type: {0}".format(type(ds)))
-print("[DEBUG] ds dir:")
-print(dir(ds))
+vals = np.moveaxis(xarr.values, -1, 0) # ok
+print("[DEBUG] vals type: {0}".format(type(vals)))
+print("[DEBUG] vals.dtype: {0}".format(vals.dtype))
+ref_guard = ReferenceGuard(vals) # ok
+print("[DEBUG] ReferenceGuard: {0}".format(ref_guard))
+print("[DEBUG] ReferenceGuard type: {0}".format(type(ref_guard)))
+address = vals.ctypes.data # ok
+long_address = JLong(address)
+print("[DEBUG] address: {0}".format(address))
+print("[DEBUG] address type: {0}".format(type(address)))
+print("[DEBUG] long_address: {0}".format(long_address))
+print("[DEBUG] long_address type: {0}".format(type(long_address)))
+stride = np.array(vals.strides[::-1]) / vals.itemsize # ok
+print("[DEBUG] stride: {0}".format(stride))
+print("[DEBUG] stride type: {0}".format(type(stride)))
+long_arr_stride = JArray(JLong)(stride)
+print("[DEBUG] long_arr_stride: {0}".format(long_arr_stride))
+print("[DEBUG] long_arr_stride type: {0}".format(type(long_arr_stride)))
+vals_shape = vals.shape[::-1]
+long_arr_vals = JArray(JLong)(vals_shape)
+print("[DEBUG] long_arr_vals: {0}".format(long_arr_vals))
+print("[DEBUG] long_arr_vals type: {0}".format(type(long_arr_vals)))
+NumpyToImgLibConversionsWithStride.toDouble(long_address, long_arr_stride, long_arr_vals)
 
