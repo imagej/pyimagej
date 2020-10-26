@@ -84,6 +84,7 @@ def init(ij_dir_or_version_or_endpoint=None, headless=True, new_instance=False):
     """
 
     global ij
+    jvm_options = ""
 
     # EE: Check if JPype JVM is already running
     if scyjava.jvm.JVM_status():
@@ -392,7 +393,7 @@ def init(ij_dir_or_version_or_endpoint=None, headless=True, new_instance=False):
             """
             if self._ends_with_channel_axis(xarr):
                 vals = numpy.moveaxis(xarr.values, -1, 0)
-                dataset = self._numpy_to_dataset(vals)
+                dataset = self._numpy_to_dataset(vals) # EE bug here -- can't convert numpy array w/ imglib
             else:
                 dataset = self._numpy_to_dataset(xarr.values)
             axes = self._assign_axes(xarr)
