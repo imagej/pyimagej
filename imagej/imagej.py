@@ -170,7 +170,7 @@ def init(ij_dir_or_version_or_endpoint=None, headless=True, new_instance=False):
     # later than March 2020.  This check defaults to LinearAxis instead if Enumerated does not work.
     try:
         EnumeratedAxis           = JClass('net.imagej.axis.EnumeratedAxis')
-    except JException:
+    except (JException, TypeError):
         DefaultLinearAxis = JClass('net.imagej.axis.DefaultLinearAxis')
         def EnumeratedAxis(axis_type, values):
             origin = values[0]
@@ -194,14 +194,14 @@ def init(ij_dir_or_version_or_endpoint=None, headless=True, new_instance=False):
     if legacyServiceObj.isActive():
         WindowManager = JClass('ij.WindowManager')
     else:
-        class WindowManager:
+        class _WindowManager:
             def getCurrentImage(self):
-                """sudo
+                """
                 Throw an error saying IJ1 is not available
                 :return:
                 """
                 raise ImportError("Your ImageJ installation does not support IJ1. This function does not work.")
-        WindowManager = JObject(WindowManager)
+        WindowManager = JObject(_WindowManager)
 
     class ImageJPython:
         def __init__(self, ij):
