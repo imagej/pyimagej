@@ -105,5 +105,5 @@ vals_shape = vals.shape[::-1]
 long_arr_vals = JArray(JLong)(vals_shape)
 print("[DEBUG] long_arr_vals: {0}".format(long_arr_vals))
 print("[DEBUG] long_arr_vals type: {0}".format(type(long_arr_vals)))
-NumpyToImgLibConversionsWithStride.toDouble(long_address, long_arr_stride, long_arr_vals)
-
+x = NumpyToImgLibConversionsWithStride.toDouble(long_address, long_arr_stride, long_arr_vals)
+print("[DEBUG] x: {0}".format(x))
