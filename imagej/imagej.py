@@ -392,13 +392,14 @@ def init(ij_dir_or_version_or_endpoint=None, headless=True, new_instance=False):
             :return: The dataset
             """
             if self._ends_with_channel_axis(xarr):
+                print("[DEBUG] _ends_with_channel_axis selected")
                 vals = numpy.moveaxis(xarr.values, -1, 0)
-                dataset = self._numpy_to_dataset(vals) # EE bug here -- can't convert numpy array w/ imglib
+                dataset = self._numpy_to_dataset(vals) # EE: investigate here....
             else:
+                print("[DEBUG] _numpy_to_dataset selected")
                 dataset = self._numpy_to_dataset(xarr.values)
             axes = self._assign_axes(xarr)
             dataset.setAxes(axes)
-
             self._assign_dataset_metadata(dataset, xarr.attrs)
 
             return dataset
@@ -497,15 +498,20 @@ def init(ij_dir_or_version_or_endpoint=None, headless=True, new_instance=False):
             # to directly go from Img to Dataset, instead you need to chain the Img->ImgPlus->Dataset converters.
             try:
                 if self._ij.convert().supports(data, Dataset):
+                    print("[DEBUG] A")
                     return self._ij.convert().convert(data, Dataset)
                 if self._ij.convert().supports(data, ImgPlus):
+                    print("[DEBUG] B")
                     imgPlus = self._ij.convert().convert(data, ImgPlus)
                     return self._ij.dataset().create(imgPlus)
                 if self._ij.convert().supports(data, Img):
+                    print("[DEBUG] C")
                     img = self._ij.convert().convert(data, Img)
                     return self._ij.dataset().create(ImgPlus(img))
                 if self._ij.convert().supports(data, RandomAccessibleInterval):
+                    print("[DEBUG] D")
                     rai = self._ij.convert().convert(data, RandomAccessibleInterval)
+                    x = self._ij.dataset().create(rai)
                     return self._ij.dataset().create(rai)
             except Exception as exc:
                 _dump_exception(exc)
