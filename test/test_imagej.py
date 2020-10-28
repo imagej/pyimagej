@@ -5,21 +5,19 @@ import imagej
 import pytest
 import numpy as np
 import xarray as xr
+import debugtools as dt
 
 
 class TestImageJ(object):
     def test_frangi(self, ij_fixture):
-        print("[DEBUG] test_frangi: RUNNING")
         input_array = np.array([[1000, 1000, 1000, 2000, 3000], [5000, 8000, 13000, 21000, 34000]])
         result = np.zeros(input_array.shape)
         ij_fixture.op().filter().frangiVesselness(ij_fixture.py.to_java(result), ij_fixture.py.to_java(input_array), [1, 1], 4)
         correct_result = np.array([[0, 0, 0, 0.94282, 0.94283], [0, 0, 0, 0.94283, 0.94283]])
         result = np.ndarray.round(result, decimals=5)
         assert (result == correct_result).all()
-        print("[DEBUG] test_frangi: PASS")
 
     def test_gaussian(self, ij_fixture):
-        print("[DEBUG] test_gaussian: RUNNING")
         input_array = np.array([[1000, 1000, 1000, 2000, 3000], [5000, 8000, 13000, 21000, 34000]])
         output_array = ij_fixture.op().filter().gauss(ij_fixture.py.to_java(input_array), 10)
         result = []
@@ -30,7 +28,6 @@ class TestImageJ(object):
                 ra.setPosition(x, y)
                 result.append(ra.get().get())
         assert result == correct_result
-        print("[DEBUG] test_gaussian: PASS")
 
     """
     def testTopHat(self, ij_fixture):
@@ -57,7 +54,6 @@ class TestImageJ(object):
     """
 
     def test_image_math(self, ij_fixture):
-        print("[DEBUG] test_image_math: RUNNING")
         from jpype import JClass
         Views = JClass('net.imglib2.view.Views')
 
@@ -71,10 +67,8 @@ class TestImageJ(object):
         while itr.hasNext():
             result.append(itr.next().get())
         assert result == correct_result
-        print("[DEBUG] test_image_math: PASS")
 
     def test_plugins_load_using_pairwise_stitching(self, ij_fixture):
-        print("[DEBUG] test_plugins_load_using_pairwise_stitching: RUNNING")
         if not ij_fixture.legacy.isActive():
             # HACK: Skip test if not testing with a local Fiji.app.
             return
@@ -95,7 +89,6 @@ class TestImageJ(object):
         ij_fixture.script().run('macro.ijm', 'run("Close All");', True).get()
 
         assert result_name == 'Tile1<->Tile2'
-        print("[DEBUG] test_plugins_load_using_pairwise_stitching: PASS")
 
 
 @pytest.fixture(scope='module')
@@ -168,10 +161,14 @@ class TestXarrayConversion(object):
     def test_rgb_image_maintains_correct_dim_order_on_conversion(self, ij_fixture, get_xarr):
         xarr = get_xarr()
         dataset = ij_fixture.py.to_java(xarr)
+
         from jpype import JClass, JObject, JException
         try:
+            print("[DEBUG] axis.EnumeratedAxis selected")
             axes = [(JObject(dataset.axis(axnum), JClass('net.imagej.axis.EnumeratedAxis')) for axnum in range(5))]
+            dt.print_obj_dir(axes)
         except JException:
+            print("[DEBUG] axis.LinearAxis selected")
             axes = [(JObject(dataset.axis(axnum), JClass('net.imagej.axis.LinearAxis')) for axnum in range(5))]
 
         labels = [axis.type().getLabel() for axis in axes]
@@ -245,13 +242,3 @@ class TestIJ1ToIJ2Synchronization(object):
             ij_fixture.py.synchronize_ij1_to_ij2(None)
         with pytest.raises(ImportError):
             ij_fixture.py.active_image_plus()
-
-
-# initialize ij and begin tests
-
-ij = imagej.init()
-test = TestImageJ()
-test.test_frangi(ij)
-#test.test_gaussian(ij)
-test.test_image_math(ij)
-test.test_plugins_load_using_pairwise_stitching(ij)
