@@ -67,8 +67,8 @@ def set_ij_env(ij_dir):
     scyjava_config.add_classpath(os.pathsep.join(jars))
     return len(jars)
 
-
-def init(ij_dir_or_version_or_endpoint=None, headless=True, new_instance=False):
+    # EE: delete/play with new_instance flag
+def init(ij_dir_or_version_or_endpoint=None, headless=True):
     """
     Initialize the ImageJ environment.
 
@@ -88,7 +88,7 @@ def init(ij_dir_or_version_or_endpoint=None, headless=True, new_instance=False):
 
     # EE: Check if JPype JVM is already running
     if scyjava.jvm.JVM_status():
-        print('The JPype JVM is already running.')
+        _logger.debug('The JPype JVM is already running.')
 
     if not scyjava.jvm.JVM_status():
 
