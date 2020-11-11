@@ -14,6 +14,7 @@ rai = jpype.JClass('net.imglib2.RandomAccessibleInterval')
 # load image and convert to array
 img = ij.io().open('https://samples.fiji.sc/new-lenna.jpg')
 data = ij.convert().convert(img, dataset)
+print("DATATATATA: {}".format(type(data)))
 
 # replicate _dataset_to_xarray
 attrs = ij.py.from_java(data.getProperties())
@@ -53,8 +54,28 @@ xarr = xr.DataArray(values, dims=xarr_dims, coords=coords, attrs=attrs)
 print("****************")
 data_8bit = xarr.astype(int)
 print("[DEBUG] data_8bit type: {}".format(type(data_8bit)))
+print("[DEBUG] data_8bit shape: {}".format(np.shape(data_8bit.data)))
+print(data_8bit)
 
 print("****************")
 data_rgb = np.moveaxis(data_8bit.data, 0, -1)
 print("[DEBUG] data_rgb type: {}".format(type(data_rgb)))
-ij.py.show(data_rgb)
+print("[DEBUG] data_rgb shape: {}".format(np.shape(data_rgb.data)))
+print(data_rgb)
+
+print("****************")
+data_rgb_rs = np.reshape(data_rgb, (1279, 853, 3), order='C')
+print("[DEBUG] data_rgb_rs type: {}".format(type(data_rgb_rs)))
+print("[DEBUG] data_rgb_rs shape: {}".format(np.shape(data_rgb_rs)))
+print(data_rgb_rs)
+
+print("****************")
+# convert image directly to numpy, no xarray
+np_data = ij.convert().convert(data, rai)
+np_data = ij.py.rai_to_numpy(np_data)
+np_data = np_data.astype(int)
+np_data = np.moveaxis(np_data, 0, -1)
+#ij.py.show(data_8bit)
+ij.py.show(data_8bit.data)
+
+
