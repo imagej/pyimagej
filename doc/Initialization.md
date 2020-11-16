@@ -24,15 +24,15 @@ ij = imagej.init()
 ## Setting JVM options
 The ImageJ gateway is initialized through a Java Virtual Machine (JVM).  You must set
 the [JVM options](https://docs.oracle.com/javase/8/docs/technotes/tools/unix/java.html) 
-for the JVM through `scyjava_config` before calling ImageJ.
+for the JVM through `scyjava.config` before calling ImageJ.
 
 #### Example: Increasing Memory
 The JVM has a "max heap" value limiting how much
 memory it can use. You can increase it:
 
 ```python
-import scyjava_config
-scyjava_config.add_options('-Xmx6g')
+import scyjava.config
+scyjava.config.add_options('-Xmx6g')
 import imagej
 ij = imagej.init()
 ```
@@ -141,8 +141,8 @@ Java's virtual machine (the JVM) has a "max heap" value limiting how much
 memory it can use. You can increase the value as follows:
 
 ```python
-import scyjava_config
-scyjava_config.add_options('-Xmx6g')
+import scyjava.config
+scyjava.config.add_options('-Xmx6g')
 import imagej
 ij = imagej.init()
 ```
@@ -172,8 +172,8 @@ If you wish to use plugins that do not have Maven artifacts, you have a few main
 * Specify a remote version of ImageJ, but point to a local directory to discover plugins.
 ```python
 import imagej
-import scyjava_config
+import scyjava.config
 plugins_dir = 'Path/To/Your/Plugins'
-scyjava_config.add_options(f'-Dplugins.dir={plugins_dir}')
+scyjava.config.add_options(f'-Dplugins.dir={plugins_dir}')
 ij = imagej.init('net.imagej:imagej:2.0.0-rc-71')
 ```
