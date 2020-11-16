@@ -344,7 +344,7 @@ def init(ij_dir_or_version_or_endpoint=None, headless=True):
             exts = script_lang.getExtensions()
             if exts.isEmpty():
                 raise ValueError("Script language '" + script_lang.getLanguageName() + "' has no extensions")
-            ext = exts.get(0)
+            ext = str(exts.get(0))
             try:
                 if args is None:
                     return self._ij.script().run("script." + ext, script, True).get()
