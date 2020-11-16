@@ -9,8 +9,7 @@ __version__ = '0.6.0.dev0'
 __author__ = 'Curtis Rueden, Yang Liu, Michael Pinkert'
 
 import logging, os, re, sys
-import scyjava_config
-import scyjava.jvm # JVM control
+import scyjava.config
 import numpy
 import debugtools as dt
 import xarray as xr
@@ -64,7 +63,7 @@ def set_ij_env(ij_dir):
     # search plugins directory
     jars.extend(search_for_jars(ij_dir, '/plugins'))
     # add to classpath
-    scyjava_config.add_classpath(os.pathsep.join(jars))
+    scyjava.config.add_classpath(os.pathsep.join(jars))
     return len(jars)
 
     # EE: delete/play with new_instance flag
@@ -87,10 +86,10 @@ def init(ij_dir_or_version_or_endpoint=None, headless=True):
     jvm_options = ""
 
     # EE: Check if JPype JVM is already running
-    if scyjava.jvm.JVM_status():
+    if scyjava.config.JVM_status():
         _logger.debug('The JPype JVM is already running.')
 
-    if not scyjava.jvm.JVM_status():
+    if not scyjava.config.JVM_status():
 
         if headless:
             jvm_options = '-Djava.awt.headless=true'
@@ -98,15 +97,15 @@ def init(ij_dir_or_version_or_endpoint=None, headless=True):
         if ij_dir_or_version_or_endpoint is None:
             # Use latest release of ImageJ.
             _logger.debug('Using newest ImageJ release')
-            scyjava_config.add_endpoints('net.imagej:imagej')
-            scyjava_config.add_endpoints('net.imglib2:imglib2-imglyb')
-            scyjava_config.add_endpoints('net.imagej:imagej-legacy')
+            scyjava.config.add_endpoints('net.imagej:imagej')
+            scyjava.config.add_endpoints('net.imglib2:imglib2-imglyb')
+            scyjava.config.add_endpoints('net.imagej:imagej-legacy')
 
         elif isinstance(ij_dir_or_version_or_endpoint, list):
             # Assume that this is a list of Maven endpoints
             endpoint = '+'.join(ij_dir_or_version_or_endpoint)
             _logger.debug('List of Maven coordinates given: %s', ij_dir_or_version_or_endpoint)
-            scyjava_config.add_endpoints(endpoint)
+            scyjava.config.add_endpoints(endpoint)
 
         elif os.path.isdir(ij_dir_or_version_or_endpoint):
             # Assume path to local ImageJ installation.
@@ -128,26 +127,26 @@ def init(ij_dir_or_version_or_endpoint=None, headless=True):
             # Strip out white spaces
             endpoint = ij_dir_or_version_or_endpoint.replace("    ", "")
             _logger.debug('Maven coordinate given: %s', endpoint)
-            scyjava_config.add_endpoints(endpoint)
-            scyjava_config.add_endpoints('net.imglib2:imglib2-imglyb')
-            scyjava_config.add_endpoints('net.imagej:imagej-legacy')
+            scyjava.config.add_endpoints(endpoint)
+            scyjava.config.add_endpoints('net.imglib2:imglib2-imglyb')
+            scyjava.config.add_endpoints('net.imagej:imagej-legacy')
 
         else:
             # Assume version of net.imagej:imagej.
             version = ij_dir_or_version_or_endpoint
             _logger.debug('ImageJ version given: %s', version)
-            scyjava_config.add_endpoints('net.imagej:imagej:' + version)
+            scyjava.config.add_endpoints('net.imagej:imagej:' + version)
 
 
     # append user jvm options
-    additional_jvm_options = scyjava_config.get_options()
+    additional_jvm_options = scyjava.config.get_options()
     if additional_jvm_options == "":
         pass
     else:
         jvm_options = jvm_options + " " + additional_jvm_options
 
     print('[DEBUG] JVM options: {0}'.format(jvm_options))
-    scyjava.jvm.start_JVM(jvm_options)
+    scyjava.config.start_JVM(jvm_options)
     dt.print_endpoints()
 
     # Initialize ImageJ

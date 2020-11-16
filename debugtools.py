@@ -1,5 +1,5 @@
 import jpype.imports
-import scyjava_config
+import scyjava.config
 
 def print_classpath():
 
@@ -18,7 +18,7 @@ def print_classpath():
 
 def print_endpoints():
 
-    endpoints = scyjava_config.get_endpoints()
+    endpoints = scyjava.config.get_endpoints()
     print("[DEBUG] endpoints: {0}".format(endpoints))
 
     return
