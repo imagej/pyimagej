@@ -82,16 +82,20 @@ def init(ij_dir_or_version_or_endpoint=None, headless=True):
     """
 
     global ij
-    jvm_options = ""
 
-    # EE: Check if JPype JVM is already running
+
+    # Check if JPype JVM is already running
     if scyjava.config.JVM_status():
         _logger.debug('The JPype JVM is already running.')
 
     if not scyjava.config.JVM_status():
 
         if headless:
-            jvm_options = '-Djava.awt.headless=true'
+            # Check if the user set JVM options, if not use default options
+            if scyjava.config.get_options() == '':
+                scyjava.config.set_options('-Djava.awt.headless=true')
+            else:
+                pass # user defined jvm options
 
         if ij_dir_or_version_or_endpoint is None:
             # Use latest release of ImageJ.
@@ -136,14 +140,7 @@ def init(ij_dir_or_version_or_endpoint=None, headless=True):
             _logger.debug('ImageJ version given: %s', version)
             scyjava.config.add_endpoints('net.imagej:imagej:' + version)
 
-
-    # append user jvm options
-    additional_jvm_options = scyjava.config.get_options()
-    if additional_jvm_options == "":
-        pass
-    else:
-        jvm_options = jvm_options + " " + additional_jvm_options
-
+    jvm_options = scyjava.config.get_options()
     scyjava.config.start_JVM(jvm_options)
 
     # Initialize ImageJ
