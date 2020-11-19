@@ -11,6 +11,7 @@ dependencies:
   - backcall=0.2.0=pyh9f0ad1d_0
   - backports=1.0=py_2
   - backports.functools_lru_cache=1.6.1=py_0
+  - beakerx=1.4.1=conda_forge
   - bleach=3.1.5=pyh9f0ad1d_0
   - blosc=1.20.0=he1b5a44_0
   - brotli=1.0.7=he1b5a44_1004
@@ -127,6 +128,7 @@ dependencies:
   - pyzmq=19.0.2=py37hac76be4_0
   - readline=8.0=he28a2e2_2
   - requests=2.24.0=pyh9f0ad1d_0
+  - rise=5.7.1=conda_forge
   - scikit-image=0.17.2=py37h0da4684_1
   - scipy=1.5.2=py37hb14ef9d_0
   - send2trash=1.5.0=py_0
