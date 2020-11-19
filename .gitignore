@@ -8,3 +8,6 @@
 MANIFEST
 .vscode/settings.json
 .gitignore
+
+# Jupyter #
+*.ipynb_checkpoints*
