@@ -12,7 +12,7 @@ setup(
     # TODO: Unify version declaration to one place.
     # https://www.python.org/dev/peps/pep-0396/#deriving
     version= '0.6.1.dev0',
-    author='Curtis Rueden, Leon Yang, Yang Liu, Michael Pinkert',
+    author='Curtis Rueden, Michael Pinkert, Ed Evans, Yang Liu',
     author_email='ctrueden@wisc.edu',
     url='https://github.com/imagej/pyimagej',
     packages=find_packages(),
