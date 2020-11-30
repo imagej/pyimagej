@@ -22,7 +22,8 @@ class TestImageJ(object):
 
     def test_gaussian(self, ij_fixture):
         input_array = np.array([[1000, 1000, 1000, 2000, 3000], [5000, 8000, 13000, 21000, 34000]])
-        output_array = ij_fixture.op().filter().gauss(ij_fixture.py.to_java(input_array), 10)
+        sigmas = [10.0] * 2
+        output_array = ij_fixture.op().filter().gauss(ij_fixture.py.to_java(input_array), sigmas)
         result = []
         correct_result = [8440, 8440, 8439, 8444]
         ra = output_array.randomAccess()
@@ -111,13 +112,7 @@ def get_xarr():
 def assert_xarray_equal_to_dataset(ij_fixture, xarr):
     dataset = ij_fixture.py.to_java(xarr)
 
-    try:
-        EnumeratedAxis = sj.jimport('net.imagej.axis.EnumeratedAxis')
-        axes = [(JObject(dataset.axis(axnum), EnumeratedAxis) for axnum in range(5))]
-    except JException:
-        LinearAxis = sj.jimport('net.imagej.axis.LinearAxis')
-        axes = [(JObject(dataset.axis(axnum), LinearAxis) for axnum in range(5))]
-
+    axes = [dataset.axis(axnum) for axnum in range(5)]
     labels = [axis.type().getLabel() for axis in axes]
 
     for label, vals in xarr.coords.items():
@@ -160,16 +155,7 @@ class TestXarrayConversion(object):
         xarr = get_xarr()
         dataset = ij_fixture.py.to_java(xarr)
 
-        try:
-            print("[DEBUG] axis.EnumeratedAxis selected")
-            EnumeratedAxis = sj.jimport('net.imagej.axis.EnumeratedAxis')
-            axes = [(JObject(dataset.axis(axnum), EnumeratedAxis) for axnum in range(5))]
-            dt.print_obj_dir(axes)
-        except JException:
-            print("[DEBUG] axis.LinearAxis selected")
-            LinearAxis = sj.jimport('net.imagej.axis.LinearAxis')
-            axes = [(JObject(dataset.axis(axnum), LinearAxis) for axnum in range(5))]
-
+        axes = [dataset.axis(axnum) for axnum in range(5)]
         labels = [axis.type().getLabel() for axis in axes]
         assert ['X', 'Y', 'Z', 'T', 'C'] == labels
 
