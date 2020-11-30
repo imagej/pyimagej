@@ -65,7 +65,6 @@ def set_ij_env(ij_dir):
     scyjava.config.add_classpath(os.pathsep.join(jars))
     return len(jars)
 
-    # EE: delete/play with new_instance flag
 def init(ij_dir_or_version_or_endpoint=None, headless=True):
     """
     Initialize the ImageJ environment.
@@ -76,13 +75,10 @@ def init(ij_dir_or_version_or_endpoint=None, headless=True):
         OR endpoint of another artifact (e.g. sc.fiji:fiji) that uses imagej.
         OR list of Maven artifacts to include (e.g. ['net.imagej:imagej-legacy', 'net.preibisch:BigStitcher'])
     :param headless: Whether to start the JVM in headless or gui mode.
-    :param new_instance: If JVM is already running, setting this parameter to
-        True will create a new ImageJ instance.
     :return: an instance of the net.imagej.ImageJ gateway
     """
 
     global ij
-
 
     # Check if JPype JVM is already running
     if scyjava.config.JVM_status():
