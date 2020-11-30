@@ -8,7 +8,11 @@ wrapper for imagej and python integration using ImgLyb
 __version__ = '0.6.0.dev0'
 __author__ = 'Curtis Rueden, Yang Liu, Michael Pinkert'
 
-import logging, os, re, sys
+import logging
+import os
+import re
+import sys
+
 import scyjava.config
 import numpy as np
 import xarray as xr
