@@ -28,11 +28,6 @@ Here is an example of opening an image using ImageJ and displaying it:
     ij.py.show(image, cmap='gray')
 """
 
-# TODO: Unify version declaration to one place.
-# https://www.python.org/dev/peps/pep-0396/#deriving
-__version__ = '0.6.0.dev0'
-__author__ = 'Curtis Rueden, Yang Liu, Michael Pinkert'
-
 import logging
 import os
 import re
@@ -44,6 +39,8 @@ import xarray as xr
 
 from pathlib import Path
 from jpype import JClass, JException, JObject, JImplementationFor
+
+from .config import __author__, __version__
 
 _logger = logging.getLogger(__name__)
 
