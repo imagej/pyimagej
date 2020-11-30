@@ -10,7 +10,7 @@ def pytest_addoption(parser):
     :return: None
     """
     parser.addoption(
-        "--ij", action="store", default=None, help="directory to IJ"
+        "--ij", action="store", default="sc.fiji:fiji", help="directory to IJ"
     )
     parser.addoption(
         "--headless", type=str2bool, action="store", default=True, help="Start in headless mode"

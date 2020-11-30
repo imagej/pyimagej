@@ -33,12 +33,14 @@ import os
 import re
 import sys
 
-import scyjava.config
+import imglyb
 import numpy as np
+import scyjava as sj
 import xarray as xr
 
 from pathlib import Path
-from jpype import JClass, JException, JObject, JImplementationFor
+
+from jpype import JException, JObject, JImplementationFor
 
 from .config import __author__, __version__
 
@@ -54,11 +56,13 @@ except KeyError as e:
 
 
 def _dump_exception(exc):
-    if _logger.isEnabledFor(logging.DEBUG) and hasattr(exc, 'stacktrace'):
-        _logger.debug("\n\tat ".join([str(e) for e in exc.stacktrace]))
+    if _logger.isEnabledFor(logging.DEBUG):
+        jtrace = jstacktrace(exc)
+        if jtrace:
+            _logger.debug(jtrace)
 
 
-def search_for_jars(ij_dir, subfolder):
+def _search_for_jars(ij_dir, subfolder):
     """
     Search and add .jar files to a list
     :param ij_dir: System path for Fiji.app
@@ -75,7 +79,7 @@ def search_for_jars(ij_dir, subfolder):
     return jars
 
 
-def set_ij_env(ij_dir):
+def _set_ij_env(ij_dir):
     """
     Create a list of required jars and add to the java classpath
 
@@ -84,11 +88,11 @@ def set_ij_env(ij_dir):
     """
     jars = []
     # search jars directory
-    jars.extend(search_for_jars(ij_dir, '/jars'))
+    jars.extend(_search_for_jars(ij_dir, '/jars'))
     # search plugins directory
-    jars.extend(search_for_jars(ij_dir, '/plugins'))
+    jars.extend(_search_for_jars(ij_dir, '/plugins'))
     # add to classpath
-    scyjava.config.add_classpath(os.pathsep.join(jars))
+    sj.config.add_classpath(os.pathsep.join(jars))
     return len(jars)
 
 def init(ij_dir_or_version_or_endpoint=None, headless=True):
@@ -107,36 +111,30 @@ def init(ij_dir_or_version_or_endpoint=None, headless=True):
     global ij
 
     # Check if JPype JVM is already running
-    if scyjava.config.JVM_status():
+    if sj.jvm_started():
         _logger.debug('The JPype JVM is already running.')
-
-    if not scyjava.config.JVM_status():
-
+    else:
+        # Initialize configuration.
         if headless:
-            # Check if the user set JVM options, if not use default options
-            if scyjava.config.get_options() == '':
-                scyjava.config.set_options('-Djava.awt.headless=true')
-            else:
-                pass # user defined jvm options
+            sj.config.add_option('-Djava.awt.headless=true')
 
         if ij_dir_or_version_or_endpoint is None:
             # Use latest release of ImageJ.
             _logger.debug('Using newest ImageJ release')
-            scyjava.config.add_endpoints('net.imagej:imagej')
-            scyjava.config.add_endpoints('net.imglib2:imglib2-imglyb')
-            scyjava.config.add_endpoints('net.imagej:imagej-legacy')
+            sj.config.add_endpoints('net.imagej:imagej')
+            sj.config.add_endpoints('net.imagej:imagej-legacy')
 
         elif isinstance(ij_dir_or_version_or_endpoint, list):
             # Assume that this is a list of Maven endpoints
             endpoint = '+'.join(ij_dir_or_version_or_endpoint)
             _logger.debug('List of Maven coordinates given: %s', ij_dir_or_version_or_endpoint)
-            scyjava.config.add_endpoints(endpoint)
+            sj.config.add_endpoints(endpoint)
 
         elif os.path.isdir(ij_dir_or_version_or_endpoint):
             # Assume path to local ImageJ installation.
             path = ij_dir_or_version_or_endpoint
             _logger.debug('Local path to ImageJ installation given: %s', path)
-            num_jars = set_ij_env(path)
+            num_jars = _set_ij_env(path)
             _logger.info("Added " + str(num_jars + 1) + " JARs to the Java classpath.")
             plugins_dir = str(Path(path, 'plugins'))
             jvm_options = '-Dplugins.dir=' + plugins_dir
@@ -152,40 +150,36 @@ def init(ij_dir_or_version_or_endpoint=None, headless=True):
             # Strip out white spaces
             endpoint = ij_dir_or_version_or_endpoint.replace("    ", "")
             _logger.debug('Maven coordinate given: %s', endpoint)
-            scyjava.config.add_endpoints(endpoint)
-            scyjava.config.add_endpoints('net.imglib2:imglib2-imglyb')
-            scyjava.config.add_endpoints('net.imagej:imagej-legacy')
+            sj.config.add_endpoints(endpoint)
+            sj.config.add_endpoints('net.imagej:imagej-legacy')
 
         else:
             # Assume version of net.imagej:imagej.
             version = ij_dir_or_version_or_endpoint
             _logger.debug('ImageJ version given: %s', version)
-            scyjava.config.add_endpoints('net.imagej:imagej:' + version)
+            sj.config.add_endpoints('net.imagej:imagej:' + version)
 
-    jvm_options = scyjava.config.get_options()
-    scyjava.config.start_JVM(jvm_options)
+    sj.start_jvm()
 
     # Initialize ImageJ
-    ImageJ = JClass('net.imagej.ImageJ')
+    ImageJ = sj.jimport('net.imagej.ImageJ')
     ij = ImageJ()
 
-    # Import imglyb and append some useful utility functions to the ImageJ gateway.
-    import imglyb
-    from scyjava.convert import jclass, isjava, to_java, to_python
+    # Append some useful utility functions to the ImageJ gateway.
+    Dataset                  = sj.jimport('net.imagej.Dataset')
+    ImgPlus                  = sj.jimport('net.imagej.ImgPlus')
+    Img                      = sj.jimport('net.imglib2.img.Img')
+    RandomAccessibleInterval = sj.jimport('net.imglib2.RandomAccessibleInterval')
+    Axes                     = sj.jimport('net.imagej.axis.Axes')
+    Double                   = sj.jimport('java.lang.Double')
 
-    Dataset                  = JClass('net.imagej.Dataset')
-    ImgPlus                  = JClass('net.imagej.ImgPlus')
-    Img                      = JClass('net.imglib2.img.Img')
-    RandomAccessibleInterval = JClass('net.imglib2.RandomAccessibleInterval')
-    Axes                     = JClass('net.imagej.axis.Axes')
-    Double                   = JClass('java.lang.Double')
-
-    # EnumeratedAxis is a new axis made for xarray, so is only present in ImageJ versions that are released
-    # later than March 2020.  This check defaults to LinearAxis instead if Enumerated does not work.
+    # EnumeratedAxis is a new axis made for xarray, so is only present in
+    # ImageJ versions that are released later than March 2020. This check
+    # defaults to LinearAxis instead if Enumerated does not work.
     try:
-        EnumeratedAxis           = JClass('net.imagej.axis.EnumeratedAxis')
+        EnumeratedAxis           = sj.jimport('net.imagej.axis.EnumeratedAxis')
     except (JException, TypeError):
-        DefaultLinearAxis = JClass('net.imagej.axis.DefaultLinearAxis')
+        DefaultLinearAxis = sj.jimport('net.imagej.axis.DefaultLinearAxis')
         def EnumeratedAxis(axis_type, values):
             origin = values[0]
             scale = values[1] - values[0]
@@ -206,7 +200,7 @@ def init(ij_dir_or_version_or_endpoint=None, headless=True):
     # TODO: add try/except for no legacy service
 
     if legacyServiceObj.isActive():
-        WindowManager = JClass('ij.WindowManager')
+        WindowManager = sj.jimport('ij.WindowManager')
     else:
         class _WindowManager:
             def getCurrentImage(self):
@@ -227,16 +221,16 @@ def init(ij_dir_or_version_or_endpoint=None, headless=True):
             """
             if self._is_arraylike(image):
                 return image.shape
-            if not isjava(image):
+            if not sj.isjava(image):
                 raise TypeError('Unsupported type: ' + str(type(image)))
-            if jclass('net.imglib2.Dimensions').isInstance(image):
+            if sj.jclass('net.imglib2.Dimensions').isInstance(image):
                 return [image.dimension(d) for d in range(image.numDimensions() -1, -1, -1)]
-            if jclass('ij.ImagePlus').isInstance(image):
+            if sj.jclass('ij.ImagePlus').isInstance(image):
                 dims = image.getDimensions()
                 dims.reverse()
                 dims = [dim for dim in dims if dim > 1]
                 return dims
-            raise TypeError('Unsupported Java type: ' + str(jclass(image).getName()))
+            raise TypeError('Unsupported Java type: ' + str(sj.jclass(image).getName()))
 
         def dtype(self, image_or_type):
             """
@@ -246,11 +240,11 @@ def init(ij_dir_or_version_or_endpoint=None, headless=True):
                 return image_or_type
             if self._is_arraylike(image_or_type):
                 return image_or_type.dtype
-            if not isjava(image_or_type):
+            if not sj.isjava(image_or_type):
                 raise TypeError('Unsupported type: ' + str(type(image_or_type)))
 
             # -- ImgLib2 types --
-            if jclass('net.imglib2.type.Type').isInstance(image_or_type):
+            if sj.jclass('net.imglib2.type.Type').isInstance(image_or_type):
                 ij2_types = {
                     'net.imglib2.type.logic.BitType':                     'bool',
                     'net.imglib2.type.numeric.integer.ByteType':          'int8',
@@ -265,23 +259,23 @@ def init(ij_dir_or_version_or_endpoint=None, headless=True):
                     'net.imglib2.type.numeric.real.DoubleType':           'float64',
                 }
                 for c in ij2_types:
-                    if jclass(c).isInstance(image_or_type):
+                    if sj.jclass(c).isInstance(image_or_type):
                         return np.dtype(ij2_types[c])
                 raise TypeError('Unsupported ImgLib2 type: {}'.format(image_or_type))
 
             # -- ImgLib2 images --
-            if jclass('net.imglib2.IterableInterval').isInstance(image_or_type):
+            if sj.jclass('net.imglib2.IterableInterval').isInstance(image_or_type):
                 ij2_type = image_or_type.firstElement()
                 return self.dtype(ij2_type)
-            if jclass('net.imglib2.RandomAccessibleInterval').isInstance(image_or_type):
-                Util = JClass('net.imglib2.util.Util')
+            if sj.jclass('net.imglib2.RandomAccessibleInterval').isInstance(image_or_type):
+                Util = sj.jimport('net.imglib2.util.Util')
                 ij2_type = Util.getTypeFromInterval(image_or_type)
                 return self.dtype(ij2_type)
 
             # -- ImageJ1 images --
-            if jclass('ij.ImagePlus').isInstance(image_or_type):
+            if sj.jclass('ij.ImagePlus').isInstance(image_or_type):
                 ij1_type = image_or_type.getType()
-                ImagePlus = JClass('ij.ImagePlus')
+                ImagePlus = sj.jimport('ij.ImagePlus')
                 ij1_types = {
                     ImagePlus.GRAY8:  'uint8',
                     ImagePlus.GRAY16: 'uint16',
@@ -292,7 +286,7 @@ def init(ij_dir_or_version_or_endpoint=None, headless=True):
                         return np.dtype(ij1_types[t])
                 raise TypeError('Unsupported ImageJ1 type: {}'.format(ij1_type))
 
-            raise TypeError('Unsupported Java type: ' + str(jclass(image_or_type).getName()))
+            raise TypeError('Unsupported Java type: ' + str(sj.jclass(image_or_type).getName()))
 
         def new_numpy_image(self, image):
             """
@@ -378,7 +372,7 @@ def init(ij_dir_or_version_or_endpoint=None, headless=True):
                 return imglyb.to_imglib(data)
             if self._is_xarraylike(data):
                 return self.to_dataset(data)
-            return to_java(data)
+            return sj.to_java(data)
 
         def to_dataset(self, data):
             """Converts the data into an ImageJ dataset"""
@@ -386,7 +380,7 @@ def init(ij_dir_or_version_or_endpoint=None, headless=True):
                 return self._xarray_to_dataset(data)
             if self._is_arraylike(data):
                 return self._numpy_to_dataset(data)
-            if scyjava.isjava(data):
+            if sj.isjava(data):
                 return self._java_to_dataset(data)
 
             raise TypeError(f'Type not supported: {type(data)}')
@@ -530,9 +524,9 @@ def init(ij_dir_or_version_or_endpoint=None, headless=True):
             """
             Converts the data into a python equivalent
             """
-            # todo: convert a datset to xarray
+            # todo: convert a dataset to xarray
 
-            if not isjava(data): return data
+            if not sj.isjava(data): return data
             try:
                 if self._ij.convert().supports(data, Dataset):
                     # HACK: Converter exists for ImagePlus -> Dataset, but not ImagePlus -> RAI.
@@ -544,7 +538,7 @@ def init(ij_dir_or_version_or_endpoint=None, headless=True):
             except Exception as exc:
                 _dump_exception(exc)
                 raise exc
-            return to_python(data)
+            return sj.to_python(data)
 
         def _dataset_to_xarray(self, dataset):
             """
@@ -553,7 +547,7 @@ def init(ij_dir_or_version_or_endpoint=None, headless=True):
             :return: xarray with reversed (C-style) dims and coords as labeled by the dataset
             """
             attrs = self._ij.py.from_java(dataset.getProperties())
-            axes = [(JObject(dataset.axis(idx), JClass('net.imagej.axis.CalibratedAxis')))
+            axes = [(JObject(dataset.axis(idx), sj.jimport('net.imagej.axis.CalibratedAxis')))
                     for idx in range(dataset.numDimensions())]
 
             dims = [self._ijdim_to_pydim(axes[idx].type().getLabel()) for idx in range(len(axes))]
@@ -672,7 +666,8 @@ def init(ij_dir_or_version_or_endpoint=None, headless=True):
 
         def window_manager(self):
             """
-            Get the ImageJ1 window manager if legacy mode is enabled.  It may not work properly if in headless mode.
+            Get the ImageJ1 window manager if legacy mode is enabled.
+            It may not work properly if in headless mode.
             :return: WindowManager
             """
             if not ij.legacy_enabled:
@@ -684,7 +679,7 @@ def init(ij_dir_or_version_or_endpoint=None, headless=True):
 
         def active_xarray(self, sync=True):
             """
-            Convert the active image to a xarray.DataArray, synchronizing from IJ1 -> IJ2
+            Convert the active image to a xarray.DataArray, synchronizing from IJ1 to IJ2.
             :param sync: Manually synchronize the current IJ1 slice if True
             :return: numpy array containing the image data
             """

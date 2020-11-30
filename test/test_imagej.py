@@ -3,9 +3,12 @@ import sys
 import unittest
 import imagej
 import pytest
+import scyjava as sj
 import numpy as np
 import xarray as xr
 import debugtools as dt
+
+from jpype import JObject, JException
 
 
 class TestImageJ(object):
@@ -30,10 +33,10 @@ class TestImageJ(object):
         assert result == correct_result
 
     """
-    def testTopHat(self, ij_fixture):
-        ArrayList = autoclass('java.util.ArrayList')
-        HyperSphereShape = autoclass('net.imglib2.algorithm.neighborhood.HyperSphereShape')
-        Views = autoclass('net.imglib2.view.Views')
+    def test_top_hat(self, ij_fixture):
+        ArrayList = sj.jimport('java.util.ArrayList')
+        HyperSphereShape = sj.jimport('net.imglib2.algorithm.neighborhood.HyperSphereShape')
+        Views = sj.jimport('net.imglib2.view.Views')
 
         result = []
         correct_result = [0, 0, 0, 1000, 2000, 4000, 7000, 12000, 20000, 33000]
@@ -54,8 +57,7 @@ class TestImageJ(object):
     """
 
     def test_image_math(self, ij_fixture):
-        from jpype import JClass
-        Views = JClass('net.imglib2.view.Views')
+        Views = sj.jimport('net.imglib2.view.Views')
 
         input_array = np.array([[1, 1, 2], [3, 5, 8]])
         result = []
@@ -69,10 +71,6 @@ class TestImageJ(object):
         assert result == correct_result
 
     def test_plugins_load_using_pairwise_stitching(self, ij_fixture):
-        if not ij_fixture.legacy.isActive():
-            # HACK: Skip test if not testing with a local Fiji.app.
-            return
-
         macro = """
         newImage("Tile1", "8-bit random", 512, 512, 1);
         newImage("Tile2", "8-bit random", 512, 512, 1);
@@ -82,8 +80,7 @@ class TestImageJ(object):
 
         ij_fixture.script().run('macro.ijm', macro, True).get()
         ij_fixture.py.run_plugin(plugin, args)
-        from jpype import JClass
-        WindowManager = JClass('ij.WindowManager')
+        WindowManager = sj.jimport('ij.WindowManager')
         result_name = WindowManager.getCurrentImage().getTitle()
 
         ij_fixture.script().run('macro.ijm', 'run("Close All");', True).get()
@@ -114,11 +111,12 @@ def get_xarr():
 def assert_xarray_equal_to_dataset(ij_fixture, xarr):
     dataset = ij_fixture.py.to_java(xarr)
 
-    from jpype import JClass, JObject, JException
     try:
-        axes = [(JObject(dataset.axis(axnum), JClass('net.imagej.axis.EnumeratedAxis')) for axnum in range (5))]
+        EnumeratedAxis = sj.jimport('net.imagej.axis.EnumeratedAxis')
+        axes = [(JObject(dataset.axis(axnum), EnumeratedAxis) for axnum in range(5))]
     except JException:
-        axes = [(JObject(dataset.axis(axnum), JClass('net.imagej.axis.LinearAxis')) for axnum in range (5))]
+        LinearAxis = sj.jimport('net.imagej.axis.LinearAxis')
+        axes = [(JObject(dataset.axis(axnum), LinearAxis) for axnum in range(5))]
 
     labels = [axis.type().getLabel() for axis in axes]
 
@@ -162,14 +160,15 @@ class TestXarrayConversion(object):
         xarr = get_xarr()
         dataset = ij_fixture.py.to_java(xarr)
 
-        from jpype import JClass, JObject, JException
         try:
             print("[DEBUG] axis.EnumeratedAxis selected")
-            axes = [(JObject(dataset.axis(axnum), JClass('net.imagej.axis.EnumeratedAxis')) for axnum in range(5))]
+            EnumeratedAxis = sj.jimport('net.imagej.axis.EnumeratedAxis')
+            axes = [(JObject(dataset.axis(axnum), EnumeratedAxis) for axnum in range(5))]
             dt.print_obj_dir(axes)
         except JException:
             print("[DEBUG] axis.LinearAxis selected")
-            axes = [(JObject(dataset.axis(axnum), JClass('net.imagej.axis.LinearAxis')) for axnum in range(5))]
+            LinearAxis = sj.jimport('net.imagej.axis.LinearAxis')
+            axes = [(JObject(dataset.axis(axnum), LinearAxis) for axnum in range(5))]
 
         labels = [axis.type().getLabel() for axis in axes]
         assert ['X', 'Y', 'Z', 'T', 'C'] == labels
