@@ -33,7 +33,6 @@ class TestImageJ(object):
                 result.append(ra.get().get())
         assert result == correct_result
 
-    """
     def test_top_hat(self, ij_fixture):
         ArrayList = sj.jimport('java.util.ArrayList')
         HyperSphereShape = sj.jimport('net.imglib2.algorithm.neighborhood.HyperSphereShape')
@@ -55,7 +54,6 @@ class TestImageJ(object):
             result.append(itr.next().get())
 
         assert result == correct_result
-    """
 
     def test_image_math(self, ij_fixture):
         Views = sj.jimport('net.imglib2.view.Views')
