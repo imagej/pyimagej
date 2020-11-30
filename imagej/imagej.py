@@ -10,7 +10,7 @@ __author__ = 'Curtis Rueden, Yang Liu, Michael Pinkert'
 
 import logging, os, re, sys
 import scyjava.config
-import numpy
+import numpy as np
 import xarray as xr
 
 from pathlib import Path
@@ -216,7 +216,7 @@ def init(ij_dir_or_version_or_endpoint=None, headless=True):
             """
             Return the dtype of the equivalent numpy array for the given image or type.
             """
-            if type(image_or_type) == numpy.dtype:
+            if type(image_or_type) == np.dtype:
                 return image_or_type
             if self._is_arraylike(image_or_type):
                 return image_or_type.dtype
@@ -240,7 +240,7 @@ def init(ij_dir_or_version_or_endpoint=None, headless=True):
                 }
                 for c in ij2_types:
                     if jclass(c).isInstance(image_or_type):
-                        return numpy.dtype(ij2_types[c])
+                        return np.dtype(ij2_types[c])
                 raise TypeError('Unsupported ImgLib2 type: {}'.format(image_or_type))
 
             # -- ImgLib2 images --
@@ -263,7 +263,7 @@ def init(ij_dir_or_version_or_endpoint=None, headless=True):
                 }
                 for t in ij1_types:
                     if ij1_type == t:
-                        return numpy.dtype(ij1_types[t])
+                        return np.dtype(ij1_types[t])
                 raise TypeError('Unsupported ImageJ1 type: {}'.format(ij1_type))
 
             raise TypeError('Unsupported Java type: ' + str(jclass(image_or_type).getName()))
@@ -276,8 +276,8 @@ def init(ij_dir_or_version_or_endpoint=None, headless=True):
             try:
                 dtype_to_use = self.dtype(image)
             except TypeError:
-                dtype_to_use = numpy.dtype('float64')
-            return numpy.zeros(self.dims(image), dtype=dtype_to_use)
+                dtype_to_use = np.dtype('float64')
+            return np.zeros(self.dims(image), dtype=dtype_to_use)
 
         def rai_to_numpy(self, rai):
             """
@@ -380,7 +380,7 @@ def init(ij_dir_or_version_or_endpoint=None, headless=True):
             :return: The dataset
             """
             if self._ends_with_channel_axis(xarr):
-                vals = numpy.moveaxis(xarr.values, -1, 0)
+                vals = np.moveaxis(xarr.values, -1, 0)
                 dataset = self._numpy_to_dataset(vals) # EE: investigate here....
             else:
                 dataset = self._numpy_to_dataset(xarr.values)
@@ -407,9 +407,9 @@ def init(ij_dir_or_version_or_endpoint=None, headless=True):
                 scale = self._get_scale(xarr.coords[axis])
                 if scale is None:
                     logging.warning(f"The {ax_type.label} axis is non-numeric and is translated to a linear index.")
-                    doub_coords = [Double(numpy.double(x)) for x in numpy.arange(len(xarr.coords[axis]))]
+                    doub_coords = [Double(np.double(x)) for x in np.arange(len(xarr.coords[axis]))]
                 else:
-                    doub_coords = [Double(numpy.double(x)) for x in xarr.coords[axis]]
+                    doub_coords = [Double(np.double(x)) for x in xarr.coords[axis]]
 
                 # EnumeratedAxis is a new axis made for xarray, so is only present in ImageJ versions that are released
                 # later than March 2020.  This actually returns a LinearAxis if using an earlier version.
@@ -439,7 +439,7 @@ def init(ij_dir_or_version_or_endpoint=None, headless=True):
             :return: Axis idx in java
             """
             py_axnum = xarr.get_axis_num(axis)
-            if numpy.isfortran(xarr.values):
+            if np.isfortran(xarr.values):
                 return py_axnum
 
             if self._ends_with_channel_axis(xarr):
@@ -532,11 +532,11 @@ def init(ij_dir_or_version_or_endpoint=None, headless=True):
 
             dims = [self._ijdim_to_pydim(axes[idx].type().getLabel()) for idx in range(len(axes))]
             values = self.rai_to_numpy(dataset)
-            coords = self._get_axes_coords(axes, dims, numpy.shape(numpy.transpose(values)))
+            coords = self._get_axes_coords(axes, dims, np.shape(np.transpose(values)))
 
             if dims[len(dims)-1].lower() in ['c', 'channel']:
                 xarr_dims = self._invert_except_last_element(dims)
-                values = numpy.moveaxis(values, 0, -1)
+                values = np.moveaxis(values, 0, -1)
             else:
                 xarr_dims = list(reversed(dims))
 
