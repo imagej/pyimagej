@@ -40,7 +40,7 @@ import xarray as xr
 
 from pathlib import Path
 
-from jpype import JException, JObject, JImplementationFor
+from jpype import JArray, JException, JImplementationFor, JObject
 
 from .config import __author__, __version__
 
@@ -160,6 +160,8 @@ def init(ij_dir_or_version_or_endpoint=None, headless=True):
             sj.config.add_endpoints('net.imagej:imagej:' + version)
 
     sj.start_jvm()
+
+    JObjectArray = JArray(JObject)
 
     # Initialize ImageJ
     ImageJ = sj.jimport('net.imagej.ImageJ')
@@ -384,6 +386,16 @@ def init(ij_dir_or_version_or_endpoint=None, headless=True):
                 return self._java_to_dataset(data)
 
             raise TypeError(f'Type not supported: {type(data)}')
+
+        def jargs(self, *args):
+            """
+            Converts Python arguments into a Java Object[] (i.e.: array of Java
+            objects). This is particularly useful in combination with ImageJ's
+            various run functions, including ij.command().run(...),
+            ij.module().run(...), ij.script().run(...), and ij.op().run(...).
+            :param args: The Python arguments to wrap into an Object[].
+            """
+            return JObjectArray([to_java(arg) for arg in args])
 
         def _numpy_to_dataset(self, data):
             rai = imglyb.to_imglib(data)
