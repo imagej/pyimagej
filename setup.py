@@ -24,9 +24,7 @@ setup(
     install_requires=[
         'matplotlib',
         'numpy',
-        'xarray',
-        'pillow', # for server
-        'requests' # for server
+        'xarray'
     ],
     tests_require=[
         'pytest'
