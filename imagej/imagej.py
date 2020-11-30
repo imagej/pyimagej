@@ -745,15 +745,3 @@ def imagej_main():
     ij = init(headless='--headless' in args)
     # TODO: Investigate why ij.launch(args) doesn't work.
     ij.ui().showUI()
-
-
-def help():
-    """
-    print the instruction for using imagej module
-
-    :return:
-    """
-
-    print(("Please set the environment variables first:\n"
-           "Fiji.app:   ij_dir = 'your local fiji.app path'\n"
-           "Then call init(ij_dir)"))
