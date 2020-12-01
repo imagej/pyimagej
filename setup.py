@@ -7,7 +7,7 @@ with open(path.join(here, 'README.md')) as f:
     pyimagej_long_description = f.read()
 
 config={}
-with open('imglyb/config.py', 'r') as f:
+with open('imagej/config.py', 'r') as f:
     exec(f.read(), config)
 
 setup(
