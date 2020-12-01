@@ -334,7 +334,7 @@ def init(ij_dir_or_version_or_endpoint=None, headless=True):
                 if args is None:
                     return self._ij.script().run("macro.ijm", macro, True).get()
                 else:
-                    return self._ij.script().run("macro.ijm", macro, True, to_java(args)).get()
+                    return self._ij.script().run("macro.ijm", macro, True, ij.py.jargs(args)).get()
             except Exception as exc:
                 _dump_exception(exc)
                 raise exc
@@ -359,7 +359,7 @@ def init(ij_dir_or_version_or_endpoint=None, headless=True):
             try:
                 if args is None:
                     return self._ij.script().run("script." + ext, script, True).get()
-                return self._ij.script().run("script." + ext, script, True, to_java(args)).get()
+                return self._ij.script().run("script." + ext, script, True, ij.py.jargs(args)).get()
             except Exception as exc:
                 _dump_exception(exc)
                 raise exc
@@ -395,7 +395,7 @@ def init(ij_dir_or_version_or_endpoint=None, headless=True):
             ij.module().run(...), ij.script().run(...), and ij.op().run(...).
             :param args: The Python arguments to wrap into an Object[].
             """
-            return JObjectArray([to_java(arg) for arg in args])
+            return JObjectArray([self.to_java(arg) for arg in args])
 
         def _numpy_to_dataset(self, data):
             rai = imglyb.to_imglib(data)
