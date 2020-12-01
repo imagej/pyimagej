@@ -45,18 +45,18 @@ ability to include legacy support for ImageJ1, a GUI, Fiji plugins, or specific
 versions of component libraries. Complex Maven endpoints can be entered as a
 single string, or can be a list of valid Maven endpoints.
 
-| Requirement                                   | Code<sup>1</sup>                                                                   | Reproducible?<sup>2</sup> |
-|:----------------------------------------------|:----------------------------------------------------------------------------------:|:-------------------------:|
-| Newest available version of ImageJ            | `ij = imagej.init()`                                                               | NO                        |
-| Specific version of ImageJ                    | `ij = imagej.init('2.1.0')`                                                        | YES                       |
-| With a GUI (newest version)                   | `ij = imagej.init(headless=False)`                                                 | NO                        |
-| With a GUI (specific version)                 | `ij = imagej.init('net.imagej:imageJ:2.1.0', headless=False)`                      | YES                       |
-| With support for ImageJ 1.x (newest versions) | `ij = imagej.init(['net.imagej:imagej', 'net.imagej:imagej-legacy'])`              | NO                        |
-| With Fiji plugins (newest version)            | `ij = imagej.init('sc.fiji:fiji')`                                                 | NO                        |
-| With Fiji plugins (specific version)          | `ij = imagej.init('sc.fiji:fiji:2.1.1')`                                           | YES                       |
-| From a local installation                     | `ij = imagej.init('/Applications/Fiji.app')`                                       | DEPENDS                   |
-| With a specific plugin                        | `ij = imagej.init(['net.imagej:imagej', 'net.preibisch:BigStitcher'])`             | NO                        |
-| With a specific plugin version                | `ij = imagej.init(['net.imagej.imagej:2.1.0', 'net.preibisch:BigStitcher:0.4.1'])` | YES                       |
+| Requirement                                   | Code                                                                               | Reproducible? |
+|:----------------------------------------------|:----------------------------------------------------------------------------------:|:-------------:|
+| Newest available version of ImageJ            | `ij = imagej.init()`                                                               | NO            |
+| Specific version of ImageJ                    | `ij = imagej.init('2.1.0')`                                                        | YES           |
+| With a GUI (newest version)                   | `ij = imagej.init(headless=False)`                                                 | NO            |
+| With a GUI (specific version)                 | `ij = imagej.init('net.imagej:imageJ:2.1.0', headless=False)`                      | YES           |
+| With support for ImageJ 1.x (newest versions) | `ij = imagej.init(['net.imagej:imagej', 'net.imagej:imagej-legacy'])`              | NO            |
+| With Fiji plugins (newest version)            | `ij = imagej.init('sc.fiji:fiji')`                                                 | NO            |
+| With Fiji plugins (specific version)          | `ij = imagej.init('sc.fiji:fiji:2.1.1')`                                           | YES           |
+| From a local installation                     | `ij = imagej.init('/Applications/Fiji.app')`                                       | DEPENDS       |
+| With a specific plugin                        | `ij = imagej.init(['net.imagej:imagej', 'net.preibisch:BigStitcher'])`             | NO            |
+| With a specific plugin version                | `ij = imagej.init(['net.imagej.imagej:2.1.0', 'net.preibisch:BigStitcher:0.4.1'])` | YES           |
 
 #### Newest available version
 
