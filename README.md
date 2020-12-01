@@ -2,14 +2,6 @@
 
 [![Build Status](https://travis-ci.org/imagej/pyimagej.svg?branch=master)](https://travis-ci.org/imagej/pyimagej)
 
-[PyImageJ](https://github.com/imagej/pyimagej) provides a set of
-wrapper functions for integration between ImageJ and Python.
-A major advantage of this approach is the ability to combine ImageJ with other tools
-available from the Python software ecosystem, including [NumPy](https://www.numpy.org/),
-[SciPy](https://www.scipy.org/), [scikit-image](https://scikit-image.org/),
-[CellProfiler](https://cellprofiler.org/), [OpenCV](https://opencv.org/),
-[ITK](https://itk.org/) and more.
-
 PyImageJ provides a set of wrapper functions for integration between ImageJ
 and Python. A major advantage of this approach is the ability to combine
 ImageJ with other tools available from the Python software ecosystem,
