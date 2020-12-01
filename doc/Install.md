@@ -79,11 +79,6 @@ you chose this route over conda above.
    pip install pyimagej
    ```
 
-5. Give it a whirl:
-   ```
-   python -c 'import imagej; ij = imagej.init(); print(ij.getVersion())'
-   ```
-
 ## Testing your installation
 
 Here's one way to test that it works:
