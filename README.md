@@ -18,19 +18,21 @@ including NumPy, SciPy, scikit-image, CellProfiler, OpenCV, ITK and more.
 ## Installation
 
 PyImageJ can be installed using conda. Here is how to create and activate
-a new conda environment with PyImageJ available:
+a new conda environment with pyimageJ available:
 
 ```
 conda create -n pyimagej -c conda-forge pyimagej openjdk=8
 conda activate pyimagej
 ```
 
+Alternately, it is possible to install pyimagej with pip.
+
 For detailed installation instructions and requirements, see
 [Install.md](doc/Install.md).
 
 ## Usage
 
-The first step when using PyImageJ is to create an ImageJ gateway.
+The first step when using pyimagej is to create an ImageJ gateway.
 This gateway can point to any official release of ImageJ or to a local
 installation. Using the gateway, you have full access to the ImageJ API,
 plus utility functions for translating between Python (NumPy, xarray,
@@ -63,16 +65,16 @@ For instructions on how to do certain tasks, see [USAGE.md](doc/Usage.md)
 ## Getting Help
 
 [The Scientific Community Image Forum](https://forum.image.sc/tag/pyimagej)
-is the best place to get general help on usage of PyImageJ, ImageJ, and any
-other image processing tasks. Bugs can be reported to the PyImageJ GitHub
+is the best place to get general help on usage of pyimagej, ImageJ, and any
+other image processing tasks. Bugs can be reported to the pyimagej GitHub
 [issue tracker](issues).
 
 ## Contributing
 
 All contributions, reports, and ideas are welcome. Contribution is done
-via pull requests onto the PyImageJ repository.
+via pull requests onto the pyimagej repository.
 
-Most development discussion takes place on the PyImageJ
+Most development discussion takes place on the pyimagej
 [GitHub repository](https://github.com/imagej/pyimagej).
 You can also reach the developers at the
 [pyimagej gitter](https://gitter.im/imagej/pyimagej).

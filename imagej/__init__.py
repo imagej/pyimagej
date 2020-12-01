@@ -4,7 +4,7 @@ and Python. A major advantage of this approach is the ability to combine
 ImageJ with other tools available from the Python software ecosystem,
 including NumPy, SciPy, scikit-image, CellProfiler, OpenCV, ITK and more.
 
-The first step when using PyImageJ is to create an ImageJ gateway.
+The first step when using pyimagej is to create an ImageJ gateway.
 This gateway can point to any official release of ImageJ or to a local
 installation. Using the gateway, you have full access to the ImageJ API,
 plus utility functions for translating between Python (NumPy, xarray,
