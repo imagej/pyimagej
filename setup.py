@@ -12,8 +12,6 @@ with open('imglyb/config.py', 'r') as f:
 
 setup(
     name='pyimagej',
-    # TODO: Unify version declaration to one place.
-    # https://www.python.org/dev/peps/pep-0396/#deriving
     version=config['__version__'],
     author=config['__author__'],
     author_email='ctrueden@wisc.edu',
