@@ -6,7 +6,6 @@ import pytest
 import scyjava as sj
 import numpy as np
 import xarray as xr
-import debugtools as dt
 
 from jpype import JObject, JException
 
