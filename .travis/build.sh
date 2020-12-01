@@ -54,7 +54,7 @@ Fiji.app/$launcher --update update-force-pristine
 # -- run the Python code --
 cd $TRAVIS_BUILD_DIR
 
-# -- set ij dirctory --
+# -- set ij directory --
 ij_dir=$HOME/Fiji.app
 echo "ij_dir = $ij_dir"
 python setup.py install
