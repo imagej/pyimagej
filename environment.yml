@@ -6,6 +6,7 @@ channels:
   - defaults
 dependencies:
   - imglyb
+  - ipywidgets
   - jpype1
   - jupyter_contrib_nbextensions
   - matplotlib-base
