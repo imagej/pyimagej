@@ -6,3 +6,8 @@
 /dist/
 /pyimagej.egg-info/
 MANIFEST
+.vscode/settings.json
+.gitignore
+
+# Jupyter #
+*.ipynb_checkpoints*

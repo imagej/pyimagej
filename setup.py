@@ -6,13 +6,14 @@ here = path.abspath(path.dirname(__file__))
 with open(path.join(here, 'README.md')) as f:
     pyimagej_long_description = f.read()
 
+config={}
+with open('imglyb/config.py', 'r') as f:
+    exec(f.read(), config)
 
 setup(
     name='pyimagej',
-    # TODO: Unify version declaration to one place.
-    # https://www.python.org/dev/peps/pep-0396/#deriving
-    version= '0.6.0.dev0',
-    author='Curtis Rueden, Leon Yang, Yang Liu, Michael Pinkert',
+    version=config['__version__'],
+    author=config['__author__'],
     author_email='ctrueden@wisc.edu',
     url='https://github.com/imagej/pyimagej',
     packages=find_packages(),
@@ -23,20 +24,18 @@ setup(
     license='Apache 2.0',
     install_requires=[
         'imglyb',
+        'jpype1',
         'matplotlib',
         'numpy',
-        'pyjnius',
         'scyjava',
-        'xarray',
-        'pillow', # for server
-        'requests' # for server
+        'xarray'
     ],
     tests_require=[
         'pytest'
     ],
     entry_points={
         'console_scripts': [
-            'imagej=imagej.imagej:imagej_main'
+            'imagej=imagej:imagej_main'
         ]
     }
 )

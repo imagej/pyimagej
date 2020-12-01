@@ -1,13 +1,15 @@
 name: imagej
 channels:
   - conda-forge
+  - defaults
 dependencies:
-  - imglyb=0.3.5
-  - matplotlib
+  - imglyb
+  - jpype1
+  - jupyter_contrib_nbextensions
+  - matplotlib-base
+  - notebook
   - numpy
   - openjdk=8
-  - pyjnius=1.2.0
+  - scikit-image
   - scyjava
-  - pillow # for server
-  - requests # for server
   - xarray

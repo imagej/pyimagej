@@ -3,8 +3,12 @@ import sys
 import unittest
 import imagej
 import pytest
+import scyjava as sj
 import numpy as np
 import xarray as xr
+import debugtools as dt
+
+from jpype import JObject, JException
 
 
 class TestImageJ(object):
@@ -18,8 +22,8 @@ class TestImageJ(object):
 
     def test_gaussian(self, ij_fixture):
         input_array = np.array([[1000, 1000, 1000, 2000, 3000], [5000, 8000, 13000, 21000, 34000]])
-
-        output_array = ij_fixture.op().filter().gauss(ij_fixture.py.to_java(input_array), 10)
+        sigmas = [10.0] * 2
+        output_array = ij_fixture.op().filter().gauss(ij_fixture.py.to_java(input_array), sigmas)
         result = []
         correct_result = [8440, 8440, 8439, 8444]
         ra = output_array.randomAccess()
@@ -29,11 +33,10 @@ class TestImageJ(object):
                 result.append(ra.get().get())
         assert result == correct_result
 
-    """
-    def testTopHat(self, ij_fixture):
-        ArrayList = autoclass('java.util.ArrayList')
-        HyperSphereShape = autoclass('net.imglib2.algorithm.neighborhood.HyperSphereShape')
-        Views = autoclass('net.imglib2.view.Views')
+    def test_top_hat(self, ij_fixture):
+        ArrayList = sj.jimport('java.util.ArrayList')
+        HyperSphereShape = sj.jimport('net.imglib2.algorithm.neighborhood.HyperSphereShape')
+        Views = sj.jimport('net.imglib2.view.Views')
 
         result = []
         correct_result = [0, 0, 0, 1000, 2000, 4000, 7000, 12000, 20000, 33000]
@@ -51,11 +54,9 @@ class TestImageJ(object):
             result.append(itr.next().get())
 
         assert result == correct_result
-    """
 
     def test_image_math(self, ij_fixture):
-        from jnius import autoclass
-        Views = autoclass('net.imglib2.view.Views')
+        Views = sj.jimport('net.imglib2.view.Views')
 
         input_array = np.array([[1, 1, 2], [3, 5, 8]])
         result = []
@@ -69,10 +70,6 @@ class TestImageJ(object):
         assert result == correct_result
 
     def test_plugins_load_using_pairwise_stitching(self, ij_fixture):
-        if not ij_fixture.legacy().isActive():
-            # HACK: Skip test if not testing with a local Fiji.app.
-            return
-
         macro = """
         newImage("Tile1", "8-bit random", 512, 512, 1);
         newImage("Tile2", "8-bit random", 512, 512, 1);
@@ -82,8 +79,7 @@ class TestImageJ(object):
 
         ij_fixture.script().run('macro.ijm', macro, True).get()
         ij_fixture.py.run_plugin(plugin, args)
-        from jnius import autoclass
-        WindowManager = autoclass('ij.WindowManager')
+        WindowManager = sj.jimport('ij.WindowManager')
         result_name = WindowManager.getCurrentImage().getTitle()
 
         ij_fixture.script().run('macro.ijm', 'run("Close All");', True).get()
@@ -114,12 +110,7 @@ def get_xarr():
 def assert_xarray_equal_to_dataset(ij_fixture, xarr):
     dataset = ij_fixture.py.to_java(xarr)
 
-    from jnius import cast, JavaException
-    try:
-        axes = [cast('net.imagej.axis.EnumeratedAxis', dataset.axis(axnum)) for axnum in range(5)]
-    except JavaException:
-        axes = [cast('net.imagej.axis.LinearAxis', dataset.axis(axnum)) for axnum in range(5)]
-
+    axes = [dataset.axis(axnum) for axnum in range(5)]
     labels = [axis.type().getLabel() for axis in axes]
 
     for label, vals in xarr.coords.items():
@@ -161,12 +152,8 @@ class TestXarrayConversion(object):
     def test_rgb_image_maintains_correct_dim_order_on_conversion(self, ij_fixture, get_xarr):
         xarr = get_xarr()
         dataset = ij_fixture.py.to_java(xarr)
-        from jnius import cast, JavaException
-        try:
-            axes = [cast('net.imagej.axis.EnumeratedAxis', dataset.axis(axnum)) for axnum in range(5)]
-        except JavaException:
-            axes = [cast('net.imagej.axis.LinearAxis', dataset.axis(axnum)) for axnum in range(5)]
 
+        axes = [dataset.axis(axnum) for axnum in range(5)]
         labels = [axis.type().getLabel() for axis in axes]
         assert ['X', 'Y', 'Z', 'T', 'C'] == labels
 
@@ -190,7 +177,7 @@ def arr():
 
 class TestIJ1ToIJ2Synchronization(object):
     def test_get_image_plus_synchronizes_from_ij1_to_ij2(self, ij_fixture, arr):
-        if not ij_fixture.legacy().isActive():
+        if not ij_fixture.legacy.isActive():
             pytest.skip("No IJ1.  Skipping test.")
         if ij_fixture.ui().isHeadless():
             pytest.skip("No GUI.  Skipping test")
@@ -205,7 +192,7 @@ class TestIJ1ToIJ2Synchronization(object):
         assert arr[0, 0] == original + 5
 
     def test_synchronize_from_ij1_to_numpy(self, ij_fixture, arr):
-        if not ij_fixture.legacy().isActive():
+        if not ij_fixture.legacy.isActive():
             pytest.skip("No IJ1.  Skipping test.")
         if ij_fixture.ui().isHeadless():
             pytest.skip("No GUI.  Skipping test")
@@ -220,7 +207,7 @@ class TestIJ1ToIJ2Synchronization(object):
         assert arr[0, 0] == original + 5
 
     def test_window_to_numpy_converts_active_image_to_xarray(self, ij_fixture, arr):
-        if not ij_fixture.legacy().isActive():
+        if not ij_fixture.legacy.isActive():
             pytest.skip("No IJ1.  Skipping test.")
         if ij_fixture.ui().isHeadless():
             pytest.skip("No GUI.  Skipping test")
@@ -231,7 +218,7 @@ class TestIJ1ToIJ2Synchronization(object):
         assert (arr == new_arr.values).all
 
     def test_functions_throw_warning_if_legacy_not_enabled(self, ij_fixture):
-        if ij_fixture.legacy().isActive():
+        if ij_fixture.legacy.isActive():
             pytest.skip("IJ1 installed.  Skipping test")
 
         with pytest.raises(AttributeError):

@@ -10,7 +10,7 @@ def pytest_addoption(parser):
     :return: None
     """
     parser.addoption(
-        "--ij", action="store", default=None, help="directory to IJ"
+        "--ij", action="store", default="sc.fiji:fiji", help="directory to IJ"
     )
     parser.addoption(
         "--headless", type=str2bool, action="store", default=True, help="Start in headless mode"
@@ -22,14 +22,15 @@ def ij_fixture(request):
     """
     Create an ImageJ instance to be used by the whole testing environment
     :param request: Pytest variable passed in to fixtures
-    :return: pyimageJ instance
     """
     ij_dir = request.config.getoption('--ij')
     headless = request.config.getoption('--headless')
 
     ij_wrapper = imagej.init(ij_dir, headless=headless)
 
-    return ij_wrapper
+    yield ij_wrapper
+
+    ij_wrapper.dispose()
 
 
 def str2bool(v):
