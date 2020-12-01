@@ -5,8 +5,11 @@ channels:
 dependencies:
   - imglyb
   - jpype1
+  - jupyter_contrib_nbextensions
   - matplotlib-base
+  - notebook
   - numpy
   - openjdk=8
+  - scikit-image
   - scyjava
   - xarray
