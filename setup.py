@@ -35,7 +35,7 @@ setup(
     ],
     entry_points={
         'console_scripts': [
-            'imagej=imagej.imagej:imagej_main'
+            'imagej=imagej:imagej_main'
         ]
     }
 )
