@@ -12,6 +12,7 @@ dependencies:
   - notebook
   - numpy
   - openjdk=8
+  - pyimagej
   - scikit-image
   - scyjava
   - xarray
