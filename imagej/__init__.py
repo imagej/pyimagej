@@ -33,7 +33,6 @@ import os
 import re
 import sys
 
-import imglyb
 import numpy as np
 import scyjava as sj
 import xarray as xr
@@ -159,6 +158,7 @@ def init(ij_dir_or_version_or_endpoint=None, headless=True):
             _logger.debug('ImageJ version given: %s', version)
             sj.config.add_endpoints('net.imagej:imagej:' + version)
 
+    import imglyb
     sj.start_jvm()
 
     JObjectArray = JArray(JObject)
