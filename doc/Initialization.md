@@ -56,7 +56,7 @@ single string, or can be a list of valid Maven endpoints.
 | With Fiji plugins (specific version)          | `ij = imagej.init('sc.fiji:fiji:2.1.1')`                                           | YES           |
 | From a local installation                     | `ij = imagej.init('/Applications/Fiji.app')`                                       | DEPENDS       |
 | With a specific plugin                        | `ij = imagej.init(['net.imagej:imagej', 'net.preibisch:BigStitcher'])`             | NO            |
-| With a specific plugin version                | `ij = imagej.init(['net.imagej.imagej:2.1.0', 'net.preibisch:BigStitcher:0.4.1'])` | YES           |
+| With a specific plugin version                | `ij = imagej.init(['net.imagej:imagej:2.1.0', 'net.preibisch:BigStitcher:0.4.1'])` | YES           |
 
 #### Newest available version
 
