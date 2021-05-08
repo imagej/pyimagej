@@ -713,6 +713,7 @@ def init(ij_dir_or_version_or_endpoint=None, headless=True):
             :return: The ImagePlus corresponding to the active image
             """
             imp = WindowManager.getCurrentImage()
+            if imp is None: return None
             if sync:
                 self.synchronize_ij1_to_ij2(imp)
             return imp
