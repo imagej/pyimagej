@@ -682,7 +682,7 @@ def init(ij_dir_or_version_or_endpoint=None, headless=True):
             It may not work properly if in headless mode.
             :return: WindowManager
             """
-            if not ij.legacy.isLegacyMode():
+            if not ij.legacy.isActive():
                 raise ImportError("Your ImageJ installation does not support IJ1.  This function does not work.")
             elif ij.ui().isHeadless():
                 logging.warning("Operating in headless mode - The WindowManager will not be fully funtional.")
