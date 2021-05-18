@@ -191,7 +191,13 @@ def init(ij_dir_or_version_or_endpoint=None, headless=True):
     # Try to define the legacy service, and create a dummy method if it doesn't exist.
 
     # create the legacy service object
-    legacyServiceObj = ij.get('net.imagej.legacy.LegacyService')
+    try:
+        legacy = sj.jimport('net.imagej.legacy.LegacyService')
+        legacyServiceObj = ij.get('net.imagej.legacy.LegacyService')
+        ij._legacy_enabled = True
+    except TypeError:
+        ij._legacy_enabled = False
+        #TODO here
 
     # attach legacy to imagej
     @JImplementationFor('net.imagej.ImageJ')
@@ -199,19 +205,10 @@ def init(ij_dir_or_version_or_endpoint=None, headless=True):
         @property
         def legacy(self):
             return legacyServiceObj
-    # TODO: add try/except for no legacy service
 
-    if legacyServiceObj.isActive():
+    #TODO here
+    if ij._legacy_enabled and legacyServiceObj.isActive():
         WindowManager = sj.jimport('ij.WindowManager')
-    else:
-        class _WindowManager:
-            def getCurrentImage(self):
-                """
-                Throw an error saying IJ1 is not available
-                :return:
-                """
-                raise ImportError("Your ImageJ installation does not support IJ1. This function does not work.")
-        WindowManager = JObject(_WindowManager)
 
     class ImageJPython:
         def __init__(self, ij):
@@ -683,7 +680,7 @@ def init(ij_dir_or_version_or_endpoint=None, headless=True):
             :return: WindowManager
             """
             if not ij.legacy.isActive():
-                raise ImportError("Your ImageJ installation does not support IJ1.  This function does not work.")
+                raise ImportError("Your ImageJ installation does not support IJ1.  This function does not work. Please include ImageJ Legacy in initialization. See: https://github.com/imagej/pyimagej/blob/master/doc/Initialization.md#how-to-initialize-imagej")
             elif ij.ui().isHeadless():
                 logging.warning("Operating in headless mode - The WindowManager will not be fully funtional.")
             else:
@@ -715,6 +712,7 @@ def init(ij_dir_or_version_or_endpoint=None, headless=True):
             :return: The ImagePlus corresponding to the active image
             """
             imp = WindowManager.getCurrentImage()
+            if imp is None: return None
             if sync:
                 self.synchronize_ij1_to_ij2(imp)
             return imp
