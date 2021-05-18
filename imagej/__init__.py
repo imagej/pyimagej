@@ -667,6 +667,8 @@ def init(ij_dir_or_version_or_endpoint=None, headless=True):
             return argument
 
         def _format_value(self, value):
+            if sj.jclass('ij.ImagePlus').isInstance(value):
+                return str(value.getTitle())
             temp_value = str(value).replace('\\', '/')
             if temp_value.startswith('[') and temp_value.endswith(']'):
                     return temp_value
