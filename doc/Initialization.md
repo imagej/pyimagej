@@ -58,6 +58,20 @@ single string, or can be a list of valid Maven endpoints.
 | With a specific plugin                        | `ij = imagej.init(['net.imagej:imagej', 'net.preibisch:BigStitcher'])`             | NO            |
 | With a specific plugin version                | `ij = imagej.init(['net.imagej:imagej:2.1.0', 'net.preibisch:BigStitcher:0.4.1'])` | YES           |
 
+
+#### WARNING: Transitive dependency versions
+
+When specifying a particular version, e.g. `ij = imagej.init('sc.fiji:fiji:2.1.1')`, please note that **you will not** obtain the (transitive) dependencies as specified at that version. So if, for example, you wanted to use the `TrakEM2` plugin at the version that shipped with `Fiji 2.1.1`, you would need to find that version and include it in your initializion string:
+
+```python
+import imagej
+ij = imagej.init(['sc.fiji:fiji:2.1.1', 'sc.fiji:TrakEM2_:1.3.3'])
+```
+
+Note also that, while technically possible, it is not advised to explicitly specifiy versions for components in the `net.imglib2` or `org.scijava` domains as this could lead to instability of the `imglib2-imglyb` translation layer.
+
+Please see [this discussion](https://github.com/scijava/scyjava/issues/23#issuecomment-888532488) for more technical information on this limitation.
+
 #### Newest available version
 
 If you want to launch the newest available release version of ImageJ:
