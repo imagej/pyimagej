@@ -302,8 +302,19 @@ def init(ij_dir_or_version_or_endpoint=None, headless=True):
             """
             Convert a RandomAccessibleInterval into a numpy array
             """
-            result = self.new_numpy_image(rai)
-            self._ij.op().run("copy.rai", self.to_java(result), rai)
+            # check imagej-common version for fast copy availability.
+            ijc_slow_copy_version = '0.30.0'
+            ijc_active_version = sj.get_version(Dataset)
+            fast_copy_available = sj.compare_version(ijc_slow_copy_version, ijc_active_version)
+
+            if fast_copy_available:
+                Images = sj.jimport('net.imagej.util.Images')
+                result = self.new_numpy_image(rai)
+                Images.copy(rai, self.to_java(result))
+            else:
+                result = self.new_numpy_image(rai)
+                self._ij.op().run("copy.rai", self.to_java(result), rai)
+
             return result
 
         def run_plugin(self, plugin, args=None, ij1_style=True):
