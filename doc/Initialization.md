@@ -50,7 +50,7 @@ single string, or can be a list of valid Maven endpoints.
 | Newest available version of ImageJ            | `ij = imagej.init()`                                                               | NO            |
 | Specific version of ImageJ                    | `ij = imagej.init('2.1.0')`                                                        | YES           |
 | With a GUI (newest version)                   | `ij = imagej.init(headless=False)`                                                 | NO            |
-| With a GUI (specific version)                 | `ij = imagej.init('net.imagej:imageJ:2.1.0', headless=False)`                      | YES           |
+| With a GUI (specific version)                 | `ij = imagej.init('net.imagej:imagej:2.1.0', headless=False)`                      | YES           |
 | With support for ImageJ 1.x (newest versions) | `ij = imagej.init(['net.imagej:imagej', 'net.imagej:imagej-legacy'])`              | NO            |
 | With Fiji plugins (newest version)            | `ij = imagej.init('sc.fiji:fiji')`                                                 | NO            |
 | With Fiji plugins (specific version)          | `ij = imagej.init('sc.fiji:fiji:2.1.1')`                                           | YES           |
