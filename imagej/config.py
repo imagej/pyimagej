@@ -1,4 +1,4 @@
-__author__  = 'Curtis Rueden, Michael Pinkert, Ed Evans, Yang Liu'
+__author__  = 'Curtis Rueden, Michael Pinkert, Ed Evans, Yang Liu, Mark Hiner'
 
 __major__   = 1
 __minor__   = 0
