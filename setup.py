@@ -23,11 +23,11 @@ setup(
     long_description_content_type='text/markdown',
     license='Apache 2.0',
     install_requires=[
-        'imglyb',
+        'imglyb >= 2.0.0',
         'jpype1',
         'matplotlib',
         'numpy',
-        'scyjava',
+        'scyjava >= 1.3.0',
         'xarray'
     ],
     tests_require=[
