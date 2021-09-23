@@ -121,14 +121,13 @@ def init(ij_dir_or_version_or_endpoint=None, headless=True):
         if ij_dir_or_version_or_endpoint is None:
             # Use latest release of ImageJ.
             _logger.debug('Using newest ImageJ release')
-            sj.config.add_endpoints('net.imagej:imagej')
-            sj.config.add_endpoints('net.imagej:imagej-legacy')
+            sj.config.endpoints.extend(('net.imagej:imagej', 'net.imagej:imagej-legacy'))
 
         elif isinstance(ij_dir_or_version_or_endpoint, list):
             # Assume that this is a list of Maven endpoints
             endpoint = '+'.join(ij_dir_or_version_or_endpoint)
             _logger.debug('List of Maven coordinates given: %s', ij_dir_or_version_or_endpoint)
-            sj.config.add_endpoints(endpoint)
+            sj.config.endpoints.append(endpoint)
 
         elif os.path.isdir(ij_dir_or_version_or_endpoint):
             # Assume path to local ImageJ installation.
@@ -150,14 +149,14 @@ def init(ij_dir_or_version_or_endpoint=None, headless=True):
             # Strip out white spaces
             endpoint = ij_dir_or_version_or_endpoint.replace("    ", "")
             _logger.debug('Maven coordinate given: %s', endpoint)
-            sj.config.add_endpoints(endpoint)
-            sj.config.add_endpoints('net.imagej:imagej-legacy')
+            sj.config.endpoints.extend((endpoint, 'net.imagej:imagej-legacy'))
 
         else:
             # Assume version of net.imagej:imagej.
             version = ij_dir_or_version_or_endpoint
             _logger.debug('ImageJ version given: %s', version)
-            sj.config.add_endpoints('net.imagej:imagej:' + version)
+            sj.config.endpoints.append('net.imagej:imagej:' + version)
+
 
     sj.start_jvm()
 
