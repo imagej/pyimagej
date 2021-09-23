@@ -118,6 +118,9 @@ def init(ij_dir_or_version_or_endpoint=None, headless=True):
         if headless:
             sj.config.add_option('-Djava.awt.headless=true')
 
+        original_endpoints = sj.config.endpoints.copy()
+        sj.config.endpoints.clear()
+
         if ij_dir_or_version_or_endpoint is None:
             # Use latest release of ImageJ.
             _logger.debug('Using newest ImageJ release')
@@ -157,6 +160,7 @@ def init(ij_dir_or_version_or_endpoint=None, headless=True):
             _logger.debug('ImageJ version given: %s', version)
             sj.config.endpoints.append('net.imagej:imagej:' + version)
 
+        sj.config.endpoints.extend(original_endpoints)
 
     sj.start_jvm()
 
