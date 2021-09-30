@@ -137,6 +137,9 @@ def init(ij_dir_or_version_or_endpoint=None, headless=True):
             path = ij_dir_or_version_or_endpoint
             _logger.debug('Local path to ImageJ installation given: %s', path)
             num_jars = _set_ij_env(path)
+            if num_jars <= 0:
+                _logger.error('Given directory does not appear to be a valid ImageJ installation: %s', path)
+                return False
             _logger.info("Added " + str(num_jars + 1) + " JARs to the Java classpath.")
             plugins_dir = str(Path(path, 'plugins'))
             jvm_options = '-Dplugins.dir=' + plugins_dir
