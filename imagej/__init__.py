@@ -62,15 +62,15 @@ def _dump_exception(exc):
             _logger.debug(jtrace)
 
 
-def _search_for_jars(ij_dir, subfolder):
+def _search_for_jars(target_dir, subfolder=''):
     """
-    Search and add .jar files to a list
-    :param ij_dir: System path for Fiji.app
-    :param subfolder: the folder needs to be searched
+    Search and recursively add .jar files to a list
+    :param target_dir: base path to search
+    :param subfolder: optional sub-directory to start the search
     :return: a list of jar files
     """
     jars = []
-    for root, dirs, files in os.walk(ij_dir + subfolder):
+    for root, dirs, files in os.walk(target_dir + subfolder):
         for f in files:
             if f.endswith('.jar'):
                 path = root + '/' + f
