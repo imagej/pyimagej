@@ -160,6 +160,10 @@ def init(ij_dir_or_version_or_endpoint=None, headless=True):
         else:
             # Assume version of net.imagej:imagej.
             version = ij_dir_or_version_or_endpoint
+            # Skip ignore
+            if not re.match('\d+\.\d+\.\d+', version):
+                _logger.error('Invalid initialization string: %s', version)
+                return False
             _logger.debug('ImageJ version given: %s', version)
             sj.config.endpoints.append('net.imagej:imagej:' + version)
 
