@@ -784,14 +784,32 @@ def init(ij_dir_or_version_or_endpoint=None, headless=True):
             return self._legacy
 
         @property
-        def WindowManager(self):
-            self._check_legacy_active()
-            if not hasattr(self, '_WindowManager'):
-                if self.ui().isHeadless():
-                    logging.warning("Operating in headless mode - the WindowManager class will not be fully functional.")
+        def IJ(self):
+            return self._access_legacy_class('ij.IJ')
 
-                self._WindowManager = sj.jimport('ij.WindowManager')
-            return self._WindowManager
+        @property
+        def ResultsTable(self):
+            return self._access_legacy_class('ij.measure.ResultsTable')
+
+        @property
+        def RoiManager(self):
+            return self._access_legacy_class('ij.plugin.frame.RoiManager')
+
+        @property
+        def WindowManager(self):
+            return self._access_legacy_class('ij.WindowManager')
+
+        def _access_legacy_class(self, fqcn:str):
+            self._check_legacy_active()
+            class_name = fqcn[fqcn.rindex('.')+1:]
+            property_name = f"_{class_name}"
+            if not hasattr(self, property_name):
+                if self.ui().isHeadless():
+                    logging.warning(f"Operating in headless mode - the {class_name} class will not be fully functional.")
+                setattr(self, property_name, sj.jimport(fqcn))
+            
+            return getattr(self, property_name)
+
 
         def _check_legacy_active(self):
             if not self.legacy or not self.legacy.isActive():
