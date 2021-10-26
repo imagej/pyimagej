@@ -218,10 +218,6 @@ def init(ij_dir_or_version_or_endpoint=None, headless=True):
         def legacy(self):
             return legacyServiceObj
 
-    #TODO here
-    if ij._legacy_enabled and legacyServiceObj.isActive():
-        WindowManager = sj.jimport('ij.WindowManager')
-
     class ImageJPython:
         def __init__(self, ij):
             self._ij = ij
@@ -716,16 +712,11 @@ def init(ij_dir_or_version_or_endpoint=None, headless=True):
 
         def window_manager(self):
             """
-            Get the ImageJ1 window manager if legacy mode is enabled.
-            It may not work properly if in headless mode.
-            :return: WindowManager
+            ij.py.window_manager() is deprecated.
+            Use ij.WindowManager instead.
             """
-            if not ij.legacy.isActive():
-                raise ImportError("Your ImageJ installation does not support IJ1.  This function does not work. Please include ImageJ Legacy in initialization. See: https://github.com/imagej/pyimagej/blob/master/doc/Initialization.md#how-to-initialize-imagej")
-            elif ij.ui().isHeadless():
-                logging.warning("Operating in headless mode - The WindowManager will not be fully funtional.")
-            else:
-                return WindowManager
+            logging.warning("ij.py.window_manager() is deprecated. Use ij.WindowManager instead.")
+            return self._ij.WindowManager
 
         def active_xarray(self, sync=True):
             """
@@ -752,7 +743,7 @@ def init(ij_dir_or_version_or_endpoint=None, headless=True):
             :param sync: Manually synchronize the current IJ1 slice if True
             :return: The ImagePlus corresponding to the active image
             """
-            imp = WindowManager.getCurrentImage()
+            imp = self._ij.WindowManager.getCurrentImage()
             if imp is None: return None
             if sync:
                 self.synchronize_ij1_to_ij2(imp)
@@ -787,6 +778,16 @@ def init(ij_dir_or_version_or_endpoint=None, headless=True):
         @property
         def py(self):
             return imagejPythonObj
+
+        @property
+        def WindowManager(self):
+            if not ij.legacy.isActive():
+                raise ImportError("The original ImageJ is not available in this environment. This function does not work. Please include ImageJ Legacy in initialization. See: https://github.com/imagej/pyimagej/blob/master/doc/Initialization.md#how-to-initialize-imagej")
+            if not hasattr(self, '_WindowManager'):
+                if ij.ui().isHeadless():
+                    logging.warning("Operating in headless mode - The WindowManager will not be fully functional.")
+                self._WindowManager = sj.jimport('ij.WindowManager')
+            return self._WindowManager
 
     # Forward stdout and stderr from Java to Python.
     from jpype import JOverride, JImplements
