@@ -200,24 +200,6 @@ def init(ij_dir_or_version_or_endpoint=None, headless=True):
             axis = DefaultLinearAxis(axis_type, scale, origin)
             return axis
 
-    # Try to define the legacy service, and create a dummy method if it doesn't exist.
-
-    # create the legacy service object
-    try:
-        legacy = sj.jimport('net.imagej.legacy.LegacyService')
-        legacyServiceObj = ij.get('net.imagej.legacy.LegacyService')
-        ij._legacy_enabled = True
-    except TypeError:
-        ij._legacy_enabled = False
-        #TODO here
-
-    # attach legacy to imagej
-    @JImplementationFor('net.imagej.ImageJ')
-    class LegacyServiceProto(object):
-        @property
-        def legacy(self):
-            return legacyServiceObj
-
     class ImageJPython:
         def __init__(self, ij):
             self._ij = ij
@@ -773,22 +755,51 @@ def init(ij_dir_or_version_or_endpoint=None, headless=True):
     # attach ImageJPython to imagej
     imagejPythonObj = ImageJPython(ij)
 
+    # Try to define the legacy service, and create a dummy method if it doesn't exist.
+
+    # create the legacy service object
+
+        #TODO here
+
     @JImplementationFor('net.imagej.ImageJ')
-    class ImageJPythonProto(object):
+    class ImageJPlus(object):
         @property
         def py(self):
             return imagejPythonObj
 
         @property
+        def legacy(self):
+            if not hasattr(self, '_legacy'):
+                try:
+                    LegacyService = sj.jimport('net.imagej.legacy.LegacyService')
+                    self._legacy = self.get('net.imagej.legacy.LegacyService')
+                    if self.ui().isHeadless():
+                        logging.warning("Operating in headless mode - the original ImageJ will have limited functionality.")
+                except TypeError:
+                    self._legacy = None
+
+            if self._legacy is None:
+                self._raise_legacy_missing_error()
+
+            return self._legacy
+
+        @property
         def WindowManager(self):
-            if not ij.legacy.isActive():
-                raise ImportError("The original ImageJ is not available in this environment. This function does not work. Please include ImageJ Legacy in initialization. See: https://github.com/imagej/pyimagej/blob/master/doc/Initialization.md#how-to-initialize-imagej")
+            self._check_legacy_active()
             if not hasattr(self, '_WindowManager'):
-                if ij.ui().isHeadless():
+                if self.ui().isHeadless():
                     logging.warning("Operating in headless mode - the WindowManager class will not be fully functional.")
 
                 self._WindowManager = sj.jimport('ij.WindowManager')
             return self._WindowManager
+
+        def _check_legacy_active(self):
+            if not self.legacy or not self.legacy.isActive():
+                self._raise_legacy_missing_error()
+
+        def _raise_legacy_missing_error(self):
+            raise ImportError("The original ImageJ is not available in this environment. Please include ImageJ Legacy in initialization. See: https://github.com/imagej/pyimagej/blob/master/doc/Initialization.md#how-to-initialize-imagej")
+
 
     # Forward stdout and stderr from Java to Python.
     from jpype import JOverride, JImplements
