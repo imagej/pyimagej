@@ -594,7 +594,7 @@ def init(ij_dir_or_version_or_endpoint=None, headless=True):
             :param dataset: ImageJ dataset
             :return: xarray with reversed (C-style) dims and coords as labeled by the dataset
             """
-            attrs = self._ij.py.from_java(dataset.getProperties())
+            attrs = self.from_java(dataset.getProperties())
             axes = [(JObject(dataset.axis(idx), sj.jimport('net.imagej.axis.CalibratedAxis')))
                     for idx in range(dataset.numDimensions())]
 
@@ -737,10 +737,10 @@ def init(ij_dir_or_version_or_endpoint=None, headless=True):
 
             if ij.legacy.isActive():
                 imp = self.active_image_plus(sync=sync)
-                return self._ij.py.from_java(imp)
+                return self.from_java(imp)
             else:
                 dataset = self.active_dataset()
-                return self._ij.py.from_java(dataset)
+                return self.from_java(dataset)
 
         def active_dataset(self):
             """Get the currently active Dataset from the Dataset service"""
