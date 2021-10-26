@@ -785,7 +785,8 @@ def init(ij_dir_or_version_or_endpoint=None, headless=True):
                 raise ImportError("The original ImageJ is not available in this environment. This function does not work. Please include ImageJ Legacy in initialization. See: https://github.com/imagej/pyimagej/blob/master/doc/Initialization.md#how-to-initialize-imagej")
             if not hasattr(self, '_WindowManager'):
                 if ij.ui().isHeadless():
-                    logging.warning("Operating in headless mode - The WindowManager will not be fully functional.")
+                    logging.warning("Operating in headless mode - the WindowManager class will not be fully functional.")
+
                 self._WindowManager = sj.jimport('ij.WindowManager')
             return self._WindowManager
 
