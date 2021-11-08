@@ -64,10 +64,11 @@ def _dump_exception(exc):
 
 def _search_for_jars(target_dir, subfolder=''):
     """
-    Search and recursively add .jar files to a list
-    :param target_dir: base path to search
-    :param subfolder: optional sub-directory to start the search
-    :return: a list of jar files
+    Search and recursively add .jar files to a list.
+
+    :param target_dir: Base path to search.
+    :param subfolder: Optional sub-directory to start the search.
+    :return: A list of jar files.
     """
     jars = []
     for root, dirs, files in os.walk(target_dir + subfolder):
@@ -81,10 +82,10 @@ def _search_for_jars(target_dir, subfolder=''):
 
 def _set_ij_env(ij_dir):
     """
-    Create a list of required jars and add to the java classpath
+    Create a list of required jars and add to the java classpath.
 
-    :param ij_dir: System path for Fiji.app
-    :return: num_jar(int): number of jars added
+    :param ij_dir: System path for Fiji.app.
+    :return: num_jar(int): Number of jars added.
     """
     jars = []
     # search jars directory
@@ -96,8 +97,12 @@ def _set_ij_env(ij_dir):
     return len(jars)
 
 def init(ij_dir_or_version_or_endpoint=None, headless=True):
-    """
-    Initialize the ImageJ environment.
+    """Initialize the ImageJ environment.
+
+    Initialize the ImageJ enviornment with a local ImageJ installation,
+    a specific version of ImageJ, or with maven artifacts. ImageJ can
+    be initialized in headless mode or GUI mode (note: not all ImageJ
+    operations function in headless mode).
 
     :param ij_dir_or_version_or_endpoint:
         Path to a local ImageJ installation (e.g. /Applications/Fiji.app),
@@ -105,7 +110,11 @@ def init(ij_dir_or_version_or_endpoint=None, headless=True):
         OR endpoint of another artifact (e.g. sc.fiji:fiji) that uses imagej.
         OR list of Maven artifacts to include (e.g. ['net.imagej:imagej-legacy', 'net.preibisch:BigStitcher'])
     :param headless: Whether to start the JVM in headless or gui mode.
-    :return: an instance of the net.imagej.ImageJ gateway
+    :return: An instance of the net.imagej.ImageJ gateway
+
+    :example:
+
+    ij = imagej.init('sc.fiji:fiji', headless=False)
     """
 
     global ij
@@ -205,8 +214,17 @@ def init(ij_dir_or_version_or_endpoint=None, headless=True):
             self._ij = ij
 
         def dims(self, image):
-            """
-            Return the dimensions of the equivalent numpy array for the image.  Reverse dimension order from Java.
+            """Return the dimensions of the input image.
+
+            Return the dimenions (i.e. shape) of an input numpy array,
+            ImgLib2 image or an ImageJ ImagePlus.
+
+            :param image:
+                A numpy array.
+                OR An ImgLib2 image ('net.imglib2.Interval').
+                OR An ImageJ2 Dataset ('net.imagej.Dataset').
+                OR An ImageJ ImagePlus ('ij.ImagePlus').
+            :param return: Dimensions of the input image.
             """
             if self._is_arraylike(image):
                 return image.shape
@@ -222,8 +240,18 @@ def init(ij_dir_or_version_or_endpoint=None, headless=True):
             raise TypeError('Unsupported Java type: ' + str(sj.jclass(image).getName()))
 
         def dtype(self, image_or_type):
-            """
-            Return the dtype of the equivalent numpy array for the given image or type.
+            """Return the dtype of the input image.
+
+            Return the dtype of an input numpy array, ImgLib2 image
+            or an Image ImagePlus.
+
+            :param image_or_type:
+                A numpy array.
+                OR A numpy array dtype.
+                OR An ImgLib2 image ('net.imglib2.Interval').
+                OR An ImageJ2 Dataset ('net.imagej.Dataset').
+                OR An ImageJ ImagePlus ('ij.ImagePlus').
+            :param return: Input image dtype.
             """
             if type(image_or_type) == np.dtype:
                 return image_or_type
@@ -294,9 +322,13 @@ def init(ij_dir_or_version_or_endpoint=None, headless=True):
             raise TypeError('Unsupported Java type: ' + str(sj.jclass(image_or_type).getName()))
 
         def new_numpy_image(self, image):
-            """
-            Creates a numpy image (NOT a Java image) dimensioned the same as
-            the given image, and with the same pixel type as the given image.
+            """Create an empty numpy array.
+
+            Create a new numpy array with the same shape and
+            type as the input image, filled with zeros.
+
+            :param image: A numpy array.
+            :return: A new zero filled array of given shape and type.
             """
             try:
                 dtype_to_use = self.dtype(image)
@@ -305,8 +337,13 @@ def init(ij_dir_or_version_or_endpoint=None, headless=True):
             return np.zeros(self.dims(image), dtype=dtype_to_use)
 
         def rai_to_numpy(self, rai):
-            """
-            Convert a RandomAccessibleInterval into a numpy array
+            """Convert a RandomAccessibleInterval into a numpy array.
+
+            Convert a RandomAccessibleInterval ('net.imglib2.RandomAccessibleInterval') 
+            into a new numpy array.
+
+            :param rai: A RandomAccisbleInterval ('net.imglib2.RandomAccessibleInterval').
+            :return: A numpy array of the input RandomAccisbleInterval.
             """
             # check imagej-common version for fast copy availability.
             ijc_slow_copy_version = '0.30.0'
@@ -324,22 +361,53 @@ def init(ij_dir_or_version_or_endpoint=None, headless=True):
             return result
 
         def run_plugin(self, plugin, args=None, ij1_style=True):
-            """
-            Run an ImageJ plugin
-            :param plugin: The string name for the plugin command
-            :param args: A dict of macro arguments in key/value pairs
-            :param ij1_style: Whether to use implicit booleans in IJ1 style or explicit booleans in IJ2 style
-            :return: The plugin output
+            """Run an ImageJ plugin.
+
+            Run an ImageJ plugin by specifiying the plugin name as a string,
+            and the plugin arguments as a dictionary. For the few plugins that
+            use the ImageJ2 style macros (i.e. explicit booleans in the recorder),
+            set the option variable ij1_style=False.
+
+            :param plugin: The string name for the plugin command.
+            :param args: A dictionary of plugin arguments in key: value pairs.
+            :param ij1_style: Boolean to set which implicit boolean style to use (ImageJ or ImageJ2).
+            :return: Runs the specified plugin with the given arguments.
+
+            :example:
+            
+            plugin = 'Mean'
+            args = {
+                'block_radius_x': 10,
+                'block_radius_y': 10
+            }
+            ij.py.run_plugin(plugin, args)
             """
             macro = self._assemble_plugin_macro(plugin, args=args, ij1_style=ij1_style)
             return self.run_macro(macro)
 
         def run_macro(self, macro, args=None):
-            """
-            Run an ImageJ1 style macro script
-            :param macro: The macro code
-            :param args: Arguments for the script as a dictionary of key/value pairs
-            :return:
+            """Run an ImageJ macro.
+
+            Run an ImageJ macro by providing the macro code/script in a string and
+            the arguments in a dictionary.
+
+            :param macro: The macro code/script as a string.
+            :param args: A dictionary of macro arguments in key: valye pairs.
+            :return: Runs the specified macro with the given arguments.
+
+            :example:
+
+            macro = \"""
+            #@ String name
+            #@ int age
+            output = name + " is " + age " years old."
+            \"""
+            args = {
+                'name': 'Sean',
+                'age': 26
+            }
+            macro_result = ij.py.run_macro(macro, args)
+            print(macro_result.getOutput('output'))
             """
             if not ij.legacy.isActive():
                 raise ImportError("Your IJ endpoint does not support IJ1, and thus cannot use IJ1 macros.")
@@ -354,12 +422,31 @@ def init(ij_dir_or_version_or_endpoint=None, headless=True):
                 raise exc
 
         def run_script(self, language, script, args=None):
-            """
-            Run a script in an IJ scripting language
-            :param language: The file extension for the scripting language
-            :param script: A string containing the script code
-            :param args: Arguments for the script as a dictionary of key/value pairs
-            :return:
+            """Run an ImageJ script.
+
+            Run a script in one of ImageJ's supported scripting languages.
+            Specify the language of the script, provide the code as a string
+            and the arguments as a dictionary.
+
+            :param language: The file extension for the scripting language.
+            :param script: A string of the script code.
+            :param args: A dictionary of macro arguments in key: value pairs.
+            :return: Runs the specified script with the given arguments.
+
+            :example:
+
+            language = 'ijm'
+            script = \"""
+            #@ String name
+            #@ int age
+            output = name + " is " + age " years old."
+            \"""
+            args = {
+                'name': 'Sean',
+                'age': 26
+            }
+            script_result = ij.py.run_script(language, script, args)
+            print(script_result.getOutput('output'))
             """
             script_lang = self._ij.script().getLanguageByName(language)
             if script_lang is None:
