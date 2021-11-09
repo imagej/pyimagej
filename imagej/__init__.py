@@ -925,6 +925,62 @@ def init(ij_dir_or_version_or_endpoint=None, headless=True):
         def _raise_legacy_missing_error(self):
             raise ImportError("The original ImageJ is not available in this environment. Please include ImageJ Legacy in initialization. See: https://github.com/imagej/pyimagej/blob/master/doc/Initialization.md#how-to-initialize-imagej")
 
+    # Overload operators for RandomAccessibleInterval so it's more Pythonic.
+    @JImplementationFor('net.imglib2.RandomAccessibleInterval')
+    class RAIOperators(object):
+        def __add__(self, other):
+            return ij.op().run('math.add', self, other)
+        def __sub__(self, other):
+            return ij.op().run('math.sub', self, other)
+        def __mul__(self, other):
+            return ij.op().run('math.mul', self, other)
+        def __truediv__(self, other):
+            return ij.op().run('math.div', self, other)
+        def _slice(self, ranges):
+            expected_dims = len(ranges)
+            actual_dims = self.numDimensions()
+            if expected_dims != actual_dims:
+                raise ValueError(f'Dimension mismatch: {expected_dims} != {actual_dims}')
+
+            imin = []
+            imax = []
+            for dslice in ranges:
+                if dslice.step and dslice.step != 1:
+                    raise ValueError(f'Unsupported step value: {dslice.step}')
+                imin.append(dslice.start)
+                imax.append(dslice.stop - 1)
+
+            # BE WARNED! This does not yet preserve net.imagej-level axis metadata!
+            # We need to finish RichImg to support that properly.
+            return ij.op().transform().intervalView(self, imin, imax)
+
+        def __getitem__(self, key):
+            if type(key) == slice:
+                # Wrap single slice into tuple of length 1.
+                return self._slice((key,))
+            elif type(key) == tuple:
+                return self._slice(key)
+            elif type(key) == int:
+                return self.values[key]
+            else:
+                raise ValueError(f"Invalid key type: {type(key)}")
+
+        def squeeze(self, axis=None):
+            if axis is None:
+                # Process all dimensions.
+                axis = tuple(range(self.numDimensions()))
+            if type(axis) == int:
+                # Convert int to singleton tuple.
+                axis = (axis,)
+            if type(axis) != tuple:
+                raise ValueError(f'Invalid type for axis parameter: {type(axis)}')
+
+            Views = sj.jimport('net.imglib2.view.Views')
+            res = self
+            for d in range(self.numDimensions() - 1, -1, -1):
+                if d in axis and self.dimension(d) == 1:
+                    res = Views.hyperSlice(res, d, self.min(d));
+            return res
 
     # Forward stdout and stderr from Java to Python.
     from jpype import JOverride, JImplements
