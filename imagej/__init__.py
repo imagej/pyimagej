@@ -300,7 +300,7 @@ def init(ij_dir_or_version_or_endpoint=None, headless=True):
             if sj.jclass('net.imglib2.IterableInterval').isInstance(image_or_type):
                 ij2_type = image_or_type.firstElement()
                 return self.dtype(ij2_type)
-            if sj.jclass('net.imglib2.RandomAccessibleInterval').isInstance(image_or_type):
+            if RandomAccessibleInterval.class_.isInstance(image_or_type):
                 Util = sj.jimport('net.imglib2.util.Util')
                 ij2_type = Util.getTypeFromInterval(image_or_type)
                 return self.dtype(ij2_type)
