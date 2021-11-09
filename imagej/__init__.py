@@ -414,7 +414,7 @@ def init(ij_dir_or_version_or_endpoint=None, headless=True):
             macro_result = ij.py.run_macro(macro, args)
             print(macro_result.getOutput('output'))
             """
-            if not ij.legacy.isActive():
+            if not ij.legacy or not ij.legacy.isActive():
                 raise ImportError("Your IJ endpoint does not support IJ1, and thus cannot use IJ1 macros.")
 
             try:
@@ -811,7 +811,7 @@ def init(ij_dir_or_version_or_endpoint=None, headless=True):
             """
             # todo: make the behavior use pure IJ2 if legacy is not active
 
-            if ij.legacy.isActive():
+            if ij.legacy and ij.legacy.isActive():
                 imp = self.active_image_plus(sync=sync)
                 return self.from_java(imp)
             else:
