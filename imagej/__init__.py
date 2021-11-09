@@ -466,10 +466,13 @@ def init(ij_dir_or_version_or_endpoint=None, headless=True):
                 raise exc
 
         def to_java(self, data):
-            """
-            Converts the data into a java equivalent.  For numpy arrays, the java image points to the python array.
+            """Convert supported Python data into Java equivalents.
 
-            In addition to the scyjava types, we allow ndarray-like and xarray-like variables
+            Converts Python objects (e.g. xarray.DataArray) into the Java
+            equivalents. For numpy arrays, the Java image points to the Python array.
+
+            :param data: Python object to be converted into its respective Java counterpart.
+            :return: A Java object convrted from Python.
             """
             if self._is_memoryarraylike(data):
                 return imglyb.to_imglib(data)
@@ -634,8 +637,13 @@ def init(ij_dir_or_version_or_endpoint=None, headless=True):
             raise TypeError('Cannot convert to dataset: ' + str(type(data)))
 
         def from_java(self, data):
-            """
-            Converts the data into a python equivalent
+            """Convert supported Java data into Python equivalents.
+
+            Converts Java objects (e.g. 'net.imagej.Dataset') into the Python
+            equivalents.
+
+            :param data: Java object to be converted into its respective Python counterpart.
+            :return: A Python object convrted from Java.
             """
             # todo: convert a dataset to xarray
 
@@ -701,11 +709,12 @@ def init(ij_dir_or_version_or_endpoint=None, headless=True):
 
 
         def show(self, image, cmap=None):
-            """
+            """Display a Java or Python 2D image.
+            
             Display a java or python 2D image.
-            :param image: A java or python image that can be converted to a numpy array
-            :param cmap: The colormap of the image, if it is not RGB
-            :return:
+            :param image: A Java or Python image that can be converted to a numpy array.
+            :param cmap: The colormap of the image.
+            :return: Displayed image.
             """
             if image is None:
                 raise TypeError('Image must not be None')
@@ -788,10 +797,12 @@ def init(ij_dir_or_version_or_endpoint=None, headless=True):
             return self._ij.WindowManager
 
         def active_xarray(self, sync=True):
-            """
-            Convert the active image to a xarray.DataArray, synchronizing from IJ1 to IJ2.
-            :param sync: Manually synchronize the current IJ1 slice if True
-            :return: numpy array containing the image data
+            """Get the active image as an xarray.
+
+            Convert the active image to a xarray.DataArray, synchronizing from ImageJ to ImageJ2.
+
+            :param sync: Manually synchronize the current IJ1 slice if True.
+            :return: numpy array containing the image data.
             """
             # todo: make the behavior use pure IJ2 if legacy is not active
 
@@ -803,14 +814,20 @@ def init(ij_dir_or_version_or_endpoint=None, headless=True):
                 return self.from_java(dataset)
 
         def active_dataset(self):
-            """Get the currently active Dataset from the Dataset service"""
+            """Get the active Dataset image.
+
+            Get the currently active Dataset from the Dataset service.
+            :return: The Dataset corresponding to the active image.
+            """
             return self._ij.imageDisplay().getActiveDataset()
 
         def active_image_plus(self, sync=True):
-            """
-            Get the currently active IJ1 image, optionally synchronizing from IJ1 -> IJ2
-            :param sync: Manually synchronize the current IJ1 slice if True
-            :return: The ImagePlus corresponding to the active image
+            """Get the active ImagePlus image.
+
+            Get the currently active ImagePlus image, optionally synchronizing from ImageJ to ImageJ2.
+
+            :param sync: Manually synchronize the current ImageJ slice if True.
+            :return: The ImagePlus corresponding to the active image.
             """
             imp = self._ij.WindowManager.getCurrentImage()
             if imp is None: return None
@@ -819,9 +836,12 @@ def init(ij_dir_or_version_or_endpoint=None, headless=True):
             return imp
 
         def synchronize_ij1_to_ij2(self, imp):
-            """
-            Synchronize between a Dataset or ImageDisplay linked to an ImagePlus by accepting the ImagePlus data as true
-            :param imp: The IJ1 ImagePlus that needs to be synchronized
+            """ Syncronize data between ImageJ and ImageJ2.
+
+            Synchronize between a Dataset or ImageDisplay linked to an 
+            ImagePlus by accepting the ImagePlus data as true.
+
+            :param imp: The IJ1 ImagePlus that needs to be synchronized.
             """
             # This code is necessary because an ImagePlus can sometimes be modified without modifying the
             # linked Dataset/ImageDisplay.  This happens when someone uses the ImageProcessor of the ImagePlus to change
