@@ -306,9 +306,14 @@ def init(ij_dir_or_version_or_endpoint=None, headless=True):
                 return self.dtype(ij2_type)
 
             # -- ImageJ1 images --
-            if sj.jclass('ij.ImagePlus').isInstance(image_or_type):
-                ij1_type = image_or_type.getType()
+            ImagePlus = None
+            try:
                 ImagePlus = sj.jimport('ij.ImagePlus')
+            except TypeError:
+                # No original ImageJ in the environment.
+                pass
+            if ImagePlus and ImagePlus.class_.isInstance(image_or_type):
+                ij1_type = image_or_type.getType()
                 ij1_types = {
                     ImagePlus.GRAY8:  'uint8',
                     ImagePlus.GRAY16: 'uint16',
