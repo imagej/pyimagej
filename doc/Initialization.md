@@ -1,34 +1,35 @@
 # How to initialize ImageJ
 
-The PyImageJ plugin works by setting up a gateway interface into ImageJ. This
-gateway interface is activated using the `imagej.init()` function and yields a
-wrapped ImageJ Java class. This interface has access to all of the Java based
-functions, and also has convenience functions for translating back and forth
-between python in `imagej.py`.
+The PyImageJ plugin works by setting up a gateway interface into
+[ImageJ2](https://imagej.net/ImageJ2). This gateway interface is activated
+using the `imagej.init()` function and yields a wrapped ImageJ2 gateway, the
+`net.imagej.ImageJ` Java class. This interface has access to all of the Java
+based functions, and also has convenience functions for translating back and
+forth between python in `imagej.py`.
 
 Setting up this gateway consists of two steps. The first step is to set Java
 options. This step is optional, but must be done first because they cannot be
-changed after ImageJ is initialized. The second step is to specify what version
-of ImageJ the gateway will represent.
+changed after ImageJ2 is initialized. The second step is to specify what
+version of ImageJ2 the gateway will represent.
 
 ## Quick start
 
-If all you want is the newest version of [ImageJ2](https://imagej.net/ImageJ2),
-with no custom configuration (e.g., extra memory allocated to Java), use this:
+If all you want is the newest version of ImageJ2, with no custom configuration
+(e.g., extra memory allocated to Java), use this:
 
 ```python
 import imagej
 ij = imagej.init()
 ```
 
-It will download and and cache ImageJ, then spin up a gateway for you.
+It will download and and cache ImageJ2, then spin up a gateway for you.
 
 ### Configuring the JVM
 
-The ImageJ gateway is initialized through a Java Virtual Machine (JVM).
+The ImageJ2 gateway is initialized through a Java Virtual Machine (JVM).
 If you want to [configure the
 JVM](https://docs.oracle.com/javase/8/docs/technotes/tools/unix/java.html),
-it must be done _before_ calling initializing an ImageJ gateway. E.g.:
+it must be done _before_ calling initializing an ImageJ2 gateway. E.g.:
 
 ```python
 import imagej
@@ -40,23 +41,23 @@ See "With more memory available to Java" below for further details.
 
 ## Ways to initialize
 
-PyImageJ can be initialized to call different versions of ImageJ, with the
-ability to include legacy support for ImageJ1, a GUI, Fiji plugins, or specific
-versions of component libraries. Complex Maven endpoints can be entered as a
-single string, or can be a list of valid Maven endpoints.
+PyImageJ can be initialized to call different versions of ImageJ2, with the
+ability to include legacy support for the original ImageJ, a GUI, Fiji plugins,
+or specific versions of component libraries. Complex Maven endpoints can be
+entered as a single string, or can be a list of valid Maven endpoints.
 
-| Requirement                                   | Code                                                                               | Reproducible? |
-|:----------------------------------------------|:----------------------------------------------------------------------------------:|:-------------:|
-| Newest available version of ImageJ            | `ij = imagej.init()`                                                               | NO            |
-| Specific version of ImageJ                    | `ij = imagej.init('2.1.0')`                                                        | YES           |
-| With a GUI (newest version)                   | `ij = imagej.init(headless=False)`                                                 | NO            |
-| With a GUI (specific version)                 | `ij = imagej.init('net.imagej:imagej:2.1.0', headless=False)`                      | YES           |
-| With support for ImageJ 1.x (newest versions) | `ij = imagej.init(['net.imagej:imagej', 'net.imagej:imagej-legacy'])`              | NO            |
-| With Fiji plugins (newest version)            | `ij = imagej.init('sc.fiji:fiji')`                                                 | NO            |
-| With Fiji plugins (specific version)          | `ij = imagej.init('sc.fiji:fiji:2.1.1')`                                           | YES           |
-| From a local installation                     | `ij = imagej.init('/Applications/Fiji.app')`                                       | DEPENDS       |
-| With a specific plugin                        | `ij = imagej.init(['net.imagej:imagej', 'net.preibisch:BigStitcher'])`             | NO            |
-| With a specific plugin version                | `ij = imagej.init(['net.imagej:imagej:2.1.0', 'net.preibisch:BigStitcher:0.4.1'])` | YES           |
+| Requirement                                            | Code                                                                               | Reproducible? |
+|:-------------------------------------------------------|:----------------------------------------------------------------------------------:|:-------------:|
+| Newest available version of ImageJ2                    | `ij = imagej.init()`                                                               | NO            |
+| Specific version of ImageJ2                            | `ij = imagej.init('2.3.0')`                                                        | YES           |
+| With a GUI (newest version)                            | `ij = imagej.init(headless=False)`                                                 | NO            |
+| With a GUI (specific version)                          | `ij = imagej.init('net.imagej:imagej:2.1.0', headless=False)`                      | YES           |
+| With support for the original ImageJ (newest versions) | `ij = imagej.init(['net.imagej:imagej', 'net.imagej:imagej-legacy'])`              | NO            |
+| With Fiji plugins (newest version)                     | `ij = imagej.init('sc.fiji:fiji')`                                                 | NO            |
+| With Fiji plugins (specific version)                   | `ij = imagej.init('sc.fiji:fiji:2.1.1')`                                           | YES           |
+| From a local installation                              | `ij = imagej.init('/Applications/Fiji.app')`                                       | DEPENDS       |
+| With a specific plugin                                 | `ij = imagej.init(['net.imagej:imagej', 'net.preibisch:BigStitcher'])`             | NO            |
+| With a specific plugin version                         | `ij = imagej.init(['net.imagej:imagej:2.1.0', 'net.preibisch:BigStitcher:0.4.1'])` | YES           |
 
 
 #### WARNING: Transitive dependency versions
@@ -74,7 +75,7 @@ Please see [this discussion](https://github.com/scijava/scyjava/issues/23#issuec
 
 #### Newest available version
 
-If you want to launch the newest available release version of ImageJ:
+If you want to launch the newest available release version of ImageJ2:
 
 ```python
 import imagej
@@ -108,12 +109,13 @@ Note there are issues with Java AWT via Python on macOS; see
 [this article](https://github.com/imglib/imglyb#awt-on-macos)
 for a workaround.
 
-#### Including ImageJ 1.x support
+#### Including support for the original ImageJ
 
-By default, the ImageJ gateway will not include the
+By default, the ImageJ2 gateway will not include the
 [legacy layer](https://imagej.net/Legacy) for backwards compatibility with
-[ImageJ 1.x](https://imagej.net/ImageJ1). The legacy layer is necessary for
-macros and any ImageJ1-based plugins. You can enable it as follows:
+[the original ImageJ](https://imagej.net/software/imagej). The legacy layer
+is necessary for macros and any ImageJ-based plugins. You can enable it as
+follows:
 
 ```python
 import imagej
@@ -122,11 +124,11 @@ ij = imagej.init(['net.imagej:imagej', 'net.imagej:imagej-legacy'])
 
 #### Including Fiji plugins
 
-By default, the ImageJ gateway will include base ImageJ2 functionality only,
+By default, the ImageJ2 gateway will include base ImageJ2 functionality only,
 without additional plugins such as those that ship with the
 [Fiji](https://fiji.sc/) distribution of ImageJ.
 
-You can create an ImageJ gateway including Fiji plugins as follows:
+You can create an ImageJ2 gateway including Fiji plugins as follows:
 
 ```python
 import imagej
@@ -142,8 +144,8 @@ ij = imagej.init('sc.fiji:fiji:2.1.1')
 
 #### From a local installation
 
-If you have a local installation of [ImageJ2](https://imagej.net/ImageJ2)
-such as [Fiji](https://fiji.sc/), you can wrap an ImageJ gateway around it:
+If you have a local installation of ImageJ2, such as [Fiji](https://fiji.sc/),
+you can wrap an ImageJ2 gateway around it:
 
 ```python
 import imagej
@@ -195,9 +197,9 @@ simply add them to the endpoint, rather than using the below approaches.
 If you wish to use plugins which are not available as Maven artifacts,
 you have a couple of options:
 
-1. Use a local installation of ImageJ with the plugins, as described above.
+1. Use a local installation of ImageJ2 with the plugins, as described above.
 
-2. Specify a remote version of ImageJ, but set `plugins.dir` to point to a
+2. Specify a remote version of ImageJ2, but set `plugins.dir` to point to a
    local directory to discover the plugins from there. For example:
 
    ```python

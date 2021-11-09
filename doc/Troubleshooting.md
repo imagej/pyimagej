@@ -2,8 +2,8 @@
 
 ## I ran a plugin and see an updated image, but the numpy array and dataset are unchanged.
 
-This bug can occur in certain circumstances when using ImageJ1 plugins which
-update a corresponding `ImagePlus`. It can be worked around by calling:
+This bug can occur in certain circumstances when using original ImageJ plugins
+which update a corresponding `ImagePlus`. It can be worked around by calling:
 
 ```python
 imp = ij.py.WindowManager.getCurrentImage()
@@ -27,15 +27,16 @@ Replacing `...` with one of the usual possibilities
 See [this thread](https://github.com/imagej/pyimagej/issues/23)
 for additional information and updates.
 
-## ImageJ1 classes not found
+## Original ImageJ classes not found
 
-If you try to load an ImageJ1 class (with package prefix `ij`), and get a
-`JavaException: Class not found` error, this is because ImageJ was initialized
-without ImageJ1. See [Initialization.md](Initialization.md).
+If you try to load an original ImageJ class (with package prefix `ij`),
+and get a `JavaException: Class not found` error, this is because
+the environment was initialized without the original ImageJ included.
+See [Initialization.md](Initialization.md).
 
 ## Not enough memory
 
-You can increase the memory available to the JVM before starting ImageJ.
+You can increase the memory available to the JVM before starting it.
 See [Initialization.md](Initialization.md).
 
 ## log4j:WARN 

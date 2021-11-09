@@ -305,7 +305,7 @@ def init(ij_dir_or_version_or_endpoint=None, headless=True):
                 ij2_type = Util.getTypeFromInterval(image_or_type)
                 return self.dtype(ij2_type)
 
-            # -- ImageJ1 images --
+            # -- Original ImageJ images --
             ImagePlus = None
             try:
                 ImagePlus = sj.jimport('ij.ImagePlus')
@@ -317,12 +317,12 @@ def init(ij_dir_or_version_or_endpoint=None, headless=True):
                 ij1_types = {
                     ImagePlus.GRAY8:  'uint8',
                     ImagePlus.GRAY16: 'uint16',
-                    ImagePlus.GRAY32: 'float32', # NB: ImageJ1's 32-bit type is float32, not uint32.
+                    ImagePlus.GRAY32: 'float32', # NB: ImageJ's 32-bit type is float32, not uint32.
                 }
                 for t in ij1_types:
                     if ij1_type == t:
                         return np.dtype(ij1_types[t])
-                raise TypeError('Unsupported ImageJ1 type: {}'.format(ij1_type))
+                raise TypeError('Unsupported original ImageJ type: {}'.format(ij1_type))
 
             raise TypeError('Unsupported Java type: ' + str(sj.jclass(image_or_type).getName()))
 
@@ -415,7 +415,7 @@ def init(ij_dir_or_version_or_endpoint=None, headless=True):
             print(macro_result.getOutput('output'))
             """
             if not ij.legacy or not ij.legacy.isActive():
-                raise ImportError("Your IJ endpoint does not support IJ1, and thus cannot use IJ1 macros.")
+                raise ImportError("Your environment does not support the original ImageJ, and thus cannot use original ImageJ macros.")
 
             try:
                 if args is None:
