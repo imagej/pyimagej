@@ -8,7 +8,7 @@ forum](https://forum.image.sc/tag/pyimagej) and include either:
 
 * The results of manually running the Maven command with an added `-X` flag: `path\to\mvn.CMD -B -f -X path\to\pom.xml`
 * The results of re-running the same `imagej.init` call after:
-   * Deleting your `~/.jgoi` directory
+   * Deleting your `~/.jgo` directory
    * Adding `import logging` and `logging.basicConfig(level = logging.DEBUG)` to the top of your script
 
 ## I ran a plugin and see an updated image, but the numpy array and dataset are unchanged.
