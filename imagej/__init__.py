@@ -37,6 +37,7 @@ import imglyb
 import numpy as np
 import scyjava as sj
 import xarray as xr
+import imagej.stack as stack
 
 from pathlib import Path
 
@@ -953,11 +954,15 @@ def init(ij_dir_or_version_or_endpoint=None, headless=True):
                 if dslice.step and dslice.step != 1:
                     raise ValueError(f'Unsupported step value: {dslice.step}')
                 imin.append(dslice.start)
-                imax.append(dslice.stop - 1)
+                if dslice.stop == None:
+                    imax.append(None)
+                else:
+                    imax.append(dslice.stop - 1)
 
             # BE WARNED! This does not yet preserve net.imagej-level axis metadata!
             # We need to finish RichImg to support that properly.
-            return ij.op().transform().intervalView(self, imin, imax)
+
+            return stack.rai_slice(self, tuple(imin), tuple(imax))
 
         def __getitem__(self, key):
             if type(key) == slice:
