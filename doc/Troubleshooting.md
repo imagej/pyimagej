@@ -1,5 +1,16 @@
 # Common Errors
 
+## Error in "mvn.CMD -B -f pom.xml" dependency:resolve: 1
+
+This indicates a problem running Maven on your system and will require more
+debugging effort. Please post [on the
+forum](https://forum.image.sc/tag/pyimagej) and include either:
+
+* The results of manually running the Maven command with an added `-X` flag: `path\to\mvn.CMD -B -f -X path\to\pom.xml`
+* The results of re-running the same `imagej.init` call after:
+   * Deleting your `~/.jgoi` directory
+   * Adding `import logging` and `logging.basicConfig(level = logging.DEBUG)` to the top of your script
+
 ## I ran a plugin and see an updated image, but the numpy array and dataset are unchanged.
 
 This bug can occur in certain circumstances when using original ImageJ plugins
