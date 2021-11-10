@@ -989,7 +989,7 @@ def init(ij_dir_or_version_or_endpoint=None, headless=True):
             res = self
             for d in range(self.numDimensions() - 1, -1, -1):
                 if d in axis and self.dimension(d) == 1:
-                    res = Views.hyperSlice(res, d, self.min(d));
+                    res = Views.hyperSlice(res, d, self.min(d))
             return res
 
     # Forward stdout and stderr from Java to Python.
