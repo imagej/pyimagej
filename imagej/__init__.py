@@ -230,8 +230,8 @@ def init(ij_dir_or_version_or_endpoint=None, headless=True):
                 return image.shape
             if not sj.isjava(image):
                 raise TypeError('Unsupported type: ' + str(type(image)))
-            if sj.jclass('net.imglib2.Dimensions').isInstance(image):
-                return [image.dimension(d) for d in range(image.numDimensions() -1, -1, -1)]
+            if isinstance(image, RandomAccessibleInterval):
+                return tuple(sj.jimport('net.imglib2.util.Intervals').dimensionsAsLongArray(image))
             if sj.jclass('ij.ImagePlus').isInstance(image):
                 dims = image.getDimensions()
                 dims.reverse()
