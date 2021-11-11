@@ -46,13 +46,18 @@ ability to include legacy support for the original ImageJ, a GUI, Fiji plugins,
 or specific versions of component libraries. Complex Maven endpoints can be
 entered as a single string, or can be a list of valid Maven endpoints.
 
+All initialization methods, except "local installation," will automatically
+include the imagej-legacy endpoint. This behavior can be disabled if desired.
+
+
 | Requirement                                            | Code                                                                               | Reproducible? |
 |:-------------------------------------------------------|:----------------------------------------------------------------------------------:|:-------------:|
 | Newest available version of ImageJ2                    | `ij = imagej.init()`                                                               | NO            |
+| Newest available version of ImageJ2 (no legacy support)| `ij = imagej.init(add_legacy=False)`                                               | NO            |
 | Specific version of ImageJ2                            | `ij = imagej.init('2.3.0')`                                                        | YES           |
+| Specific version of ImageJ2 (no legacy support)        | `ij = imagej.init('2.3.0', add_legacy=False)`                                      | YES           |
 | With a GUI (newest version)                            | `ij = imagej.init(headless=False)`                                                 | NO            |
 | With a GUI (specific version)                          | `ij = imagej.init('net.imagej:imagej:2.1.0', headless=False)`                      | YES           |
-| With support for the original ImageJ (newest versions) | `ij = imagej.init(['net.imagej:imagej', 'net.imagej:imagej-legacy'])`              | NO            |
 | With Fiji plugins (newest version)                     | `ij = imagej.init('sc.fiji:fiji')`                                                 | NO            |
 | With Fiji plugins (specific version)                   | `ij = imagej.init('sc.fiji:fiji:2.1.1')`                                           | YES           |
 | From a local installation                              | `ij = imagej.init('/Applications/Fiji.app')`                                       | DEPENDS       |
