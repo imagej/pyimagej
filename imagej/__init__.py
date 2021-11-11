@@ -97,7 +97,7 @@ def _set_ij_env(ij_dir):
     sj.config.add_classpath(os.pathsep.join(jars))
     return len(jars)
 
-def init(ij_dir_or_version_or_endpoint=None, headless=True):
+def init(ij_dir_or_version_or_endpoint=None, headless=True, add_legacy=True):
     """Initialize the ImageJ environment.
 
     Initialize the ImageJ enviornment with a local ImageJ installation,
@@ -111,6 +111,7 @@ def init(ij_dir_or_version_or_endpoint=None, headless=True):
         OR endpoint of another artifact (e.g. sc.fiji:fiji) that uses imagej.
         OR list of Maven artifacts to include (e.g. ['net.imagej:imagej-legacy', 'net.preibisch:BigStitcher'])
     :param headless: Whether to start the JVM in headless or gui mode.
+    :param add_legacy: Whether or not to append the 'net.imagej:imagej-legacy' endpoint automatically.
     :return: An instance of the net.imagej.ImageJ gateway
 
     :example:
@@ -135,16 +136,20 @@ def init(ij_dir_or_version_or_endpoint=None, headless=True):
         if ij_dir_or_version_or_endpoint is None:
             # Use latest release of ImageJ.
             _logger.debug('Using newest ImageJ release')
-            sj.config.endpoints.extend(('net.imagej:imagej', 'net.imagej:imagej-legacy'))
+            sj.config.endpoints.append('net.imagej:imagej')
 
         elif isinstance(ij_dir_or_version_or_endpoint, list):
             # Assume that this is a list of Maven endpoints
+            if any(item.startswith('net.imagej:imagej-legacy') for item in ij_dir_or_version_or_endpoint):
+                add_legacy = False
+
             endpoint = '+'.join(ij_dir_or_version_or_endpoint)
             _logger.debug('List of Maven coordinates given: %s', ij_dir_or_version_or_endpoint)
             sj.config.endpoints.append(endpoint)
 
         elif os.path.isdir(ij_dir_or_version_or_endpoint):
             # Assume path to local ImageJ installation.
+            add_legacy = False
             path = ij_dir_or_version_or_endpoint
             _logger.debug('Local path to ImageJ installation given: %s', path)
             num_jars = _set_ij_env(path)
@@ -165,8 +170,10 @@ def init(ij_dir_or_version_or_endpoint=None, headless=True):
             # Assume endpoint of an artifact.
             # Strip out white spaces
             endpoint = ij_dir_or_version_or_endpoint.replace("    ", "")
+            if any(ij_dir_or_version_or_endpoint.startswith('net.imagej:imagej-legacy')):
+                add_legacy = False
             _logger.debug('Maven coordinate given: %s', endpoint)
-            sj.config.endpoints.extend((endpoint, 'net.imagej:imagej-legacy'))
+            sj.config.endpoints.append(endpoint)
 
         else:
             # Assume version of net.imagej:imagej.
@@ -177,6 +184,10 @@ def init(ij_dir_or_version_or_endpoint=None, headless=True):
                 return False
             _logger.debug('ImageJ version given: %s', version)
             sj.config.endpoints.append('net.imagej:imagej:' + version)
+
+
+        if add_legacy:
+            sj.config.endpoints.append('net.imagej:imagej-legacy')
 
         # Restore any pre-existing endpoints, after ImageJ's
         sj.config.endpoints.extend(original_endpoints)
