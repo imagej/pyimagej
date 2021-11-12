@@ -170,7 +170,7 @@ def init(ij_dir_or_version_or_endpoint=None, headless=True, add_legacy=True):
             # Assume endpoint of an artifact.
             # Strip out white spaces
             endpoint = ij_dir_or_version_or_endpoint.replace("    ", "")
-            if any(ij_dir_or_version_or_endpoint.startswith('net.imagej:imagej-legacy')):
+            if any(item.startswith('net.imagej:imagej-legacy') for item in endpoint.split('+')):
                 add_legacy = False
             _logger.debug('Maven coordinate given: %s', endpoint)
             sj.config.endpoints.append(endpoint)
