@@ -11,6 +11,16 @@ forum](https://forum.image.sc/tag/pyimagej) and include either:
    * Deleting your `~/.jgo` directory
    * Adding `import logging` and `logging.basicConfig(level = logging.DEBUG)` to the top of your script
 
+### Could not transfer artifact
+
+If the debugging output includes notices such as:
+```
+DEBUG:jgo: [ERROR] Non-resolvable import POM: Could not transfer artifact net.imglib2:imglib2-imglyb:pom:1.0.1 from/to scijava.public (https://maven.scijava.org/content/groups/public): Transfer failed for https://maven.scijava.org/content/groups/public/net/imglib2/imglib2-imglyb/1.0.1/imglib2-imglyb-1.0.1.pom @ line 8, column 29: Connect to maven.scijava.org:443 [maven.scijava.org/144.92.48.199] failed: Connection timed out:
+```
+This suggests you may be behind a firewall that is preventing Maven from downloading the necessary components. In this case you have two options:
+1. Determine how to [configure your Maven](https://www.baeldung.com/maven-behind-proxy) based on [these guides](https://stackoverflow.com/questions/1251192/how-do-i-use-maven-through-a-proxy).
+2. Initialize with a local `Fiji.app` installation. In this case you will also have to manually download the latest `.jar` files for [imglib2-unsafe](https://maven.scijava.org/#nexus-search;quick~imglib2-unsafe) and [imglib2-imglyb](https://maven.scijava.org/#nexus-search;quick~imglib2-imglyb) and place them in your local `Fiji.app/jars` directory, as these are required for PyImageJ but not part of the standard Fiji distribution.
+
 ## I ran a plugin and see an updated image, but the numpy array and dataset are unchanged.
 
 This bug can occur in certain circumstances when using original ImageJ plugins
