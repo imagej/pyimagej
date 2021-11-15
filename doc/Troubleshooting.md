@@ -21,6 +21,16 @@ This suggests you may be behind a firewall that is preventing Maven from downloa
 1. Determine how to [configure your Maven](https://www.baeldung.com/maven-behind-proxy) based on [these guides](https://stackoverflow.com/questions/1251192/how-do-i-use-maven-through-a-proxy).
 2. Initialize with a local `Fiji.app` installation. In this case you will also have to manually download the latest `.jar` files for [imglib2-unsafe](https://maven.scijava.org/#nexus-search;quick~imglib2-unsafe) and [imglib2-imglyb](https://maven.scijava.org/#nexus-search;quick~imglib2-imglyb) and place them in your local `Fiji.app/jars` directory, as these are required for PyImageJ but not part of the standard Fiji distribution.
 
+### Unable to find valid certification path
+
+If the debugging output includes notices such as:
+```
+Caused by: sun.security.validator.ValidatorException: PKIX path building failed: sun.security.provider.certpath.SunCertPathBuilderException: unable to find valid certification path to requested target
+    at sun.security.validator.PKIXValidator.doBuild (PKIXValidator.java:397)
+    at sun.security.validator.PKIXValidator.engineValidate (PKIXValidator.java:240)
+```
+This suggests the version of Java being used is too old and contains outdated certificate information. This behavior has been confirmed with the `openjdk` installed from the default conda channel (i.e. `conda install openjdk`). Try using an openjdk from the [conda-forge channel](https://anaconda.org/conda-forge/openjdk) instead.
+
 ## I ran a plugin and see an updated image, but the numpy array and dataset are unchanged.
 
 This bug can occur in certain circumstances when using original ImageJ plugins
