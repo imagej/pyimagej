@@ -24,7 +24,7 @@ class TestImageJ(object):
         sigmas = [10.0] * 2
         output_array = ij_fixture.op().filter().gauss(ij_fixture.py.to_java(input_array), sigmas)
         result = []
-        correct_result = [8440, 8440, 8439, 8444]
+        correct_result = [8435, 8435, 8435, 8435]
         ra = output_array.randomAccess()
         for x in [0, 1]:
             for y in [0, 1]:
