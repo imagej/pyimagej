@@ -490,7 +490,7 @@ def init(ij_dir_or_version_or_endpoint=None, headless=True, add_legacy=True):
         def to_java(self, data):
             """Convert supported Python data into Java equivalents.
 
-            Converts Python objects (e.g. xarray.DataArray) into the Java
+            Converts Python objects (e.g. 'xarray.DataArray') into the Java
             equivalents. For numpy arrays, the Java image points to the Python array.
 
             :param data: Python object to be converted into its respective Java counterpart.
@@ -503,7 +503,14 @@ def init(ij_dir_or_version_or_endpoint=None, headless=True, add_legacy=True):
             return sj.to_java(data)
 
         def to_dataset(self, data):
-            """Converts the data into an ImageJ dataset"""
+            """Converts the data into an ImageJ dataset
+            
+            Converts a Python image object (e.g 'xarray.DataArray') into a 'net.imagej.Dataset' Java
+            object.
+
+            :param data: Python image object to be converted to Dataset.
+            :return: A 'net.imagej.Dataset'.
+            """
             if self._is_xarraylike(data):
                 return self._xarray_to_dataset(data)
             if self._is_arraylike(data):
@@ -514,12 +521,15 @@ def init(ij_dir_or_version_or_endpoint=None, headless=True, add_legacy=True):
             raise TypeError(f'Type not supported: {type(data)}')
 
         def jargs(self, *args):
-            """
+            """Converts Python arguments into a Java Object[]
+
             Converts Python arguments into a Java Object[] (i.e.: array of Java
             objects). This is particularly useful in combination with ImageJ's
             various run functions, including ij.command().run(...),
             ij.module().run(...), ij.script().run(...), and ij.op().run(...).
+
             :param args: The Python arguments to wrap into an Object[].
+            :return: A Java Object[]
             """
             return JObjectArray([self.to_java(arg) for arg in args])
 
@@ -734,6 +744,7 @@ def init(ij_dir_or_version_or_endpoint=None, headless=True, add_legacy=True):
             """Display a Java or Python 2D image.
             
             Display a java or python 2D image.
+
             :param image: A Java or Python image that can be converted to a numpy array.
             :param cmap: The colormap of the image.
             :return: Displayed image.
@@ -839,6 +850,7 @@ def init(ij_dir_or_version_or_endpoint=None, headless=True, add_legacy=True):
             """Get the active Dataset image.
 
             Get the currently active Dataset from the Dataset service.
+
             :return: The Dataset corresponding to the active image.
             """
             return self._ij.imageDisplay().getActiveDataset()
@@ -863,7 +875,7 @@ def init(ij_dir_or_version_or_endpoint=None, headless=True, add_legacy=True):
             Synchronize between a Dataset or ImageDisplay linked to an 
             ImagePlus by accepting the ImagePlus data as true.
 
-            :param imp: The IJ1 ImagePlus that needs to be synchronized.
+            :param imp: The ImagePlus that needs to be synchronized.
             """
             # This code is necessary because an ImagePlus can sometimes be modified without modifying the
             # linked Dataset/ImageDisplay.  This happens when someone uses the ImageProcessor of the ImagePlus to change
