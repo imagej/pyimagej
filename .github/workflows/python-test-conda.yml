@@ -1,6 +1,11 @@
-name: Python Test using Conda
+name: build
 
-on: [push]
+on:
+  push:
+    branches:
+      - master
+    tags:
+      - "*-[0-9]+.*"
 
 jobs:
   build-linux:
