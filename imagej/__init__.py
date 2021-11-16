@@ -6,7 +6,7 @@ including NumPy, SciPy, scikit-image, CellProfiler, OpenCV, ITK and more.
 
 The first step when using pyimagej is to create an ImageJ gateway.
 This gateway can point to any official release of ImageJ or to a local
-installation. Using the gateway, you h/e.ave full access to the ImageJ API,
+installation. Using the gateway, you have full access to the ImageJ API,
 plus utility functions for translating between Python (NumPy, xarray,
 pandas, etc.) and Java (ImageJ, ImgLib2, etc.) structures.
 
