@@ -17,9 +17,31 @@ If the debugging output includes notices such as:
 ```
 DEBUG:jgo: [ERROR] Non-resolvable import POM: Could not transfer artifact net.imglib2:imglib2-imglyb:pom:1.0.1 from/to scijava.public (https://maven.scijava.org/content/groups/public): Transfer failed for https://maven.scijava.org/content/groups/public/net/imglib2/imglib2-imglyb/1.0.1/imglib2-imglyb-1.0.1.pom @ line 8, column 29: Connect to maven.scijava.org:443 [maven.scijava.org/144.92.48.199] failed: Connection timed out:
 ```
-This suggests you may be behind a firewall that is preventing Maven from downloading the necessary components. In this case you have two options:
-1. Determine how to [configure your Maven](https://www.baeldung.com/maven-behind-proxy) based on [these guides](https://stackoverflow.com/questions/1251192/how-do-i-use-maven-through-a-proxy).
-2. Initialize with a local `Fiji.app` installation. In this case you will also have to manually download the latest `.jar` files for [imglib2-unsafe](https://maven.scijava.org/#nexus-search;quick~imglib2-unsafe) and [imglib2-imglyb](https://maven.scijava.org/#nexus-search;quick~imglib2-imglyb) and place them in your local `Fiji.app/jars` directory, as these are required for PyImageJ but not part of the standard Fiji distribution.
+This suggests you may be behind a firewall that is preventing Maven from downloading the necessary components. In this case you have a few options to try:
+1. Configure your proxy settings directly in your python code (replacing `myproxy.domain` and port `8080` as appropriate)
+   ```
+   import scyjava
+   System = scyjava.jimport('java.lang.System')
+   mydomain = "myproxy.domain"
+   myport = "8080"
+   System.setProperty("http.proxyHost", mydomain)
+   System.setProperty("http.proxyPort", myport)
+   System.setProperty("https.proxyHost", mydomain)
+   System.setProperty("https.proxyPort", myport)
+   ```
+2. Configure your proxy settings [through Maven](https://www.baeldung.com/maven-behind-proxy) in the `<settings>..</settings>` block of your `$HOME\.m2\settings.xml` file
+   ```
+   <proxies>
+    <proxy>
+      <id>Your company proxy</id>
+      <active>true</active>
+      <protocol>https</protocol>
+      <host>proxy.mycompany.com</host>
+      <port>8080</port>
+    </proxy>
+  </proxies>
+  ```
+3. Initialize with a local `Fiji.app` installation. In this case you will also have to manually download the latest `.jar` files for [imglib2-unsafe](https://maven.scijava.org/#nexus-search;quick~imglib2-unsafe) and [imglib2-imglyb](https://maven.scijava.org/#nexus-search;quick~imglib2-imglyb) and place them in your local `Fiji.app/jars` directory, as these are required for PyImageJ but not part of the standard Fiji distribution.
 
 ### Unable to find valid certification path
 
