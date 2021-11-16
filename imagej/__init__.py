@@ -151,6 +151,8 @@ def init(ij_dir_or_version_or_endpoint=None, headless=True, add_legacy=True):
             # Assume path to local ImageJ installation.
             add_legacy = False
             path = ij_dir_or_version_or_endpoint
+            # Adjust the CWD to the ImageJ app directory
+            os.chdir(path)
             _logger.debug('Local path to ImageJ installation given: %s', path)
             num_jars = _set_ij_env(path)
             if num_jars <= 0:
