@@ -32,15 +32,15 @@ This suggests you may be behind a firewall that is preventing Maven from downloa
 2. Configure your proxy settings [through Maven](https://www.baeldung.com/maven-behind-proxy) in the `<settings>..</settings>` block of your `$HOME\.m2\settings.xml` file
    ```
    <proxies>
-    <proxy>
-      <id>Your company proxy</id>
-      <active>true</active>
-      <protocol>https</protocol>
-      <host>proxy.mycompany.com</host>
-      <port>8080</port>
-    </proxy>
-  </proxies>
-  ```
+     <proxy>
+       <id>Your company proxy</id>
+       <active>true</active>
+       <protocol>https</protocol>
+       <host>proxy.mycompany.com</host>
+       <port>8080</port>
+     </proxy>
+   </proxies>
+   ```
 3. Initialize with a local `Fiji.app` installation. In this case you will also have to manually download the latest `.jar` files for [imglib2-unsafe](https://maven.scijava.org/#nexus-search;quick~imglib2-unsafe) and [imglib2-imglyb](https://maven.scijava.org/#nexus-search;quick~imglib2-imglyb) and place them in your local `Fiji.app/jars` directory, as these are required for PyImageJ but not part of the standard Fiji distribution.
 
 ### Unable to find valid certification path
