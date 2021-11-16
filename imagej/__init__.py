@@ -186,13 +186,7 @@ def init(ij_dir_or_version_or_endpoint=None, headless=True, add_legacy=True):
             sj.config.endpoints.append('net.imagej:imagej:' + version)
 
         if add_legacy:
-            # Do not add imagej-legacy endpoint if it is likely we do not have
-            # dependencyManagement from pom-scijava, as this could create skew
-            # with ImageJ.
-            managing_orgs = ('org.scijava', 'io.scif', 'net.imagej', 'sc.fiji')
-            primary_org = sj.config.endpoints[0].split(":")[0]
-            if primary_org not in managing_orgs:
-                sj.config.endpoints.append('net.imagej:imagej-legacy:MANAGED')
+            sj.config.endpoints.append('net.imagej:imagej-legacy:MANAGED')
 
         # Restore any pre-existing endpoints, after ImageJ's
         sj.config.endpoints.extend(original_endpoints)
