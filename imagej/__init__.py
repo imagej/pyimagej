@@ -6,7 +6,7 @@ including NumPy, SciPy, scikit-image, CellProfiler, OpenCV, ITK and more.
 
 The first step when using pyimagej is to create an ImageJ gateway.
 This gateway can point to any official release of ImageJ or to a local
-installation. Using the gateway, you have full access to the ImageJ API,
+installation. Using the gateway, you h/e.ave full access to the ImageJ API,
 plus utility functions for translating between Python (NumPy, xarray,
 pandas, etc.) and Java (ImageJ, ImgLib2, etc.) structures.
 
@@ -38,6 +38,7 @@ import numpy as np
 import scyjava as sj
 import xarray as xr
 import imagej.stack as stack
+import subprocess
 
 from pathlib import Path
 
@@ -193,7 +194,27 @@ def init(ij_dir_or_version_or_endpoint=None, headless=True, add_legacy=True):
         # Restore any pre-existing endpoints, after ImageJ's
         sj.config.endpoints.extend(original_endpoints)
 
-    sj.start_jvm()
+    try:
+        sj.start_jvm()
+    except subprocess.CalledProcessError as e:
+        # Check to see if initialization failed due to "un-managed" imagej-legacy
+        err_lines = []
+        unmanaged_legacy = False
+        if e.stdout:
+            err_lines += e.stdout.decode().splitlines()
+        if e.stderr:
+            err_lines += e.stderr.decode().splitlines()
+        for l in err_lines:
+            if "'dependencies.dependency.version' for net.imagej:imagej-legacy:jar is missing." in l:
+                unmanaged_legacy = True
+        if unmanaged_legacy:
+            _logger.error("""
+***Invalid Initialization: you may be using primary endpoint that lacks pom-scijava as a parent***
+   To keep all ImageJ components at compatible versions we recommend using a primary endpoint with a pom-scijava parent.
+   For example, by putting 'net.imagej:imagej' first in your list of endpoints.
+   If you are sure you DO NOT want a primary endpoint with a pom-scijava parent, please re-initialize with 'add_legacy=False'.
+""")
+        return False
 
     JObjectArray = JArray(JObject)
 
@@ -201,7 +222,10 @@ def init(ij_dir_or_version_or_endpoint=None, headless=True, add_legacy=True):
     try:
         ImageJ = sj.jimport('net.imagej.ImageJ')
     except TypeError:
-        _logger.error("Invalid initialization: ImageJ was not found. Please update your initialization call to include an ImageJ application or endpoint (e.g. net.imagej:imagej).")
+        _logger.error("""
+***Invalid initialization: ImageJ was not found***
+   Please update your initialization call to include an ImageJ application or endpoint (e.g. net.imagej:imagej).
+""")
         return False
     ij = ImageJ()
 
