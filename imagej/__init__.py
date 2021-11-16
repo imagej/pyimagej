@@ -133,6 +133,7 @@ def init(ij_dir_or_version_or_endpoint=None, headless=True, add_legacy=True):
         # We want ImageJ's endpoints to come first, so these will be restored later
         original_endpoints = sj.config.endpoints.copy()
         sj.config.endpoints.clear()
+        init_failed = False
 
         if ij_dir_or_version_or_endpoint is None:
             # Use latest release of ImageJ.
@@ -158,16 +159,17 @@ def init(ij_dir_or_version_or_endpoint=None, headless=True, add_legacy=True):
             num_jars = _set_ij_env(path)
             if num_jars <= 0:
                 _logger.error('Given directory does not appear to be a valid ImageJ installation: %s', path)
-                return False
-            _logger.info("Added " + str(num_jars + 1) + " JARs to the Java classpath.")
-            plugins_dir = str(Path(path, 'plugins'))
-            jvm_options = '-Dplugins.dir=' + plugins_dir
+                init_failed = True
+            else:
+                _logger.info("Added " + str(num_jars + 1) + " JARs to the Java classpath.")
+                plugins_dir = str(Path(path, 'plugins'))
+                jvm_options = '-Dplugins.dir=' + plugins_dir
 
         elif re.match('^(/|[A-Za-z]:)', ij_dir_or_version_or_endpoint):
             # Looks like a file path was intended, but it's not a folder.
             path = ij_dir_or_version_or_endpoint
             _logger.error('Local path given is not a directory: %s', path)
-            return False
+            init_failed = True
 
         elif ':' in ij_dir_or_version_or_endpoint:
             # Assume endpoint of an artifact.
@@ -184,9 +186,17 @@ def init(ij_dir_or_version_or_endpoint=None, headless=True, add_legacy=True):
             # Skip ignore
             if not re.match('\d+\.\d+\.\d+', version):
                 _logger.error('Invalid initialization string: %s', version)
+                init_failed = True
                 return False
-            _logger.debug('ImageJ version given: %s', version)
-            sj.config.endpoints.append('net.imagej:imagej:' + version)
+            else:
+                _logger.debug('ImageJ version given: %s', version)
+                sj.config.endpoints.append('net.imagej:imagej:' + version)
+
+        if init_failed:
+            # Restore any pre-existing endpoints to allow for re-initialization
+            sj.config.endpoints.clear()
+            sj.config.endpoints.extend(original_endpoints)
+            return False
 
         if add_legacy:
             sj.config.endpoints.append('net.imagej:imagej-legacy:MANAGED')
@@ -214,6 +224,8 @@ def init(ij_dir_or_version_or_endpoint=None, headless=True, add_legacy=True):
    For example, by putting 'net.imagej:imagej' first in your list of endpoints.
    If you are sure you DO NOT want a primary endpoint with a pom-scijava parent, please re-initialize with 'add_legacy=False'.
 """)
+        sj.config.endpoints.clear()
+        sj.config.endpoints.extend(original_endpoints)
         return False
 
     JObjectArray = JArray(JObject)
@@ -225,6 +237,7 @@ def init(ij_dir_or_version_or_endpoint=None, headless=True, add_legacy=True):
         _logger.error("""
 ***Invalid initialization: ImageJ was not found***
    Please update your initialization call to include an ImageJ application or endpoint (e.g. net.imagej:imagej).
+   NOTE: You MUST restart your python interpreter as Java can only be started once.
 """)
         return False
     ij = ImageJ()
