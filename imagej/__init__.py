@@ -198,7 +198,11 @@ def init(ij_dir_or_version_or_endpoint=None, headless=True, add_legacy=True):
     JObjectArray = JArray(JObject)
 
     # Initialize ImageJ
-    ImageJ = sj.jimport('net.imagej.ImageJ')
+    try:
+        ImageJ = sj.jimport('net.imagej.ImageJ')
+    except TypeError:
+        _logger.error("Invalid initialization: ImageJ was not found. Please update your initialization call to include an ImageJ application or endpoint (e.g. net.imagej:imagej).")
+        return False
     ij = ImageJ()
 
     # Append some useful utility functions to the ImageJ gateway.
