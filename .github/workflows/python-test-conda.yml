@@ -34,5 +34,5 @@ jobs:
         mamba install -c conda-forge pytest
     - name: Test with pytest
       run: |
-        pytest
+        pytest -p no:faulthandler
 
