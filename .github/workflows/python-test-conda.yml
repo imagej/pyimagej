@@ -25,7 +25,10 @@ jobs:
         conda install -c conda-forge mamba
     - name: Install dependencies
       run: |
-        mamba env update --file environment.yml --name base
+        mamba env update --file environment-test.yml --name base
+    - name: Install current project in dev mode
+      run: |
+        pip install -e .
     - name: Install pytest
       run: |
         mamba install -c conda-forge pytest

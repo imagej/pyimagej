@@ -1,0 +1,18 @@
+# You can use this environment to run the PyImageJ
+# tutorial notebook at doc/PyImageJ-Tutorial.ipynb.
+name: imagej
+channels:
+  - conda-forge
+  - defaults
+dependencies:
+  - imglyb
+  - ipywidgets
+  - jpype1
+  - jupyter_contrib_nbextensions
+  - matplotlib-base
+  - notebook
+  - numpy
+  - openjdk=8
+  - scikit-image
+  - scyjava
+  - xarray
