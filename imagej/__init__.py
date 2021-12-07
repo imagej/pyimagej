@@ -42,7 +42,7 @@ import subprocess
 
 from pathlib import Path
 
-from jpype import JArray, JException, JImplementationFor, JObject
+from jpype import JArray, JException, JImplementationFor, JObject, setupGuiEnvironment
 
 from .config import __author__, __version__
 
@@ -121,7 +121,11 @@ def init(ij_dir_or_version_or_endpoint=None, headless=True, add_legacy=True):
     ij = imagej.init('sc.fiji:fiji', headless=False)
     """
     _create_jvm(ij_dir_or_version_or_endpoint, headless, add_legacy)
-    return _create_gateway()
+    if sys.platform == 'darwin' and not headless:
+        # NB: This will block the calling (main) thread forever!
+        setupGuiEnvironment(lambda: _create_gateway().ui().showUI())
+    else:
+        return _create_gateway()
 
 
 def _create_jvm(ij_dir_or_version_or_endpoint, headless, add_legacy):
