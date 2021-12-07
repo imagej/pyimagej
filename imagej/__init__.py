@@ -98,10 +98,11 @@ def _set_ij_env(ij_dir):
     sj.config.add_classpath(os.pathsep.join(jars))
     return len(jars)
 
+
 def init(ij_dir_or_version_or_endpoint=None, headless=True, add_legacy=True):
     """Initialize the ImageJ environment.
 
-    Initialize the ImageJ enviornment with a local ImageJ installation,
+    Initialize the ImageJ environment with a local ImageJ installation,
     a specific version of ImageJ, or with maven artifacts. ImageJ can
     be initialized in headless mode or GUI mode (note: not all ImageJ
     operations function in headless mode).
@@ -119,8 +120,17 @@ def init(ij_dir_or_version_or_endpoint=None, headless=True, add_legacy=True):
 
     ij = imagej.init('sc.fiji:fiji', headless=False)
     """
+    _create_jvm(ij_dir_or_version_or_endpoint, headless, add_legacy)
+    return _create_gateway()
 
-    global ij
+
+def _create_jvm(ij_dir_or_version_or_endpoint, headless, add_legacy):
+    """
+    Ensures the JVM is properly initialized and ready to go,
+    with requested settings.
+
+    :return: True iff the initialization was successful.
+    """
 
     # Check if JPype JVM is already running
     if sj.jvm_started():
@@ -228,6 +238,10 @@ def init(ij_dir_or_version_or_endpoint=None, headless=True, add_legacy=True):
         sj.config.endpoints.extend(original_endpoints)
         return False
 
+    return True
+
+
+def _create_gateway():
     JObjectArray = JArray(JObject)
 
     # Initialize ImageJ
@@ -240,6 +254,8 @@ def init(ij_dir_or_version_or_endpoint=None, headless=True, add_legacy=True):
    NOTE: You MUST restart your python interpreter as Java can only be started once.
 """)
         return False
+
+    global ij
     ij = ImageJ()
 
     # Append some useful utility functions to the ImageJ gateway.
