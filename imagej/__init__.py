@@ -490,7 +490,7 @@ def init(ij_dir_or_version_or_endpoint=None, headless=True, add_legacy=True):
             :param language: The file extension for the scripting language.
             :param script: A string of the script code.
             :param args: A dictionary of macro arguments in key: value pairs.
-            :return: Runs the specified script with the given arguments.
+            :return: A Java map of output names and values, key: value pais.
 
             :example:
 
