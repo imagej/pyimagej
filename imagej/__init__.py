@@ -1076,6 +1076,8 @@ def init(ij_dir_or_version_or_endpoint=None, headless=True, add_legacy=True):
     ij.py._outputMapper = JavaOutputListener()
     ij.console().addOutputListener(ij.py._outputMapper)
 
+    sj.when_jvm_stops(lambda: ij.dispose())
+
     return ij
 
 

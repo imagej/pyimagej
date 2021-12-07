@@ -29,7 +29,7 @@ setup(
         'jpype1',
         'matplotlib',
         'numpy',
-        'scyjava >= 1.3.0',
+        'scyjava >= 1.4.0',
         'xarray'
     ],
     tests_require=[
