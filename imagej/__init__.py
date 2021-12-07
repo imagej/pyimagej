@@ -270,7 +270,7 @@ def init(ij_dir_or_version_or_endpoint=None, headless=True, add_legacy=True):
         def dims(self, image):
             """Return the dimensions of the input image.
 
-            Return the dimenions (i.e. shape) of an input numpy array,
+            Return the dimensions (i.e. shape) of an input numpy array,
             ImgLib2 image or an ImageJ ImagePlus.
 
             :param image:
