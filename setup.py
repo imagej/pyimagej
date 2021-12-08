@@ -26,7 +26,8 @@ setup(
     license='Apache 2.0',
     install_requires=[
         'imglyb >= 2.0.0',
-        'jpype1',
+        'jgo >= 1.0.3',
+        'jpype1 >= 1.3.0',
         'matplotlib',
         'numpy',
         'scyjava >= 1.4.0',
