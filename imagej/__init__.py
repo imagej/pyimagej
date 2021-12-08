@@ -133,90 +133,93 @@ def _create_jvm(ij_dir_or_version_or_endpoint, headless, add_legacy):
     Ensures the JVM is properly initialized and ready to go,
     with requested settings.
 
-    :return: True iff the initialization was successful.
+    :return: True iff the JVM was successfully started.
+             Note that this function returns False if a JVM is already running;
+             to check for that situation, you can use scyjava.jvm_started().
     """
 
     # Check if JPype JVM is already running
     if sj.jvm_started():
-        _logger.debug('The JPype JVM is already running.')
-    else:
-        # Initialize configuration.
-        if headless:
-            sj.config.add_option('-Djava.awt.headless=true')
+        _logger.debug('The JVM is already running.')
+        return False
 
-        # We want ImageJ's endpoints to come first, so these will be restored later
-        original_endpoints = sj.config.endpoints.copy()
-        sj.config.endpoints.clear()
-        init_failed = False
+    # Initialize configuration.
+    if headless:
+        sj.config.add_option('-Djava.awt.headless=true')
 
-        if ij_dir_or_version_or_endpoint is None:
-            # Use latest release of ImageJ.
-            _logger.debug('Using newest ImageJ release')
-            sj.config.endpoints.append('net.imagej:imagej')
+    # We want ImageJ's endpoints to come first, so these will be restored later
+    original_endpoints = sj.config.endpoints.copy()
+    sj.config.endpoints.clear()
+    init_failed = False
 
-        elif isinstance(ij_dir_or_version_or_endpoint, list):
-            # Assume that this is a list of Maven endpoints
-            if any(item.startswith('net.imagej:imagej-legacy') for item in ij_dir_or_version_or_endpoint):
-                add_legacy = False
+    if ij_dir_or_version_or_endpoint is None:
+        # Use latest release of ImageJ.
+        _logger.debug('Using newest ImageJ release')
+        sj.config.endpoints.append('net.imagej:imagej')
 
-            endpoint = '+'.join(ij_dir_or_version_or_endpoint)
-            _logger.debug('List of Maven coordinates given: %s', ij_dir_or_version_or_endpoint)
-            sj.config.endpoints.append(endpoint)
-
-        elif os.path.isdir(ij_dir_or_version_or_endpoint):
-            # Assume path to local ImageJ installation.
+    elif isinstance(ij_dir_or_version_or_endpoint, list):
+        # Assume that this is a list of Maven endpoints
+        if any(item.startswith('net.imagej:imagej-legacy') for item in ij_dir_or_version_or_endpoint):
             add_legacy = False
-            path = ij_dir_or_version_or_endpoint
-            # Adjust the CWD to the ImageJ app directory
-            os.chdir(path)
-            _logger.debug('Local path to ImageJ installation given: %s', path)
-            num_jars = _set_ij_env(path)
-            if num_jars <= 0:
-                _logger.error('Given directory does not appear to be a valid ImageJ installation: %s', path)
-                init_failed = True
-            else:
-                _logger.info("Added " + str(num_jars + 1) + " JARs to the Java classpath.")
-                plugins_dir = str(Path(path, 'plugins'))
-                jvm_options = '-Dplugins.dir=' + plugins_dir
 
-        elif re.match('^(/|[A-Za-z]:)', ij_dir_or_version_or_endpoint):
-            # Looks like a file path was intended, but it's not a folder.
-            path = ij_dir_or_version_or_endpoint
-            _logger.error('Local path given is not a directory: %s', path)
+        endpoint = '+'.join(ij_dir_or_version_or_endpoint)
+        _logger.debug('List of Maven coordinates given: %s', ij_dir_or_version_or_endpoint)
+        sj.config.endpoints.append(endpoint)
+
+    elif os.path.isdir(ij_dir_or_version_or_endpoint):
+        # Assume path to local ImageJ installation.
+        add_legacy = False
+        path = ij_dir_or_version_or_endpoint
+        # Adjust the CWD to the ImageJ app directory
+        os.chdir(path)
+        _logger.debug('Local path to ImageJ installation given: %s', path)
+        num_jars = _set_ij_env(path)
+        if num_jars <= 0:
+            _logger.error('Given directory does not appear to be a valid ImageJ installation: %s', path)
             init_failed = True
-
-        elif ':' in ij_dir_or_version_or_endpoint:
-            # Assume endpoint of an artifact.
-            # Strip out white spaces
-            endpoint = ij_dir_or_version_or_endpoint.replace("    ", "")
-            if any(item.startswith('net.imagej:imagej-legacy') for item in endpoint.split('+')):
-                add_legacy = False
-            _logger.debug('Maven coordinate given: %s', endpoint)
-            sj.config.endpoints.append(endpoint)
-
         else:
-            # Assume version of net.imagej:imagej.
-            version = ij_dir_or_version_or_endpoint
-            # Skip ignore
-            if not re.match('\\d+\\.\\d+\\.\\d+', version):
-                _logger.error('Invalid initialization string: %s', version)
-                init_failed = True
-                return False
-            else:
-                _logger.debug('ImageJ version given: %s', version)
-                sj.config.endpoints.append('net.imagej:imagej:' + version)
+            _logger.info("Added " + str(num_jars + 1) + " JARs to the Java classpath.")
+            plugins_dir = str(Path(path, 'plugins'))
+            jvm_options = '-Dplugins.dir=' + plugins_dir
 
-        if init_failed:
-            # Restore any pre-existing endpoints to allow for re-initialization
-            sj.config.endpoints.clear()
-            sj.config.endpoints.extend(original_endpoints)
+    elif re.match('^(/|[A-Za-z]:)', ij_dir_or_version_or_endpoint):
+        # Looks like a file path was intended, but it's not a folder.
+        path = ij_dir_or_version_or_endpoint
+        _logger.error('Local path given is not a directory: %s', path)
+        init_failed = True
+
+    elif ':' in ij_dir_or_version_or_endpoint:
+        # Assume endpoint of an artifact.
+        # Strip out white spaces
+        endpoint = ij_dir_or_version_or_endpoint.replace("    ", "")
+        if any(item.startswith('net.imagej:imagej-legacy') for item in endpoint.split('+')):
+            add_legacy = False
+        _logger.debug('Maven coordinate given: %s', endpoint)
+        sj.config.endpoints.append(endpoint)
+
+    else:
+        # Assume version of net.imagej:imagej.
+        version = ij_dir_or_version_or_endpoint
+        # Skip ignore
+        if not re.match('\\d+\\.\\d+\\.\\d+', version):
+            _logger.error('Invalid initialization string: %s', version)
+            init_failed = True
             return False
+        else:
+            _logger.debug('ImageJ version given: %s', version)
+            sj.config.endpoints.append('net.imagej:imagej:' + version)
 
-        if add_legacy:
-            sj.config.endpoints.append('net.imagej:imagej-legacy:MANAGED')
-
-        # Restore any pre-existing endpoints, after ImageJ's
+    if init_failed:
+        # Restore any pre-existing endpoints to allow for re-initialization
+        sj.config.endpoints.clear()
         sj.config.endpoints.extend(original_endpoints)
+        return False
+
+    if add_legacy:
+        sj.config.endpoints.append('net.imagej:imagej-legacy:MANAGED')
+
+    # Restore any pre-existing endpoints, after ImageJ's
+    sj.config.endpoints.extend(original_endpoints)
 
     try:
         sj.start_jvm()
