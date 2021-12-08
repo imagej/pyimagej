@@ -17,7 +17,7 @@ Here is an example of opening an image using ImageJ2 and displaying it:
     ij = imagej.init()
 
     # Load an image.
-    image_url = 'https://samples.fiji.sc/new-lenna.jpg'
+    image_url = 'https://imagej.net/images/clown.png'
     jimage = ij.io().open(image_url)
 
     # Convert the image from ImageJ to xarray, a package that adds
