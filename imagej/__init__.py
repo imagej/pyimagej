@@ -32,6 +32,7 @@ import logging
 import os
 import re
 import sys
+import time
 
 import imglyb
 import numpy as np
@@ -40,6 +41,7 @@ import xarray as xr
 import imagej.stack as stack
 import subprocess
 
+from enum import Enum
 from pathlib import Path
 
 from jpype import JArray, JException, JImplementationFor, JObject, setupGuiEnvironment
@@ -55,6 +57,16 @@ try:
         _logger.setLevel(logging.DEBUG)
 except KeyError as e:
     pass
+
+
+class Mode(Enum):
+    """
+    An environment mode for the ImageJ2 gateway.
+    See the imagej.init function for details.
+    """
+    GUI = "gui"
+    HEADLESS = "headless"
+    INTERACTIVE = "interactive"
 
 
 def _dump_exception(exc):
@@ -99,36 +111,88 @@ def _set_ij_env(ij_dir):
     return len(jars)
 
 
-def init(ij_dir_or_version_or_endpoint=None, headless=True, add_legacy=True):
-    """Initialize the ImageJ environment.
+def init(ij_dir_or_version_or_endpoint=None, mode=Mode.HEADLESS, add_legacy=True, headless=None):
+    """Initialize an ImageJ2 environment.
 
-    Initialize the ImageJ environment with a local ImageJ installation,
-    a specific version of ImageJ, or with maven artifacts. ImageJ can
-    be initialized in headless mode or GUI mode (note: not all ImageJ
-    operations function in headless mode).
+    The environment can wrap a local ImageJ2 installation, or consist of a
+    specific version of ImageJ2 downloaded on demand, or even an explicit list
+    of Maven artifacts. The environment can be initialized in headless mode or
+    GUI mode, and with or without support for the original ImageJ.
+    Note: some original ImageJ operations do not function in headless mode.
 
     :param ij_dir_or_version_or_endpoint:
-        Path to a local ImageJ installation (e.g. /Applications/Fiji.app),
-        OR version of net.imagej:imagej artifact to launch (e.g. 2.0.0-rc-67),
-        OR endpoint of another artifact (e.g. sc.fiji:fiji) that uses imagej.
-        OR list of Maven artifacts to include (e.g. ['net.imagej:imagej-legacy', 'net.preibisch:BigStitcher'])
-    :param headless: Whether to start the JVM in headless or gui mode.
-    :param add_legacy: Whether or not to append the 'net.imagej:imagej-legacy' endpoint automatically.
+        Path to a local ImageJ2 installation (e.g. /Applications/Fiji.app),
+        OR version of net.imagej:imagej artifact to launch (e.g. 2.3.0),
+        OR endpoint of another artifact built on ImageJ2 (e.g. sc.fiji:fiji),
+        OR list of Maven artifacts to include (e.g. ['net.imagej:imagej:2.3.0', 'net.imagej:imagej-legacy', 'net.preibisch:BigStitcher']).
+        The default is the latest version of net.imagej:imagej.
+    :param mode:
+        How the environment will behave. Options include:
+        * Mode.HEADLESS -
+            Start the JVM in headless mode, i.e. with no GUI. This is the
+            default mode. Useful if you want to use ImageJ as a library, or
+            run it on a remote server.
+            NB: In this mode with add_legacy=True, not all functions of the
+            original ImageJ are available; in particular, some plugins do
+            not work properly because they assume ImageJ has a GUI.
+        * Mode.GUI -
+            Start ImageJ2 as a GUI application, displaying the GUI
+            automatically and then blocking.
+            NB: In this mode with add_legacy=True, the JVM and Python will
+            both terminate when ImageJ closes!
+        * Mode.INTERACTIVE -
+            Start ImageJ2 with GUI support, but *not* displaying the GUI
+            automatically, Does not block. To display the GUI in this mode,
+            call ij.ui().showUI().
+            NB: This mode is not available on macOS, due to its application
+            threading model.
+            NB: In this mode with add_legacy=True, the JVM and Python will
+            both terminate when ImageJ closes!
+    :param add_legacy:
+        Whether or not to include support for original ImageJ functionality.
+        If True, original ImageJ functions (ij.* packages) will be available.
+        If False, the environment will be "pure ImageJ2", without ij.* support.
+        NB: With legacy support enabled in GUI or interactive mode,
+        the JVM and Python will both terminate when ImageJ closes!
+        For further details, see: https://imagej.net/libs/imagej-legacy
+    :param headless:
+        Deprecated. Please use the mode parameter instead.
     :return: An instance of the net.imagej.ImageJ gateway
 
     :example:
-
-    ij = imagej.init('sc.fiji:fiji', headless=False)
+        ij = imagej.init('sc.fiji:fiji', mode=imagej.Mode.GUI)
     """
-    _create_jvm(ij_dir_or_version_or_endpoint, headless, add_legacy)
-    if sys.platform == 'darwin' and not headless:
-        # NB: This will block the calling (main) thread forever!
-        setupGuiEnvironment(lambda: _create_gateway().ui().showUI())
+    if headless is not None:
+        logging.warning("The headless flag of imagej.init is deprecated. Use the mode argument instead.")
+        mode = Mode.HEADLESS if headless else Mode.INTERACTIVE
+
+    macos = sys.platform == 'darwin';
+
+    if macos and mode == Mode.INTERACTIVE:
+        raise EnvironmentError("Sorry, the interactive mode is not available on macOS.")
+
+    _create_jvm(ij_dir_or_version_or_endpoint, mode, add_legacy)
+
+    if mode == Mode.GUI:
+        # Show the GUI and block.
+        if macos:
+            # NB: This will block the calling (main) thread forever!
+            setupGuiEnvironment(lambda: _create_gateway().ui().showUI())
+        else:
+            # Create and show the application.
+            gateway = _create_gateway()
+            gateway.ui().showUI()
+            # We are responsible for our own blocking.
+            # TODO: Poll using something better than ui().isVisible().
+            while gateway.ui().isVisible():
+                time.sleep(1)
+            return None
     else:
+        # HEADLESS or INTERACTIVE mode: create the gateway and return it.
         return _create_gateway()
 
 
-def _create_jvm(ij_dir_or_version_or_endpoint, headless, add_legacy):
+def _create_jvm(ij_dir_or_version_or_endpoint=None, mode=Mode.HEADLESS, add_legacy=True):
     """
     Ensures the JVM is properly initialized and ready to go,
     with requested settings.
@@ -144,7 +208,7 @@ def _create_jvm(ij_dir_or_version_or_endpoint, headless, add_legacy):
         return False
 
     # Initialize configuration.
-    if headless:
+    if mode == Mode.HEADLESS:
         sj.config.add_option('-Djava.awt.headless=true')
 
     # We want ImageJ's endpoints to come first, so these will be restored later
