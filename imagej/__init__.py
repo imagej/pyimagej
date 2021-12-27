@@ -1257,6 +1257,56 @@ def _create_gateway():
     ij.py._outputMapper = JavaOutputListener()
     ij.console().addOutputListener(ij.py._outputMapper)
 
+    class ScriptContextWriter():
+        def __init__(self, scriptContext):
+            self.scriptContext = scriptContext
+        def write(self, s):
+            self.scriptContext.getWriter().write(sj.to_java(s))
+
+    import traceback
+    @JImplements('org.scijava.plugins.scripting.python.PythonScriptRunner')
+    class PythonScriptRunnerImpl():
+
+        @JOverride
+        def run(self, script, vars, scriptContext):
+            inputs = {}
+            for key in vars.keys():
+                inputs[key] = vars[key]
+            inputs['ij'] = ij
+
+            old_stdout = sys.stdout
+            old_stderr = sys.stderr
+            sys.stdout = ScriptContextWriter(scriptContext)
+            sys.stderr = ScriptContextWriter(scriptContext)
+
+            inputKeys = []
+            for key in inputs.keys():
+                inputKeys.append(key)
+            inputKeys.append('__builtins__')
+
+            try:
+                exec(sj.to_python(script), inputs)
+            except:
+                scriptContext.getWriter().write(traceback.format_exc())
+
+            outputs = {}
+            for key in inputs.keys():
+                if key not in inputKeys:
+                    try:
+                        outputs[key] = ij.py.to_java(inputs[key])
+                    except:
+                        pass
+                    else:
+                        #outputs must be placed back in vars
+                        #to ensure script parameter outputs are returned
+                        vars[key] = outputs[key]
+
+            sys.stdout = old_stdout
+            sys.stderr = old_stderr
+            return ij.py.to_java(outputs)
+
+    ij.object().addObject(PythonScriptRunnerImpl())
+
     sj.when_jvm_stops(lambda: ij.dispose())
 
     return ij
