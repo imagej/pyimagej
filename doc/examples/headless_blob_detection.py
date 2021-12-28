@@ -2,7 +2,6 @@ import imagej
 import xarray as xr
 import numpy as np
 import scyjava as sj
-import code # remove after debugging
 
 from math import sqrt
 from skimage.feature import blob_log
@@ -56,11 +55,8 @@ def process(image, oval_array: np.ndarray, add_to_roi_manager=True, multimeasure
     imp.show()
 
     if rm != None and multimeasure:
-       # TODO: Bug -- doesn't perform multimeasure properly
-       indexes = rm.getIndexes()
-       rm.setSelectedIndexes(indexes)
-       print(f"Selected roi: {rm.getSelectedIndexes()}")
-       return rm.multiMeasure(imp)
+        rm.runCommand(imp, "Measure")
+        return ij.ResultsTable.getResultsTable()
     
     return None
 
@@ -86,5 +82,4 @@ if __name__ == "__main__":
     detected_blobs = find_blobs(img_xr, min_sigma=0.5, max_sigma=3, num_sigma=10, threshold=0.0075)
     results_table = process(img, detected_blobs)
     df = get_dataframe(results_table)
-    print(df)
-    code.interact(local=locals())
+    print(f"Output: \n{df}")
