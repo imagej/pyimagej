@@ -1,5 +1,4 @@
 import imagej
-from scipy.ndimage import interpolation
 import scyjava as sj
 import napari
 import xarray as xr
