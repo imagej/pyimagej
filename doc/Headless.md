@@ -6,7 +6,15 @@ There are three options to running PyImageJ in headless mode:
 
 ## imagej.init(mode='headless')
 
-TODO: ADD INFO
+PyImageJ `headless` mode can be selected during the initialization step. Under the hood the `headless` mode flag is handled by scjava and JPype and initializes the JVM with `-Djava.awt.headless=true`.
+
+```python
+import imagej
+
+ij = imagej.init(mode='headless')
+```
+
+**Warning:** ImageJ does not completely support headless operation. Various ImageJ plugins and features will not work headlessly (_e.g._ the WindowManager and RoiMAnager do not support headaless environments, see [Xvfb](#Xvfb))
 
 ## Xvfb
 
@@ -19,7 +27,7 @@ $ sudo apt install xvfb
 However on fresh Linux servers that do not have any installed environment (_e.g._ Ubuntu Server 20.04.3 LTS), additional X11 related packages will need to be installed for PyImageJ.
 
 ```console
-sudo apt install libxrender1 libxtst6 libxi6 fonts-dejavu fontconfig
+$ sudo apt install libxrender1 libxtst6 libxi6 fonts-dejavu fontconfig
 ```
 
 After `xvfb` has been installed you can have `xvfb` create the virtual display for you and run a script with:
@@ -42,3 +50,9 @@ import imagej
 
 ij = imagej.init(mode='interactive')
 ```
+
+## Examples
+
+### Headless
+
+### Xvfb
