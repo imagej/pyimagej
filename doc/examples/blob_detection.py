@@ -1,4 +1,5 @@
 import imagej
+from scipy.ndimage import interpolation
 import scyjava as sj
 import napari
 import xarray as xr
@@ -13,29 +14,27 @@ def find_blobs(image: xr.DataArray, min_sigma: float, max_sigma: float, num_sigm
     """
     Find blobs with Laplacian of Gaussian (LoG).
     """
-    # if xarray.DataArray extract the numpy array
-    if isinstance(image, xr.DataArray):
-        image = image.squeeze()
-        image = image.data
-
     # detect blobs in image
     blobs = blob_log(image, min_sigma=min_sigma, max_sigma=max_sigma, num_sigma=num_sigma, threshold=threshold)
     blobs[:, 2] = blobs[:, 2] * sqrt(2)
 
-    # show side-by-side comparison of input image and detected blob overlay
-    if show:
-        fig, ax = plt.subplots(1, 2, figsize=(10,8), sharex=True, sharey=True)
-        ax[0].imshow(image, interpolation='nearest')
-        ax[1].imshow(image, interpolation='nearest')
-        for blob in blobs:
-            y, x, r = blob
-            c = plt.Circle((x, y), r, color='white', linewidth=1, fill=False)
-            ax[1].add_patch(c)
-
-        plt.tight_layout()
-        plt.show()
-
     return blobs
+
+
+def detections_to_pyplot(image: xr.DataArray, oval_array: np.ndarray):
+    """
+    Display image with detections in matplotlib.pyplot.
+    """
+    fig, ax = plt.subplots(1, 2, figsize=(10,8), sharex=True, sharey=True)
+    ax[0].imshow(image, interpolation='nearest')
+    ax[1].imshow(image, interpolation='nearest')
+    for blob in oval_array:
+        y, x, r = blob
+        c = plt.Circle((x, y), r, color='white', linewidth=1, fill=False)
+        ax[1].add_patch(c)
+
+    plt.tight_layout
+    plt.show()
 
 
 def detections_to_imagej(dataset, oval_array: np.ndarray, add_to_roi_manager=False):
@@ -112,6 +111,7 @@ if __name__ == "__main__":
     # load some sample data
     img = ij.io().open('../sample-data/test_image.tif')
     img_xr = ij.py.from_java(img)
-    detected_blobs = find_blobs(img_xr, min_sigma=0.5, max_sigma=3, num_sigma=10, threshold=0.0075, show=True)
+    detected_blobs = find_blobs(img_xr, min_sigma=0.5, max_sigma=3, num_sigma=10, threshold=0.0075)
+    detections_to_pyplot(img_xr, detected_blobs)
     detections_to_imagej(img, detected_blobs, True)
     detections_to_napari(img_xr, detected_blobs)
