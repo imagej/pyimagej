@@ -103,6 +103,18 @@ def detections_to_napari(image_array: xr.DataArray, detections: np.ndarray):
     napari.run()
 
 
+def detections_to_bdv(image, detections:np.ndarray):
+    """
+    Display image and ROIs in BigDataViewer.
+    """
+    # get useful classes
+    BdvFunctions = sj.jimport('bdv.util.BdvFunctions')
+    BdvOptions = sj.jimport('bdv.util.BdvOptions')
+
+    # show image
+    BdvFunctions.show(image, 'test', BdvOptions.options().is2D())
+
+
 if __name__ == "__main__":
     # initialize imagej
     ij = imagej.init(mode='interactive')
@@ -114,4 +126,5 @@ if __name__ == "__main__":
     detected_blobs = find_blobs(img_xr, min_sigma=0.5, max_sigma=3, num_sigma=10, threshold=0.0075)
     detections_to_pyplot(img_xr, detected_blobs)
     detections_to_imagej(img, detected_blobs, True)
+    detections_to_bdv(img, detected_blobs)
     detections_to_napari(img_xr, detected_blobs)
