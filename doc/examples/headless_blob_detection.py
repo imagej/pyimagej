@@ -11,11 +11,6 @@ def find_blobs(image: xr.DataArray, min_sigma: float, max_sigma: float, num_sigm
     """
     Find blobs with Laplacian of Gaussian (LoG).
     """
-    # if xarray.DataArray extract the numpy array
-    if isinstance(image, xr.DataArray):
-        image = image.squeeze()
-        image = image.data
-
     # detect blobs in image
     blobs = blob_log(image, min_sigma=min_sigma, max_sigma=max_sigma, num_sigma=num_sigma, threshold=threshold)
     blobs[:, 2] = blobs[:, 2] * sqrt(2)
