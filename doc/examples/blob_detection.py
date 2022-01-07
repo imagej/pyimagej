@@ -21,14 +21,14 @@ def find_blobs(image: xr.DataArray, min_sigma: float, max_sigma: float, num_sigm
     return blobs
 
 
-def detections_to_pyplot(image: xr.DataArray, oval_array: np.ndarray):
+def detections_to_pyplot(image: xr.DataArray, detections: np.ndarray):
     """
     Display image with detections in matplotlib.pyplot.
     """
     fig, ax = plt.subplots(1, 2, figsize=(10,8), sharex=True, sharey=True)
     ax[0].imshow(image, interpolation='nearest')
     ax[1].imshow(image, interpolation='nearest')
-    for blob in oval_array:
+    for blob in detections:
         y, x, r = blob
         c = plt.Circle((x, y), r, color='white', linewidth=1, fill=False)
         ax[1].add_patch(c)
@@ -37,7 +37,7 @@ def detections_to_pyplot(image: xr.DataArray, oval_array: np.ndarray):
     plt.show()
 
 
-def detections_to_imagej(dataset, oval_array: np.ndarray, add_to_roi_manager=False):
+def detections_to_imagej(dataset, detections: np.ndarray, add_to_roi_manager=False):
     """
     Convert blob detections to ImageJ oval ROIs.
     Optionally add the ROIs to the RoiManager.
@@ -55,8 +55,8 @@ def detections_to_imagej(dataset, oval_array: np.ndarray, add_to_roi_manager=Fal
         RoiManager = sj.jimport('ij.plugin.frame.RoiManager')()
         rm = RoiManager.getRoiManager()
 
-    for i in range(len(oval_array)):
-        values = oval_array[i].tolist()
+    for i in range(len(detections)):
+        values = detections[i].tolist()
         y = values[0]
         x = values[1]
         r = values[2]
@@ -71,13 +71,13 @@ def detections_to_imagej(dataset, oval_array: np.ndarray, add_to_roi_manager=Fal
     imp.show()
 
 
-def detections_to_napari(image_array: xr.DataArray, oval_array: np.ndarray):
+def detections_to_napari(image_array: xr.DataArray, detections: np.ndarray):
     """
     Convert blob detections to Napari oval ROIs.
     """
     ovals = []
-    for i in range(len(oval_array)):
-        values = oval_array[i].tolist()
+    for i in range(len(detections)):
+        values = detections[i].tolist()
         y = values[0]
         x = values[1]
         r = values[2]
@@ -87,13 +87,13 @@ def detections_to_napari(image_array: xr.DataArray, oval_array: np.ndarray):
         pos_4 = [y + r, x - r] # bottom left
         ovals.append([pos_1, pos_2, pos_3, pos_4])
 
-    napari_oval_array = np.asarray(ovals)
+    napari_detections = np.asarray(ovals)
     
     viewer = napari.Viewer()
     viewer.add_image(image_array)
     shapes_layer = viewer.add_shapes()
     shapes_layer.add(
-        napari_oval_array,
+        napari_detections,
         shape_type='ellipse',
         edge_width=1,
         edge_color='yellow',

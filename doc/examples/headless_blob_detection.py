@@ -18,7 +18,7 @@ def find_blobs(image: xr.DataArray, min_sigma: float, max_sigma: float, num_sigm
     return blobs
 
 
-def process(image, oval_array: np.ndarray, add_to_roi_manager=True, multimeasure=True):
+def process(image, detections: np.ndarray, add_to_roi_manager=True, multimeasure=True):
     """
     Process the blob rois.
     """
@@ -34,8 +34,8 @@ def process(image, oval_array: np.ndarray, add_to_roi_manager=True, multimeasure
     if add_to_roi_manager:
         rm = ij.RoiManager().getRoiManager()
 
-    for i in range(len(oval_array)):
-        values = oval_array[i].tolist()
+    for i in range(len(detections)):
+        values = detections[i].tolist()
         y = values[0]
         x = values[1]
         r = values[2]
