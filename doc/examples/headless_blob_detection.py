@@ -1,11 +1,11 @@
 import imagej
+import scyjava as sj
 import xarray as xr
 import numpy as np
-import scyjava as sj
 
 from math import sqrt
 from skimage.feature import blob_log
-from matplotlib import pyplot as plt
+
 
 def find_blobs(image: xr.DataArray, min_sigma: float, max_sigma: float, num_sigma: int, threshold=0.1) -> np.ndarray:
     """
