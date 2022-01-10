@@ -7,7 +7,7 @@ import scyjava as sj
 import numpy as np
 import xarray as xr
 
-from jpype import JObject, JException
+from jpype import JObject, JException, JArray, JInt
 
 
 class TestImageJ(object):
@@ -224,3 +224,25 @@ class TestIJ1ToIJ2Synchronization(object):
             ij_fixture.py.synchronize_ij1_to_ij2(None)
         with pytest.raises(ImportError):
             ij_fixture.py.active_image_plus()
+
+@pytest.fixture(scope='module')
+def get_nparr():
+    def _get_nparr():
+        return np.random.rand(1, 2, 3, 4, 5)
+    return _get_nparr
+
+def assert_ndarray_equal_to_dataset(ij_fixture, nparr):
+    img = ij_fixture.py.to_java(nparr)
+
+    cursor = img.cursor()
+    arr = JArray(JInt)(5)
+    while cursor.hasNext():
+        y = cursor.next().get()
+        cursor.localize(arr)
+        # TODO: Imglib has inverted dimensions - extract this behavior into a helper function
+        x = nparr[tuple(arr[::-1])]
+        assert x == y
+
+class TestNumpyConversion(object):
+    def test_ndarray_converts_to_img(self, ij_fixture, get_nparr):
+        assert_ndarray_equal_to_dataset(ij_fixture, get_nparr())
