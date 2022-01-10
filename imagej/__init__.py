@@ -834,12 +834,12 @@ def _create_gateway():
             # This try checking is necessary because the set of ImageJ converters is not complete.
             try:
                 if self._ij.convert().supports(data, Img):
-                    img = self._ij.convert().convert(data, Img)
-                    return self._ij.dataset().create(ImgPlus(img))
+                    return self._ij.convert().convert(data, Img)
                 if self._ij.convert().supports(data, RandomAccessibleInterval):
                     rai = self._ij.convert().convert(data, RandomAccessibleInterval)
-                    x = self._ij.dataset().create(rai)
-                    return self._ij.dataset().create(rai)
+                    # TODO: can we check for support on this convertion before the conversion on 839?
+                    if self._ij.convert().supports(rai, Img):
+                        return self._ij.convert().convert(rai, Img)
             except Exception as exc:
                 _dump_exception(exc)
                 raise exc
