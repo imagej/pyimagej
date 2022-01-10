@@ -620,8 +620,10 @@ def _create_gateway():
             :param data: Python object to be converted into its respective Java counterpart.
             :return: A Java object convrted from Python.
             """
-            if self._is_memoryarraylike(data) or self._is_xarraylike(data):
+            if self._is_memoryarraylike(data):
                 return self.to_img(data)
+            if self._is_xarraylike(data):
+                return self.to_dataset(data)
             return sj.to_java(data)
 
         def to_dataset(self, data):
