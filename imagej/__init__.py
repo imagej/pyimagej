@@ -620,15 +620,13 @@ def _create_gateway():
             :param data: Python object to be converted into its respective Java counterpart.
             :return: A Java object convrted from Python.
             """
-            if self._is_memoryarraylike(data):
-                return imglyb.to_imglib(data)
-            if self._is_xarraylike(data):
-                return self.to_dataset(data)
+            if self._is_memoryarraylike(data) or self._is_xarraylike(data):
+                return self.to_img(data)
             return sj.to_java(data)
 
         def to_dataset(self, data):
             """Converts the data into an ImageJ dataset
-            
+
             Converts a Python image object (e.g 'xarray.DataArray') into a 'net.imagej.Dataset' Java
             object.
 
@@ -643,6 +641,25 @@ def _create_gateway():
                 return self._java_to_dataset(data)
 
             raise TypeError(f'Type not supported: {type(data)}')
+
+        def to_img(self, data):
+            """Converts the data into an ImageJ img
+
+            Converts a Python image object (e.g 'xarray.DataArray') into a 'net.imglib2.Img' Java
+            object.
+
+            :param data: Python image object to be converted to Dataset.
+            :return: A 'net.imglib2.Img'.
+            """
+            if self._is_xarraylike(data):
+                return self._xarray_to_img(data)
+            if self._is_arraylike(data):
+                return self._numpy_to_img(data)
+            if sj.isjava(data):
+                return self._java_to_img(data)
+
+            raise TypeError(f'Type not supported: {type(data)}')
+
 
         def jargs(self, *args):
             """Converts Python arguments into a Java Object[]
@@ -660,6 +677,10 @@ def _create_gateway():
         def _numpy_to_dataset(self, data):
             rai = imglyb.to_imglib(data)
             return self._java_to_dataset(rai)
+
+        def _numpy_to_img(self, data):
+            rai = imglyb.to_imglib(data)
+            return self._java_to_img(rai)
 
         def _ends_with_channel_axis(self, xarr):
             ends_with_axis = xarr.dims[len(xarr.dims)-1].lower() in ['c', 'channel']
@@ -681,6 +702,18 @@ def _create_gateway():
             self._assign_dataset_metadata(dataset, xarr.attrs)
 
             return dataset
+
+        def _xarray_to_img(self, xarr):
+            """
+            Converts a xarray dataarray to an img, inverting C-style (slow axis first) to F-style (slow-axis last)
+            :param xarr: Pass an xarray dataarray and turn into a img.
+            :return: The img
+            """
+            if self._ends_with_channel_axis(xarr):
+                vals = np.moveaxis(xarr.values, -1, 0)
+                return self._numpy_to_img(vals) # EE: investigate here....
+            else:
+                return self._numpy_to_img(xarr.values)
 
         def _assign_axes(self, xarr):
             """
@@ -791,6 +824,24 @@ def _create_gateway():
                 _dump_exception(exc)
                 raise exc
             raise TypeError('Cannot convert to dataset: ' + str(type(data)))
+
+        def _java_to_img(self, data):
+            """
+            Converts the data into a ImageJ Img
+            """
+            # This try checking is necessary because the set of ImageJ converters is not complete.
+            try:
+                if self._ij.convert().supports(data, Img):
+                    img = self._ij.convert().convert(data, Img)
+                    return self._ij.dataset().create(ImgPlus(img))
+                if self._ij.convert().supports(data, RandomAccessibleInterval):
+                    rai = self._ij.convert().convert(data, RandomAccessibleInterval)
+                    x = self._ij.dataset().create(rai)
+                    return self._ij.dataset().create(rai)
+            except Exception as exc:
+                _dump_exception(exc)
+                raise exc
+            raise TypeError('Cannot convert to img: ' + str(type(data)))
 
         def from_java(self, data):
             """Convert supported Java data into Python equivalents.
