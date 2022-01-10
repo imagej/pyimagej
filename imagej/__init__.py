@@ -333,6 +333,7 @@ def _create_gateway():
     Dataset                  = sj.jimport('net.imagej.Dataset')
     ImgPlus                  = sj.jimport('net.imagej.ImgPlus')
     Img                      = sj.jimport('net.imglib2.img.Img')
+    ImgView                  = sj.jimport('net.imglib2.img.ImgView')
     RandomAccessibleInterval = sj.jimport('net.imglib2.RandomAccessibleInterval')
     Axes                     = sj.jimport('net.imagej.axis.Axes')
     Double                   = sj.jimport('java.lang.Double')
@@ -838,8 +839,7 @@ def _create_gateway():
                 if self._ij.convert().supports(data, RandomAccessibleInterval):
                     rai = self._ij.convert().convert(data, RandomAccessibleInterval)
                     # TODO: can we check for support on this convertion before the conversion on 839?
-                    if self._ij.convert().supports(rai, Img):
-                        return self._ij.convert().convert(rai, Img)
+                    return ImgView.wrap(rai)
             except Exception as exc:
                 _dump_exception(exc)
                 raise exc
