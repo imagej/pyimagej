@@ -1,7 +1,10 @@
 import argparse
 import sys
 import unittest
+
+from jpype.types import JLong
 import imagej
+import random
 import pytest
 import scyjava as sj
 import numpy as np
@@ -231,9 +234,25 @@ def get_nparr():
         return np.random.rand(1, 2, 3, 4, 5)
     return _get_nparr
 
-def assert_ndarray_equal_to_dataset(ij_fixture, nparr):
-    img = ij_fixture.py.to_java(nparr)
+@pytest.fixture(scope='module')
+def get_img(ij_fixture):
+    def _get_img():
+        # Create img
+        CreateNamespace = sj.jimport('net.imagej.ops.create.CreateNamespace')
+        dims = JArray(JLong)([1, 2, 3, 4, 5])
+        ns = ij_fixture.op().namespace(CreateNamespace)
+        img = ns.img(dims)
 
+        # Populate img with random data
+        cursor = img.cursor()
+        while cursor.hasNext():
+            val = random.random()
+            cursor.next().set(val)
+
+        return img
+    return _get_img
+
+def assert_ndarray_equal_to_img(img, nparr):
     cursor = img.cursor()
     arr = JArray(JInt)(5)
     while cursor.hasNext():
@@ -243,6 +262,17 @@ def assert_ndarray_equal_to_dataset(ij_fixture, nparr):
         x = nparr[tuple(arr[::-1])]
         assert x == y
 
+def convert_ndarray_and_assert_equality(ij_fixture, nparr):
+    img = ij_fixture.py.to_java(nparr)
+    assert_ndarray_equal_to_img(img, nparr)
+
+def convert_img_and_assert_equality(ij_fixture, img):
+    nparr = ij_fixture.py.from_java(img)
+    assert_ndarray_equal_to_img(img, nparr)
+
 class TestNumpyConversion(object):
     def test_ndarray_converts_to_img(self, ij_fixture, get_nparr):
-        assert_ndarray_equal_to_dataset(ij_fixture, get_nparr())
+        convert_ndarray_and_assert_equality(ij_fixture, get_nparr())
+
+    def test_img_converts_to_ndarray(self, ij_fixture, get_img):
+        convert_img_and_assert_equality(ij_fixture, get_img())
