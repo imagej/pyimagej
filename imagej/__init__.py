@@ -721,7 +721,12 @@ def _create_gateway():
             """Convert the IJ uppercase dimension convention (X, Y, Z C, T) to lowercase python (x, y, z, c, t) """
             if str(axis) in ['X', 'Y', 'Z', 'C', 'T']:
                 return str(axis).lower()
-            return str(axis)
+            elif str(axis) == 'Channel':
+                return 'c'
+            elif str(axis) == 'Time':
+                return 't'
+            else:
+                return str(axis)
 
         def _get_axis_num(self, xarr, axis):
             """
