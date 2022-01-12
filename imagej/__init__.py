@@ -372,7 +372,7 @@ def _create_gateway():
             if not sj.isjava(image):
                 raise TypeError('Unsupported type: ' + str(type(image)))
             if sj.jclass('net.imglib2.Dimensions').isInstance(image):
-                return [image.dimension(d) for d in range(image.numDimensions() -1, -1, -1)]
+                return list(image.dimensionsAsLongArray())
             if sj.jclass('ij.ImagePlus').isInstance(image):
                 dims = image.getDimensions()
                 dims.reverse()
@@ -836,6 +836,7 @@ def _create_gateway():
             values = self.rai_to_numpy(dataset)
             coords = self._get_axes_coords(axes, dims, np.shape(np.transpose(values)))
 
+            # TODO: EE deliver the xarray with original dim order.
             if dims[len(dims)-1].lower() in ['c', 'channel']:
                 xarr_dims = self._invert_except_last_element(dims)
                 values = np.moveaxis(values, 0, -1)
