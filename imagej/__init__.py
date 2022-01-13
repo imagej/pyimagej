@@ -834,17 +834,141 @@ def _create_gateway():
 
             dims = [self._ijdim_to_pydim(axes[idx].type().getLabel()) for idx in range(len(axes))]
             values = self.rai_to_numpy(dataset)
-            coords = self._get_axes_coords(axes, dims, np.shape(np.transpose(values)))
+            coords = self._get_axes_coords(axes, dims, values.shape)
 
-            # TODO: EE deliver the xarray with original dim order.
-            if dims[len(dims)-1].lower() in ['c', 'channel']:
-                xarr_dims = self._invert_except_last_element(dims)
-                values = np.moveaxis(values, 0, -1)
-            else:
-                xarr_dims = list(reversed(dims))
+            xarr = self._reorder_dataset_to_xarray_dims(xr.DataArray(values, dims=dims, coords=coords, attrs=attrs))
 
-            xarr = xr.DataArray(values, dims=xarr_dims, coords=coords, attrs=attrs)
             return xarr
+
+
+        def _reorder_dataset_to_xarray_dims(self, xarr: xr.DataArray) -> xr.DataArray:
+            """
+            Reorders xarray dimensions from XYCZT to TZYXC.
+            """
+            # imglib2: xyczt
+            # numpy:   tzyxc
+            # assume imglib2 dims --> x and y will be first
+            init_dims = xarr.dims
+
+            if 'c' in init_dims:
+                xarr = xarr.transpose()
+                xarr = xarr.transpose(..., 'c')
+            else:
+                xarr = xarr.transpose()
+
+            return xarr
+
+        
+        def _to_python_dim_order(self, dims:tuple) -> list:
+            """
+            Convert any dim order to python/numpy order.
+            Requires the dims to be lower case and single char.
+            """
+            if 'x' and 'y' in dims:
+                if len(dims) == 2:
+                    new_dim_order = ['']*len(dims)
+                    new_dim_order[0] = 'y'
+                    new_dim_order[1] = 'x'
+                    return new_dim_order
+                if len(dims) == 3:
+                    new_dim_order = ['']*len(dims)
+                    if 'c' in dims:
+                        new_dim_order[0] = 'y'
+                        new_dim_order[1] = 'x'
+                        new_dim_order[2] = 'c'
+                        return new_dim_order
+                    else:
+                        first_dim = self._list_difference(dims, new_dim_order)
+                        new_dim_order[0] = first_dim[0]
+                        new_dim_order[1] = 'y'
+                        new_dim_order[2] = 'x'
+                        return new_dim_order
+                if len(dims) == 4:
+                    new_dim_order = ['']*len(dims)
+                    if 'c' in dims:
+                        new_dim_order[1] = 'y'
+                        new_dim_order[2] = 'x'
+                        new_dim_order[3] = 'c'
+                        first_dim = self._list_difference(dims, new_dim_order)
+                        new_dim_order[0] = first_dim[0]
+                        return new_dim_order
+                    else: # assume if not 'c' 'z' then 't' 'z'
+                        new_dim_order[0] = 't'
+                        new_dim_order[1] = 'z'
+                        new_dim_order[2] = 'y'
+                        new_dim_order[3] = 'x'
+                        return new_dim_order
+                if len(dims) == 5:
+                    new_dim_order = ['']*len(dims)
+                    new_dim_order[0] = 't'
+                    new_dim_order[1] = 'z'
+                    new_dim_order[2] = 'y'
+                    new_dim_order[3] = 'x'
+                    new_dim_order[4] = 'c'
+                    return new_dim_order
+
+            return None
+
+        def _to_java_dim_order(self, dims) -> list:
+            """
+            Convert any dim order to imglib order.
+            Requires the dims to be lower case and single char.
+            """
+            if 'x' and 'y' in dims:
+                if len(dims) == 2:
+                    new_dim_order = ['']*len(dims)
+                    new_dim_order[0] = 'x'
+                    new_dim_order[1] = 'y'
+                    return new_dim_order
+                if len(dims) == 3:
+                    new_dim_order = ['']*len(dims)
+                    new_dim_order[0] = 'x'
+                    new_dim_order[1] = 'y'
+                    last_dim = self._list_difference(dims, new_dim_order)
+                    new_dim_order[2] = last_dim[0]
+                    return new_dim_order
+                if len(dims) == 4:
+                    new_dim_order = ['']*len(dims)
+                    new_dim_order[0] = 'x'
+                    new_dim_order[1] = 'y'
+                    if 'c' in dims:
+                        new_dim_order[2] = 'c'
+                        last_dim = self._list_difference(dims, new_dim_order)
+                        new_dim_order[3] = last_dim[0]
+                        return new_dim_order
+                    elif 'z' in dims:
+                        new_dim_order[2] = 'z'
+                        last_dim = self._list_difference(dims, new_dim_order)
+                        new_dim_order[3] = last_dim[0]
+                        return new_dim_order
+                    else:
+                        print("[DEBUG]: No 'c' or 'z' dimension found!")
+                        return dims
+                if len(dims) == 5:
+                    new_dim_order = ['']*len(dims)
+                    new_dim_order[0] = 'x'
+                    new_dim_order[1] = 'y'
+                    new_dim_order[2] = 'c'
+                    new_dim_order[3] = 'z'
+                    new_dim_order[4] = 't'
+                    return new_dim_order
+
+            return None
+
+        def _list_difference(self, list_1: list, list_2: list) -> list:
+            """
+            Get the difference between lists
+            """
+            return list(set(list_1) - set(list_2)) + list(set(list_2) - set(list_1))
+
+
+        def _reshape_numpy_dim_order(self, array: np.ndarray) -> np.ndarray:
+            """
+            Reshapes numpy array dim order from XYCZT to TZYXC.
+            """
+
+
+            return array
 
         def _invert_except_last_element(self, lst):
             """
