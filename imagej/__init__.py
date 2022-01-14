@@ -805,7 +805,8 @@ def _create_gateway():
                     return self._dataset_to_xarray(data)
                 if self._ij.convert().supports(data, RandomAccessibleInterval):
                     rai = self._ij.convert().convert(data, RandomAccessibleInterval)
-                    return self.rai_to_numpy(rai)
+                    array = self.rai_to_numpy(rai)
+                    return self._reorder_rai_to_numpy_dims(rai, array)
             except Exception as exc:
                 _dump_exception(exc)
                 raise exc
@@ -845,7 +846,68 @@ def _create_gateway():
             xarr = xarr.transpose(*self._to_java_dim_order(xarr.dims))
 
             return xarr
+
+        def _reorder_rai_to_numpy_dims(self, rai, array:np.ndarray) -> np.ndarray:
+            """
+            Reorders rai dimensions from XYCZT to TZYXC.
+            """
+            # get rai axes
+            axes = [(JObject(rai.axis(idx), sj.jimport('net.imagej.axis.CalibratedAxis')))
+                    for idx in range(rai.numDimensions())]
+            dims = [self._ijdim_to_pydim(axes[idx].type().getLabel()) for idx in range(len(axes))]
+
+            array.t(self._to_python_dim_order_np(dims))
+
+            return array
+
+        def _to_python_dim_order_np(self, dims:tuple) -> tuple:
+            """
+            Convert any dim order from java to numpy transpose.
+            """
+            if 'x' and 'y' in dims:
+                if len(dims) == 2:
+                    new_dim_order = ['']*len(dims)
+                    new_dim_order[0] = 1
+                    new_dim_order[1] = 0
+                    return tuple(new_dim_order)
+                if len(dims) == 3:
+                    new_dim_order = ['']*len(dims)
+                    if 'c' in dims:
+                        new_dim_order[0] = 1
+                        new_dim_order[1] = 0
+                        new_dim_order[2] = 2
+                        return tuple(new_dim_order)
+                    else:
+                        new_dim_order[0] = 2
+                        new_dim_order[1] = 1
+                        new_dim_order[2] = 0
+                        return tuple(new_dim_order)
+                if len(dims) == 4:
+                    new_dim_order = ['']*len(dims)
+                    if 'c' in dims:
+                        new_dim_order[0] = 3
+                        new_dim_order[1] = 1
+                        new_dim_order[2] = 0
+                        new_dim_order[3] = 2
+                        return tuple(new_dim_order)
+                    else: # assume if not 'c' 'z' then 't' 'z'
+                        new_dim_order[0] = 3
+                        new_dim_order[1] = 2
+                        new_dim_order[2] = 1
+                        new_dim_order[3] = 0
+                        return tuple(new_dim_order)
+                if len(dims) == 5:
+                    new_dim_order = ['']*len(dims)
+                    new_dim_order[0] = 4
+                    new_dim_order[1] = 3
+                    new_dim_order[2] = 1
+                    new_dim_order[3] = 0
+                    new_dim_order[4] = 2
+                    return tuple(new_dim_order)
+
+            return None
         
+
         def _to_python_dim_order(self, dims:tuple) -> list:
             """
             Convert any dim order to python/numpy order.
