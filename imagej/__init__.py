@@ -927,10 +927,10 @@ def _create_gateway():
                         new_dim_order[2] = 'c'
                         return tuple(new_dim_order)
                     else:
-                        first_dim = self._list_difference(dims, new_dim_order)
-                        new_dim_order[0] = first_dim[0]
                         new_dim_order[1] = 'y'
                         new_dim_order[2] = 'x'
+                        first_dim = self._list_difference(dims, new_dim_order)
+                        new_dim_order[0] = first_dim[0]
                         return tuple(new_dim_order)
                 if len(dims) == 4:
                     new_dim_order = ['']*len(dims)
