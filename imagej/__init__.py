@@ -796,7 +796,6 @@ def _create_gateway():
             :return: A Python object convrted from Java.
             """
             # todo: convert a dataset to xarray
-
             if not sj.isjava(data): return data
             try:
                 if self._ij.convert().supports(data, Dataset):
@@ -856,7 +855,7 @@ def _create_gateway():
                     for idx in range(rai.numDimensions())]
             dims = [self._ijdim_to_pydim(axes[idx].type().getLabel()) for idx in range(len(axes))]
 
-            array.t(self._to_python_dim_order_np(dims))
+            array = array.transpose(self._to_python_dim_order_np(dims))
 
             return array
 
