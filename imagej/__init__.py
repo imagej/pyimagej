@@ -671,11 +671,10 @@ def _create_gateway():
             :param xarr: Pass an xarray dataarray and turn into a dataset.
             :return: The dataset
             """
-            if self._ends_with_channel_axis(xarr):
-                vals = np.moveaxis(xarr.values, -1, 0)
-                dataset = self._numpy_to_dataset(vals) # EE: investigate here....
-            else:
-                dataset = self._numpy_to_dataset(xarr.values)
+            # reorder xarray dims to imglib2 dims
+            xarr = self._reorder_xarray_to_dataset_dims(xarr)
+            vals = xarr.values
+            dataset = self._numpy_to_dataset(vals)
             axes = self._assign_axes(xarr)
             dataset.setAxes(axes)
             self._assign_dataset_metadata(dataset, xarr.attrs)
@@ -735,17 +734,8 @@ def _create_gateway():
             :param axis: Axis number to convert
             :return: Axis idx in java
             """
-            py_axnum = xarr.get_axis_num(axis)
-            if np.isfortran(xarr.values):
-                return py_axnum
 
-            if self._ends_with_channel_axis(xarr):
-                if axis == len(xarr.dims) - 1:
-                    return axis
-                else:
-                    return len(xarr.dims) - py_axnum - 2
-            else:
-                return len(xarr.dims) - py_axnum - 1
+            return xarr.get_axis_num(axis)
 
         def _assign_dataset_metadata(self, dataset, attrs):
             """
@@ -790,7 +780,6 @@ def _create_gateway():
                     return self._ij.dataset().create(ImgPlus(img))
                 if self._ij.convert().supports(data, RandomAccessibleInterval):
                     rai = self._ij.convert().convert(data, RandomAccessibleInterval)
-                    x = self._ij.dataset().create(rai)
                     return self._ij.dataset().create(rai)
             except Exception as exc:
                 _dump_exception(exc)
@@ -849,6 +838,13 @@ def _create_gateway():
 
             return xarr
 
+        def _reorder_xarray_to_dataset_dims(self, xarr: xr.DataArray) -> xr.DataArray:
+            """
+            Reorders xarray dimenions from TZYXC to XYCZT.
+            """
+            xarr = xarr.transpose(*self._to_java_dim_order(xarr.dims))
+
+            return xarr
         
         def _to_python_dim_order(self, dims:tuple) -> list:
             """
