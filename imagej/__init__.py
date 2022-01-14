@@ -869,20 +869,20 @@ def _create_gateway():
                     new_dim_order = ['']*len(dims)
                     new_dim_order[0] = 'y'
                     new_dim_order[1] = 'x'
-                    return new_dim_order
+                    return tuple(new_dim_order)
                 if len(dims) == 3:
                     new_dim_order = ['']*len(dims)
                     if 'c' in dims:
                         new_dim_order[0] = 'y'
                         new_dim_order[1] = 'x'
                         new_dim_order[2] = 'c'
-                        return new_dim_order
+                        return tuple(new_dim_order)
                     else:
                         first_dim = self._list_difference(dims, new_dim_order)
                         new_dim_order[0] = first_dim[0]
                         new_dim_order[1] = 'y'
                         new_dim_order[2] = 'x'
-                        return new_dim_order
+                        return tuple(new_dim_order)
                 if len(dims) == 4:
                     new_dim_order = ['']*len(dims)
                     if 'c' in dims:
@@ -891,13 +891,13 @@ def _create_gateway():
                         new_dim_order[3] = 'c'
                         first_dim = self._list_difference(dims, new_dim_order)
                         new_dim_order[0] = first_dim[0]
-                        return new_dim_order
+                        return tuple(new_dim_order)
                     else: # assume if not 'c' 'z' then 't' 'z'
                         new_dim_order[0] = 't'
                         new_dim_order[1] = 'z'
                         new_dim_order[2] = 'y'
                         new_dim_order[3] = 'x'
-                        return new_dim_order
+                        return tuple(new_dim_order)
                 if len(dims) == 5:
                     new_dim_order = ['']*len(dims)
                     new_dim_order[0] = 't'
@@ -905,7 +905,7 @@ def _create_gateway():
                     new_dim_order[2] = 'y'
                     new_dim_order[3] = 'x'
                     new_dim_order[4] = 'c'
-                    return new_dim_order
+                    return tuple(new_dim_order)
 
             return None
 
