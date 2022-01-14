@@ -845,16 +845,7 @@ def _create_gateway():
             """
             Reorders xarray dimensions from XYCZT to TZYXC.
             """
-            # imglib2: xyczt
-            # numpy:   tzyxc
-            # assume imglib2 dims --> x and y will be first
-            init_dims = xarr.dims
-
-            if 'c' in init_dims:
-                xarr = xarr.transpose()
-                xarr = xarr.transpose(..., 'c')
-            else:
-                xarr = xarr.transpose()
+            xarr = xarr.transpose(*self._to_python_dim_order(xarr.dims))
 
             return xarr
 
