@@ -855,7 +855,7 @@ def _create_gateway():
                     for idx in range(rai.numDimensions())]
             dims = [self._ijdim_to_pydim(axes[idx].type().getLabel()) for idx in range(len(axes))]
 
-            array = array.transpose(self._to_python_dim_order_np(dims))
+            array = array.transpose(self._to_python_dim_order(dims, label_output=False))
 
             return array
 
@@ -907,101 +907,51 @@ def _create_gateway():
             return None
         
 
-        def _to_python_dim_order(self, dims:tuple) -> list:
+        def _to_python_dim_order(self, dims:tuple, label_output=True) -> tuple:
             """
             Convert any dim order to python/numpy order.
             Requires the dims to be lower case and single char.
             """
-            if 'x' and 'y' in dims:
-                if len(dims) == 2:
-                    new_dim_order = ['']*len(dims)
-                    new_dim_order[0] = 'y'
-                    new_dim_order[1] = 'x'
-                    return tuple(new_dim_order)
-                if len(dims) == 3:
-                    new_dim_order = ['']*len(dims)
-                    if 'c' in dims:
-                        new_dim_order[0] = 'y'
-                        new_dim_order[1] = 'x'
-                        new_dim_order[2] = 'c'
-                        return tuple(new_dim_order)
+            new_dim_order = []
+            numpy_dim_order = ['t', 'z', 'y', 'x', 'c']
+
+            for dim in numpy_dim_order:
+                for i in range(len(dims)):
+                    if dim == dims[i]:
+                        if label_output:
+                            new_dim_order.append(dim)
+                        else:
+                            new_dim_order.append(i)
+
+            for i in range(len(dims)):
+                if dims[i] not in numpy_dim_order:
+                    if label_output:
+                        new_dim_order.insert(1, dims[i])
                     else:
-                        new_dim_order[1] = 'y'
-                        new_dim_order[2] = 'x'
-                        first_dim = self._list_difference(dims, new_dim_order)
-                        new_dim_order[0] = first_dim[0]
-                        return tuple(new_dim_order)
-                if len(dims) == 4:
-                    new_dim_order = ['']*len(dims)
-                    if 'c' in dims:
-                        new_dim_order[1] = 'y'
-                        new_dim_order[2] = 'x'
-                        new_dim_order[3] = 'c'
-                        first_dim = self._list_difference(dims, new_dim_order)
-                        new_dim_order[0] = first_dim[0]
-                        return tuple(new_dim_order)
-                    else: # assume if not 'c' 'z' then 't' 'z'
-                        new_dim_order[0] = 't'
-                        new_dim_order[1] = 'z'
-                        new_dim_order[2] = 'y'
-                        new_dim_order[3] = 'x'
-                        return tuple(new_dim_order)
-                if len(dims) == 5:
-                    new_dim_order = ['']*len(dims)
-                    new_dim_order[0] = 't'
-                    new_dim_order[1] = 'z'
-                    new_dim_order[2] = 'y'
-                    new_dim_order[3] = 'x'
-                    new_dim_order[4] = 'c'
-                    return tuple(new_dim_order)
+                        new_dim_order.insert(1, i)
 
-            return None
+            return tuple(new_dim_order)
 
-        def _to_java_dim_order(self, dims) -> list:
+
+        def _to_java_dim_order(self, dims:tuple) -> tuple:
             """
             Convert any dim order to imglib order.
             Requires the dims to be lower case and single char.
             """
-            if 'x' and 'y' in dims:
-                if len(dims) == 2:
-                    new_dim_order = ['']*len(dims)
-                    new_dim_order[0] = 'x'
-                    new_dim_order[1] = 'y'
-                    return new_dim_order
-                if len(dims) == 3:
-                    new_dim_order = ['']*len(dims)
-                    new_dim_order[0] = 'x'
-                    new_dim_order[1] = 'y'
-                    last_dim = self._list_difference(dims, new_dim_order)
-                    new_dim_order[2] = last_dim[0]
-                    return new_dim_order
-                if len(dims) == 4:
-                    new_dim_order = ['']*len(dims)
-                    new_dim_order[0] = 'x'
-                    new_dim_order[1] = 'y'
-                    if 'c' in dims:
-                        new_dim_order[2] = 'c'
-                        last_dim = self._list_difference(dims, new_dim_order)
-                        new_dim_order[3] = last_dim[0]
-                        return new_dim_order
-                    elif 'z' in dims:
-                        new_dim_order[2] = 'z'
-                        last_dim = self._list_difference(dims, new_dim_order)
-                        new_dim_order[3] = last_dim[0]
-                        return new_dim_order
-                    else:
-                        print("[DEBUG]: No 'c' or 'z' dimension found!")
-                        return dims
-                if len(dims) == 5:
-                    new_dim_order = ['']*len(dims)
-                    new_dim_order[0] = 'x'
-                    new_dim_order[1] = 'y'
-                    new_dim_order[2] = 'c'
-                    new_dim_order[3] = 'z'
-                    new_dim_order[4] = 't'
-                    return new_dim_order
+            new_dim_order = []
+            imglib_dim_order = ['x', 'y', 'c', 'z', 't']
 
-            return None
+            for dim in imglib_dim_order:
+                for i in range(len(dims)):
+                    if dim == dims[i]:
+                        new_dim_order.append(dim)
+
+            for i in range(len(dims)):
+                if dims[i] not in imglib_dim_order:
+                    new_dim_order.insert(1, dims[i])
+
+            return tuple(new_dim_order)
+
 
         def _list_difference(self, list_1: list, list_2: list) -> list:
             """
