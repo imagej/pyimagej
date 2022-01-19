@@ -858,53 +858,6 @@ def _create_gateway():
             array = array.transpose(self._to_python_dim_order(dims, label_output=False))
 
             return array
-
-        def _to_python_dim_order_np(self, dims:tuple) -> tuple:
-            """
-            Convert any dim order from java to numpy transpose.
-            """
-            if 'x' and 'y' in dims:
-                if len(dims) == 2:
-                    new_dim_order = ['']*len(dims)
-                    new_dim_order[0] = 1
-                    new_dim_order[1] = 0
-                    return tuple(new_dim_order)
-                if len(dims) == 3:
-                    new_dim_order = ['']*len(dims)
-                    if 'c' in dims:
-                        new_dim_order[0] = 1
-                        new_dim_order[1] = 0
-                        new_dim_order[2] = 2
-                        return tuple(new_dim_order)
-                    else:
-                        new_dim_order[0] = 2
-                        new_dim_order[1] = 1
-                        new_dim_order[2] = 0
-                        return tuple(new_dim_order)
-                if len(dims) == 4:
-                    new_dim_order = ['']*len(dims)
-                    if 'c' in dims:
-                        new_dim_order[0] = 3
-                        new_dim_order[1] = 1
-                        new_dim_order[2] = 0
-                        new_dim_order[3] = 2
-                        return tuple(new_dim_order)
-                    else: # assume if not 'c' 'z' then 't' 'z'
-                        new_dim_order[0] = 3
-                        new_dim_order[1] = 2
-                        new_dim_order[2] = 1
-                        new_dim_order[3] = 0
-                        return tuple(new_dim_order)
-                if len(dims) == 5:
-                    new_dim_order = ['']*len(dims)
-                    new_dim_order[0] = 4
-                    new_dim_order[1] = 3
-                    new_dim_order[2] = 1
-                    new_dim_order[3] = 0
-                    new_dim_order[4] = 2
-                    return tuple(new_dim_order)
-
-            return None
         
 
         def _to_python_dim_order(self, dims:tuple, label_output=True) -> tuple:
@@ -951,13 +904,6 @@ def _create_gateway():
                     new_dim_order.insert(1, dims[i])
 
             return tuple(new_dim_order)
-
-
-        def _list_difference(self, list_1: list, list_2: list) -> list:
-            """
-            Get the difference between lists
-            """
-            return list(set(list_1) - set(list_2)) + list(set(list_2) - set(list_1))
 
 
         def _reshape_numpy_dim_order(self, array: np.ndarray) -> np.ndarray:
