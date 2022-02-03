@@ -14,6 +14,7 @@ with open('imagej/config.py', 'r') as f:
 
 setup(
     name='pyimagej',
+    python_requires='>=3.6',
     version=config['__version__'],
     author=config['__author__'],
     author_email='ctrueden@wisc.edu',
