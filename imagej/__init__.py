@@ -39,6 +39,7 @@ import numpy as np
 import scyjava as sj
 import xarray as xr
 import imagej.stack as stack
+import imagej.dimensions as dimensions
 import subprocess
 
 from enum import Enum
