@@ -1,27 +1,54 @@
 import scyjava as sj
 from jpype import JObject
 
-def get_axes_labels(image) -> list:
+def get_axes(dataset) -> list:
     """
-    Get axis labels
+    Get a list of 'net.imagej.axis.CalibratedAxis'.
+    :param image: Input Dataset or RandomAccessibleInterval.
     """
-    jaxes = [(JObject(image.axis(idx), sj.jimport('net.imagej.axis.CalibratedAxis')))
-                    for idx in range(image.numDimensions())]
-
-    return [_to_lower_dims(jaxes[idx].type().getLabel()) for idx in range(len(jaxes))]
+    return [(JObject(dataset.axis(idx), sj.jimport('net.imagej.axis.CalibratedAxis'))) for idx in range(dataset.numDimensions())]
 
 
-def reorganize(image, dimensions: list):
+def get_axes_labels(axes) -> list:
     """
-    Reorignize images order via permute.
+    Get the axes labels of a list of CalibratedAxis.
+    """
+    return [_to_lower_dims(axes[idx].type().getLabel()) for idx in range(len(axes))]
+
+
+def get_dims(image):
+    axes = get_axes(image)
+    return get_axes_labels(axes)
+
+
+def get_shape(image):
+    """
+    Get the dimensions of an image
+    """
+    if _is_arraylike(image):
+        return image.shape
+    if not sj.isjava(image):
+        raise TypeError('Unsupported type: ' + str(type(image)))
+    if isinstance(image, sj.jimport('net.imglib2.Dimensions')):
+        return [image.dimension(d) for d in range(image.numDimensions())]
+    if isinstance(image, sj.jimport('ij.ImagePlus')):
+        return image.getDimensions()
+    raise TypeError(f'Unsupported Java type: {str(sj.jclass(image).getName())}')
+
+
+def reorganize(image, permute_order: list):
+    """
+    Reorignize images order via net.imglib2.view.Views permute.
+    :param image: A Dataset or ImgPlus.
+    :param permute_order: The order in which to permute/transpose the data.
     """
     img = _convert_to_imgplus(image)
 
     # check for dimension count mismatch
     dim_num = image.numDimensions()
     
-    if len(dimensions) != dim_num:
-        raise ValueError(f"Mismatched dimension coun: {len(dimensions)} != {dim_num}")
+    if len(permute_order) != dim_num:
+        raise ValueError(f"Mismatched dimension coun: {len(permute_order)} != {dim_num}")
 
     # get ImageJ resources
     ImgPlus = sj.jimport('net.imagej.ImgPlus')
@@ -31,24 +58,24 @@ def reorganize(image, dimensions: list):
     # copy dimensional axes into
     axes = []
     for i in range(dim_num):
-        old_dim = dimensions[i]
+        old_dim = permute_order[i]
         axes.append(img.axis(old_dim))
 
     # repeatedly permute the image dimensions into shape
     rai = img.getImg()
     for i in range(dim_num):
-        old_dim = dimensions[i]
+        old_dim = permute_order[i]
         if old_dim == i:
             continue
         rai = Views.permute(rai, old_dim, i)
 
         # update index mapping acccordingly...this is hairy ;-)
         for j in range(dim_num):
-            if dimensions[j] == i:
-                dimensions[j] = old_dim
+            if permute_order[j] == i:
+                permute_order[j] = old_dim
                 break
 
-        dimensions[i] = i
+        permute_order[i] = i
 
     return ImgPlus(ImgView.wrap(rai), img.getName(), axes)
 
@@ -61,7 +88,7 @@ def _convert_to_imgplus(image):
         return image.getImgPlus()
     else:
         return image
-        
+
 
 def to_python(dimensions: list, label_output=True) -> list:
     """
@@ -125,3 +152,10 @@ def _to_upper_dims(axis):
         return str(axis).upper()
     else:
         return str(axis)
+
+
+def _is_arraylike(arr):
+    return hasattr(arr, 'shape') and \
+        hasattr(arr, 'dtype') and \
+        hasattr(arr, '__array__') and \
+        hasattr(arr, 'ndim')
