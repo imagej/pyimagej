@@ -483,6 +483,13 @@ def _create_gateway():
                 dtype_to_use = np.dtype('float64')
             return np.zeros(self.dims(image), dtype=dtype_to_use)
 
+        def create_numpy_image(self, image, shape):
+            try:
+                dtype_to_use = self.dtype(image)
+            except TypeError:
+                dtype_to_use = np.dtype('float64')
+            return np.zeros(shape, dtype=dtype_to_use)
+
         def rai_to_numpy(self, rai):
             """Convert a RandomAccessibleInterval into a numpy array.
 
@@ -499,10 +506,10 @@ def _create_gateway():
 
             if fast_copy_available:
                 Images = sj.jimport('net.imagej.util.Images')
-                result = self.new_numpy_image(rai)
+                result = self.create_numpy_image(rai, dimensions.get_shape(rai))
                 Images.copy(rai, self.to_java(result))
             else:
-                result = self.new_numpy_image(rai)
+                result = self.create_numpy_image(rai, dimensions.get_shape(rai))
                 self._ij.op().run("copy.rai", self.to_java(result), rai)
 
             return result
@@ -818,15 +825,17 @@ def _create_gateway():
             :param dataset: ImageJ dataset
             :return: xarray with reversed (C-style) dims and coords as labeled by the dataset
             """
-            attrs = self.from_java(dataset.getProperties())
-            axes = [(JObject(dataset.axis(idx), sj.jimport('net.imagej.axis.CalibratedAxis')))
-                    for idx in range(dataset.numDimensions())]
+            java_axes = dimensions.get_axes(dataset)
+            java_dims = dimensions.get_axes_labels(java_axes)
+            python_dims = dimensions.to_python(java_dims)
+            python_permute = dimensions.to_python(java_dims, label_output=False)
+            permuted_img = dimensions.reorganize(dataset, python_permute)
+            attrs = self.from_java(permuted_img.getProperties())
+            values = self.rai_to_numpy(permuted_img)
+            axes = dimensions.get_axes(permuted_img)
+            coords = self._get_axes_coords(axes, python_dims, values.shape)
 
-            dims = [self._ijdim_to_pydim(axes[idx].type().getLabel()) for idx in range(len(axes))]
-            values = self.rai_to_numpy(dataset)
-            coords = self._get_axes_coords(axes, dims, values.shape)
-
-            xarr = self._reorder_dataset_to_xarray_dims(xr.DataArray(values, dims=dims, coords=coords, attrs=attrs))
+            xarr = self._reorder_dataset_to_xarray_dims(xr.DataArray(values, dims=python_dims, coords=coords, attrs=attrs))
 
             return xarr
 
