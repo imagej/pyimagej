@@ -812,8 +812,8 @@ def _create_gateway():
                     return self._dataset_to_xarray(data)
                 if self._ij.convert().supports(data, RandomAccessibleInterval):
                     rai = self._ij.convert().convert(data, RandomAccessibleInterval)
-                    array = self.rai_to_numpy(rai)
-                    return self._reorder_rai_to_numpy_dims(rai, array)
+                    rai = self._permute_rai_to_python(rai)
+                    return self.rai_to_numpy(rai)
             except Exception as exc:
                 _dump_exception(exc)
                 raise exc
@@ -825,104 +825,27 @@ def _create_gateway():
             :param dataset: ImageJ dataset
             :return: xarray with reversed (C-style) dims and coords as labeled by the dataset
             """
-            java_axes = dimensions.get_axes(dataset)
-            java_dims = dimensions.get_axes_labels(java_axes)
-            python_dims = dimensions.to_python(java_dims)
-            python_permute = dimensions.to_python(java_dims, label_output=False)
-            permuted_img = dimensions.reorganize(dataset, python_permute)
+            permuted_img = self._permute_rai_to_python(dataset)
+            dims = dimensions.get_dims(permuted_img)
+            axes = dimensions.get_axes(permuted_img)
             attrs = self.from_java(permuted_img.getProperties())
             values = self.rai_to_numpy(permuted_img)
-            axes = dimensions.get_axes(permuted_img)
-            coords = self._get_axes_coords(axes, python_dims, values.shape)
+            coords = self._get_axes_coords(axes, dims, values.shape)
 
-            xarr = self._reorder_dataset_to_xarray_dims(xr.DataArray(values, dims=python_dims, coords=coords, attrs=attrs))
-
-            return xarr
-
-
-        def _reorder_dataset_to_xarray_dims(self, xarr: xr.DataArray) -> xr.DataArray:
-            """
-            Reorders xarray dimensions from XYCZT to TZYXC.
-            """
-            xarr = xarr.transpose(*self._to_python_dim_order(xarr.dims))
+            xarr = xr.DataArray(values, dims=dims, coords=coords, attrs=attrs)
 
             return xarr
 
-        def _reorder_xarray_to_dataset_dims(self, xarr: xr.DataArray) -> xr.DataArray:
-            """
-            Reorders xarray dimenions from TZYXC to XYCZT.
-            """
-            xarr = xarr.transpose(*self._to_java_dim_order(xarr.dims))
-
-            return xarr
-
-        def _reorder_rai_to_numpy_dims(self, rai, array:np.ndarray) -> np.ndarray:
-            """
-            Reorders rai dimensions from XYCZT to TZYXC.
-            """
-            # get rai axes
-            axes = [(JObject(rai.axis(idx), sj.jimport('net.imagej.axis.CalibratedAxis')))
-                    for idx in range(rai.numDimensions())]
-            dims = [self._ijdim_to_pydim(axes[idx].type().getLabel()) for idx in range(len(axes))]
-
-            array = array.transpose(self._to_python_dim_order(dims, label_output=False))
-
-            return array
         
-
-        def _to_python_dim_order(self, dims:tuple, label_output=True) -> tuple:
+        def _permute_rai_to_python(self, rai):
             """
-            Convert any dim order to python/numpy order.
-            Requires the dims to be lower case and single char.
+            Permute a rai to Python perfered order.
             """
-            new_dim_order = []
-            numpy_dim_order = ['t', 'z', 'y', 'x', 'c']
+            java_axes = dimensions.get_axes(rai)
+            java_dims = dimensions.get_axes_labels(java_axes)
+            python_permute = dimensions.to_python(java_dims, label_output=False)
+            return dimensions.reorganize(rai, python_permute)
 
-            for dim in numpy_dim_order:
-                for i in range(len(dims)):
-                    if dim == dims[i]:
-                        if label_output:
-                            new_dim_order.append(dim)
-                        else:
-                            new_dim_order.append(i)
-
-            for i in range(len(dims)):
-                if dims[i] not in numpy_dim_order:
-                    if label_output:
-                        new_dim_order.insert(1, dims[i])
-                    else:
-                        new_dim_order.insert(1, i)
-
-            return tuple(new_dim_order)
-
-
-        def _to_java_dim_order(self, dims:tuple) -> tuple:
-            """
-            Convert any dim order to imglib order.
-            Requires the dims to be lower case and single char.
-            """
-            new_dim_order = []
-            imglib_dim_order = ['x', 'y', 'c', 'z', 't']
-
-            for dim in imglib_dim_order:
-                for i in range(len(dims)):
-                    if dim == dims[i]:
-                        new_dim_order.append(dim)
-
-            for i in range(len(dims)):
-                if dims[i] not in imglib_dim_order:
-                    new_dim_order.insert(1, dims[i])
-
-            return tuple(new_dim_order)
-
-
-        def _reshape_numpy_dim_order(self, array: np.ndarray) -> np.ndarray:
-            """
-            Reshapes numpy array dim order from XYCZT to TZYXC.
-            """
-
-
-            return array
 
         def _invert_except_last_element(self, lst):
             """
