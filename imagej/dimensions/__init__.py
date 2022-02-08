@@ -17,8 +17,12 @@ def get_axes_labels(axes) -> list:
 
 
 def get_dims(image):
-    axes = get_axes(image)
-    return get_axes_labels(axes)
+    if hasattr(image, 'axis'):
+        axes = get_axes(image)
+        return get_axes_labels(axes)
+    else:
+        axes = image.dimensionsAsLongArray()
+        return axes
 
 
 def get_shape(image):
@@ -171,3 +175,10 @@ def _is_arraylike(arr):
         hasattr(arr, 'dtype') and \
         hasattr(arr, '__array__') and \
         hasattr(arr, 'ndim')
+
+
+def _is_xarraylike(self, xarr):
+    return hasattr(xarr, 'values') and \
+        hasattr(xarr, 'dims') and \
+        hasattr(xarr, 'coords') and \
+        self._is_arraylike(xarr.values)
