@@ -839,13 +839,23 @@ def _create_gateway():
         
         def _permute_rai_to_python(self, rai):
             """
-            Permute a rai to Python perfered order.
+            Permute a RandomAccessibleInterval's dimensions to match TZYXC order.
+            :param rai: A RandomAccessibleInterval.
             """
-            java_axes = dimensions.get_axes(rai)
-            java_dims = dimensions.get_axes_labels(java_axes)
-            python_permute = dimensions.to_python(java_dims, label_output=False)
+            rai_axes = dimensions.get_axes(rai)
+            rai_dims = dimensions.get_axes_labels(rai_axes)
+            python_permute = dimensions.to_python_order(rai_dims, label_output=False)
             return dimensions.reorganize(rai, python_permute)
 
+
+        def _permute_rai_to_java(self, rai):
+            """
+            Permute a RandomAccessibleInterval's dimensions to match XYCZT order.
+            """
+            rai_axes = dimensions.get_axes(rai)
+            rai_dims = dimensions.get_axes_labels(rai_axes)
+            java_permute = dimensions.to_java_order(rai_dims, label_output=False)
+            return dimensions.reorganize(rai, java_permute)
 
         def _invert_except_last_element(self, lst):
             """
