@@ -1,6 +1,6 @@
 import scyjava as sj
 from jpype import JObject
-from typing import List, Union
+from typing import List, Tuple
 
 def get_axes(dataset) -> list:
     """
@@ -14,10 +14,32 @@ def get_axes_labels(axes) -> list:
     """
     Get the axes labels of a list of CalibratedAxis.
     """
-    return [_to_lower_dims(axes[idx].type().getLabel()) for idx in range(len(axes))]
+    return [(axes[idx].type().getLabel()) for idx in range(len(axes))]
 
 
-def get_dims(image):
+def get_axis_types(rai: 'RandomAccessibleInterval') -> List['AxisType']:
+    """
+    Get a List of 'AxisType' from a RandomAccessibleInterval. Note that Dataset
+    and ImgPlus have axis metadata. Other intervals may not have axis metada, such as
+    a PlanarImg.
+    :param rai: A RandomAccessibleInterval with axis metadata.
+    :return: A List of 'AxisType'.
+    """
+    if _has_axis(rai):
+        Axes = sj.jimport('net.imagej.axis.Axes')
+        rai_dims = get_dims(rai)
+        rai_axis_types = []
+        for i in range(len(rai_dims)):
+            rai_axis_types.append(Axes.get(rai_dims[i]))
+        
+        return rai_axis_types
+    else:
+        print("Unsupported action _get_axis_type")
+        return
+
+
+def get_dims(image) -> List[str]:
+    # TODO: add check if xarray
     if hasattr(image, 'axis'):
         axes = get_axes(image)
         return get_axes_labels(axes)
@@ -26,7 +48,7 @@ def get_dims(image):
         return axes
 
 
-def get_shape(image):
+def get_shape(image) -> Tuple[int]:
     """
     Get the dimensions of an image
     """
@@ -41,7 +63,7 @@ def get_shape(image):
     raise TypeError(f'Unsupported Java type: {str(sj.jclass(image).getName())}')
 
 
-def reorganize(image, permute_order: list):
+def reorganize(image, permute_order: List[int]) -> 'ImgPlus':
     """
     Reorignize images order via net.imglib2.view.Views permute.
     :param image: A Dataset or ImgPlus.
