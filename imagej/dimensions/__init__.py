@@ -107,6 +107,27 @@ def reorganize(image, permute_order: List[int]) -> 'ImgPlus':
     return ImgPlus(ImgView.wrap(rai), img.getName(), axes)
 
 
+def to_python_axes_order(axis_types: List['AxisType']) -> List[int]:
+    """
+    Convert any dimension order to python/numpy order.
+    :param dimensions: Lower case single character dimensions.
+    """
+    Axes = sj.jimport('net.imagej.axis.Axes')
+    new_dim_order = []
+    python_ref_order = [Axes.CHANNEL, Axes.X, Axes.Y, Axes.Z, Axes.TIME]
+
+    for axis in python_ref_order:
+        for i in range(len(axis_types)):
+            if axis == axis_types[i]:
+                new_dim_order.append(i)
+
+    for i in range(len(axis_types)):
+        if axis_types[i] not in python_ref_order:
+                new_dim_order.insert(1, i)
+
+    return new_dim_order
+
+
 def _convert_to_imgplus(image):
     """
     Check if image is Dataset and convert to ImgPlus.
@@ -117,80 +138,12 @@ def _convert_to_imgplus(image):
         return image
 
 
-def to_python_order(dimensions: List[str], label_output=True) -> List[Union[str, int]]:
-    """
-    Convert any dimension order to python/numpy order.
-    :param dimensions: Lower case single character dimensions.
-    :param label_output: 
-        Boolean that sets whether the resulting list contains the dimension
-        labels (e.g. 'x', 'y', ) or numpy style transposition order (e.g. 3, 0, 1).
-    """
-    new_dim_order = []
-    python_ref_order = ['t', 'z', 'y', 'x', 'c']
-
-    for dim in python_ref_order:
-        for i in range(len(dimensions)):
-            if dim == dimensions[i]:
-                if label_output:
-                    new_dim_order.append(dim)
-                else:
-                    new_dim_order.append(i)
-
-    for i in range(len(dimensions)):
-        if dimensions[i] not in python_ref_order:
-            if label_output:
-                new_dim_order.insert(1 ,dimensions[i])
-            else:
-                new_dim_order.insert(1, i)
-
-    return new_dim_order
+def _to_lower_dims(dimensions: List[str]) -> List[str]:
+    return [str(dim).lower() for dim in dimensions]
 
 
-def to_java_order(dimensions: list, label_output=True) -> list:
-    """
-    Convert any dimension order to java/imglib2 order.
-    :param dimensions: Lower case single character dimenions.
-    :param label_output: 
-        Boolean that sets whether the resulting list contains the dimension
-        labels (e.g. 'x', 'y', ) or numpy style transposition order (e.g. 3, 0, 1).
-    """
-    new_dim_order = []
-    java_ref_order = ['x', 'y', 'c', 'z', 't']
-
-    for dim in java_ref_order:
-        for i in range(len(dimensions)):
-            if dim == dimensions[i]:
-                if label_output:
-                    new_dim_order.append(dim)
-                else:
-                    new_dim_order.append(i)
-
-    for i in range(len(dimensions)):
-        if dimensions[i] not in java_ref_order:
-            if label_output:
-                new_dim_order.insert(1, dimensions[i])
-            else:
-                new_dim_order.insert(1, i)
-
-    return new_dim_order
-
-
-def _to_lower_dims(axis):
-    if str(axis) in ['X', 'Y', 'Z', 'C', 'T']:
-        return str(axis).lower()
-    elif str(axis) =='Channel':
-        return 'c'
-    elif str(axis) == 'Time':
-        return 't'
-    else:
-        return str(axis)
-
-
-def _to_upper_dims(axis):
-    if str(axis) in ['x', 'y', 'z', 'c', 't']:
-        return str(axis).upper()
-    else:
-        return str(axis)
+def _to_upper_dims(dimensions: List[str]) -> List[str]:
+    return [str(dim).upper() for dim in dimensions]
 
 
 def _has_axis(rai):
