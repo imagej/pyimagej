@@ -171,6 +171,10 @@ def _to_upper_dims(axis):
         return str(axis)
 
 
+def _has_axis(rai):
+    return hasattr(rai, 'axis')
+
+
 def _is_arraylike(arr):
     return hasattr(arr, 'shape') and \
         hasattr(arr, 'dtype') and \
@@ -178,8 +182,8 @@ def _is_arraylike(arr):
         hasattr(arr, 'ndim')
 
 
-def _is_xarraylike(self, xarr):
+def _is_xarraylike(xarr):
     return hasattr(xarr, 'values') and \
         hasattr(xarr, 'dims') and \
         hasattr(xarr, 'coords') and \
-        self._is_arraylike(xarr.values)
+        _is_arraylike(xarr.values)
