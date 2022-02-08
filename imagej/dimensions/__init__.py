@@ -1,5 +1,6 @@
 import scyjava as sj
 from jpype import JObject
+from typing import List, Union
 
 def get_axes(dataset) -> list:
     """
@@ -94,7 +95,7 @@ def _convert_to_imgplus(image):
         return image
 
 
-def to_python_order(dimensions: list, label_output=True) -> list:
+def to_python_order(dimensions: List[str], label_output=True) -> List[Union[str, int]]:
     """
     Convert any dimension order to python/numpy order.
     :param dimensions: Lower case single character dimensions.
