@@ -2,27 +2,27 @@ import scyjava as sj
 from jpype import JObject
 from typing import List, Tuple
 
-def get_axes(dataset) -> list:
-    """
-    Get a list of 'net.imagej.axis.CalibratedAxis'.
-    :param image: Input Dataset or RandomAccessibleInterval.
-    """
-    return [(JObject(dataset.axis(idx), sj.jimport('net.imagej.axis.CalibratedAxis'))) for idx in range(dataset.numDimensions())]
+def get_axes(rai: 'RandomAccessibleInterval') -> List['CalibratedAxis']:
+    """Get a List of 'CalibratedAxis'.
 
-
-def get_axes_labels(axes) -> list:
-    """
-    Get the axes labels of a list of CalibratedAxis.
-    """
-    return [str((axes[idx].type().getLabel())) for idx in range(len(axes))]
-
-
-def get_axis_types(rai) -> List['AxisType']:
-    """
-    Get a List of 'AxisType' from a RandomAccessibleInterval. Note that Dataset
-    and ImgPlus have axis metadata. Other intervals may not have axis metada, such as
+    Get a List of 'CalibratedAxis' from a RandomAccessibleInterval. Note that
+    Dataset and ImgPlus have axes. Other inervals may not have axes, such as 
     a PlanarImg.
-    :param rai: A RandomAccessibleInterval with axis metadata.
+
+    :param rai: Input Dataset or RandomAccessibleInterval.
+    :return: A List of 'CalibratedAxis'.
+    """
+    return [(JObject(rai.axis(idx), sj.jimport('net.imagej.axis.CalibratedAxis'))) for idx in range(rai.numDimensions())]
+
+
+def get_axis_types(rai: 'RandomAccessibleInterval') -> List['AxisType']:
+    """Get a list of 'AxisType' from a RandomAccessibleInterval.
+
+    Get a List of 'AxisType' from a RandomAccessibleInterval. Note that Dataset
+    and ImgPlus have axes. Other intervals may not have axes, such as
+    a PlanarImg.
+
+    :param rai: A RandomAccessibleInterval with axes.
     :return: A List of 'AxisType'.
     """
     if _has_axis(rai):
@@ -38,18 +38,29 @@ def get_axis_types(rai) -> List['AxisType']:
 
 
 def get_dims(image) -> List[str]:
-    # TODO: add check if xarray
+    """Get the dimensions of an image.
+
+    Get the dimensions (e.g. TZYXC) of an image.
+
+    :param image: An image (e.g. xarray, ImagePlus, Dataset)
+    :return: List of dimensions.
+    """
+    if _is_xarraylike(image):
+        return image.dims
     if hasattr(image, 'axis'):
         axes = get_axes(image)
-        return get_axes_labels(axes)
+        return _get_axis_labels(axes)
     else:
-        axes = image.dimensionsAsLongArray()
-        return axes
+        return image.dimensionsAsLongArray()
 
 
 def get_shape(image) -> List[int]:
-    """
-    Get the dimensions of an image
+    """Get the shape of an image.
+
+    Get the shape of an image.
+
+    :param image: An image (e.g. xarray, numpy, ImagePlus)
+    :return: Shape of the image.
     """
     if _is_arraylike(image):
         return list(image.shape)
@@ -62,16 +73,20 @@ def get_shape(image) -> List[int]:
     raise TypeError(f'Unsupported Java type: {str(sj.jclass(image).getName())}')
 
 
-def reorganize(image, permute_order: List[int]) -> 'ImgPlus':
+def reorganize(rai: 'RandomAccessibleInterval', permute_order: List[int]) -> 'ImgPlus':
+    """Reorganize the dimension order of a RandomAccessibleInterval.
+
+    Permute the dimension order of an input RandomAccessibleInterval using 
+    a List of ints (i.e. permute_order) to determine the shape of the output ImgPlus.
+    
+    :param rai: A RandomAccessibleInterval,
+    :param permute_order: List of int in which to permute the RandomAccessibleInterval.
+    :return: A permuted ImgPlus.
     """
-    Reorignize images order via net.imglib2.view.Views permute.
-    :param image: A Dataset or ImgPlus.
-    :param permute_order: The order in which to permute/transpose the data.
-    """
-    img = _convert_to_imgplus(image)
+    img = _dataset_to_imgplus(rai)
 
     # check for dimension count mismatch
-    dim_num = image.numDimensions()
+    dim_num = rai.numDimensions()
     
     if len(permute_order) != dim_num:
         raise ValueError(f"Mismatched dimension count: {len(permute_order)} != {dim_num}")
@@ -130,34 +145,64 @@ def prioritize_axes_order(axis_types: List['AxisType'], ref_order: List['AxisTyp
     return permute_order
 
 
-def _convert_to_imgplus(image):
+def _dataset_to_imgplus(rai: 'RandomAccessibleInterval') -> 'ImgPlus':
+    """Get an ImgPlus from a Dataset.
+
+    Get an ImgPlus from a Dataset or just return the RandomAccessibleInterval
+    if its not a Dataset.
+
+    :param rai: A RandomAccessibleInterval.
+    :return: The ImgPlus from a Dataset.
     """
-    Check if image is Dataset and convert to ImgPlus.
-    """
-    if isinstance(image, sj.jimport('net.imagej.Dataset')):
-        return image.getImgPlus()
+    if isinstance(rai, sj.jimport('net.imagej.Dataset')):
+        return rai.getImgPlus()
     else:
-        return image
+        return rai
+
+
+def _get_axis_labels(axes: List['CalibratedAxis']) -> List[str]:
+    """Get the axes labels from a List of 'CalibratedAxis'.
+
+    Extract the axis labels from a List of 'CalibratedAxis'.
+
+    :param axes: A List of 'CalibratedAxis'.
+    :return: A list of the axis labels.
+    """
+    return [str((axes[idx].type().getLabel())) for idx in range(len(axes))]
 
 
 def _python_ref_order():
+    """Get the Python reference order.
+
+    Get a List of 'AxisType' in the Python/scikitimage
+    preferred order. Note that this reference order is
+    reversed.
+    """
     Axes = sj.jimport('net.imagej.axis.Axes')
     return [Axes.CHANNEL, Axes.X, Axes.Y, Axes.Z, Axes.TIME]
 
 
 def _to_lower_dims(dimensions: List[str]) -> List[str]:
+    """Convert a List of dimensions to upper case.
+    """
     return [str(dim).lower() for dim in dimensions]
 
 
 def _to_upper_dims(dimensions: List[str]) -> List[str]:
+    """Convert a List of dimensions to lower case.
+    """
     return [str(dim).upper() for dim in dimensions]
 
 
-def _has_axis(rai):
+def _has_axis(rai: 'RandomAccessibleInterval'):
+    """Check if a RandomAccessibleInterval has axes.
+    """
     return hasattr(rai, 'axis')
 
 
 def _is_arraylike(arr):
+    """Check if object is an array.
+    """
     return hasattr(arr, 'shape') and \
         hasattr(arr, 'dtype') and \
         hasattr(arr, '__array__') and \
@@ -165,6 +210,8 @@ def _is_arraylike(arr):
 
 
 def _is_xarraylike(xarr):
+    """Check if object is an xarray.
+    """
     return hasattr(xarr, 'values') and \
         hasattr(xarr, 'dims') and \
         hasattr(xarr, 'coords') and \
