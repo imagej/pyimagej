@@ -484,21 +484,38 @@ def _create_gateway():
                 dtype_to_use = np.dtype('float64')
             return np.zeros(self.dims(image), dtype=dtype_to_use)
 
-        def create_numpy_image(self, image, shape):
+        def initialize_numpy_image(self, rai: RandomAccessibleInterval) -> np.ndarray:
+            """Initialize a numpy array with zeros and shape of the input RandomAccessibleInterval.
+
+            Initialize a new numpy array with the same dtype and shape as the input
+            RandomAccessibleInterval with zeros.
+
+            :param rai: A RandomAccessibleInterval
+            :return:
+                A numpy array with the same dtype and shape as the input 
+                RandomAccessibleInterval, filled with zeros.
+            """
             try:
-                dtype_to_use = self.dtype(image)
+                dtype_to_use = self.dtype(rai)
             except TypeError:
                 dtype_to_use = np.dtype('float64')
+
+            # get shape of rai and invert
+            shape = dims.get_shape(rai)
+            shape.reverse()
             return np.zeros(shape, dtype=dtype_to_use)
 
-        def rai_to_numpy(self, rai):
-            """Convert a RandomAccessibleInterval into a numpy array.
+        def rai_to_numpy(self, rai: RandomAccessibleInterval, numpy_array: np.ndarray) -> np.ndarray:
+            """Copy a RandomAccessibleInterval into a numpy array.
 
-            Convert a RandomAccessibleInterval ('net.imglib2.RandomAccessibleInterval') 
-            into a new numpy array.
+            The input RandomAccessibleInterval is copied into the pre-initialized numpy array
+            with either (1) "fast copy" via 'net.imagej.util.Images.copy' if available or
+            the slower "copy.rai" method. Note that the input RandomAccessibleInterval and
+            numpy array must have reversed dimensions relative to each other (e.g. [t, z, y, x, c] and [c, x, y, z, t]).
+            Use _permute_rai_to_python() on the RandomAccessibleInterval to reorganize the dimensions.
 
-            :param rai: A RandomAccisbleInterval ('net.imglib2.RandomAccessibleInterval').
-            :return: A numpy array of the input RandomAccisbleInterval.
+            :param rai: A RandomAccessibleInterval ('net.imglib2.RandomAccessibleInterval').
+            :return: A numpy array of the input RandomAccessibleInterval.
             """
             # check imagej-common version for fast copy availability.
             ijc_slow_copy_version = '0.30.0'
@@ -507,13 +524,11 @@ def _create_gateway():
 
             if fast_copy_available:
                 Images = sj.jimport('net.imagej.util.Images')
-                result = self.create_numpy_image(rai, dimensions.get_shape(rai))
-                Images.copy(rai, self.to_java(result))
+                Images.copy(rai, self.to_java(numpy_array))
             else:
-                result = self.create_numpy_image(rai, dimensions.get_shape(rai))
-                self._ij.op().run("copy.rai", self.to_java(result), rai)
+                self._ij.op().run("copy.rai", self.to_java(numpy_array), rai)
 
-            return result
+            return numpy_array
 
         def run_plugin(self, plugin, args=None, ij1_style=True):
             """Run an ImageJ plugin.
@@ -680,8 +695,6 @@ def _create_gateway():
             :param xarr: Pass an xarray dataarray and turn into a dataset.
             :return: The dataset
             """
-            # reorder xarray dims to imglib2 dims
-            xarr = self._reorder_xarray_to_dataset_dims(xarr)
             vals = xarr.values
             dataset = self._numpy_to_dataset(vals)
             axes = self._assign_axes(xarr)
@@ -784,10 +797,10 @@ def _create_gateway():
                 if self._ij.convert().supports(data, ImgPlus):
                     imgPlus = self._ij.convert().convert(data, ImgPlus)
                     return self._ij.dataset().create(imgPlus)
-                if self._ij.convert().supports(data, Img):
+                if self._ij.convert().supports(data, Img): # no dim info
                     img = self._ij.convert().convert(data, Img)
                     return self._ij.dataset().create(ImgPlus(img))
-                if self._ij.convert().supports(data, RandomAccessibleInterval):
+                if self._ij.convert().supports(data, RandomAccessibleInterval): # no dim info
                     rai = self._ij.convert().convert(data, RandomAccessibleInterval)
                     return self._ij.dataset().create(rai)
             except Exception as exc:
@@ -810,53 +823,58 @@ def _create_gateway():
                 if self._ij.convert().supports(data, Dataset):
                     # HACK: Converter exists for ImagePlus -> Dataset, but not ImagePlus -> RAI.
                     data = self._ij.convert().convert(data, Dataset)
-                    return self._dataset_to_xarray(data)
+                    permuted_rai = self._permute_rai_to_python(data)
+                    numpy_result = self.initialize_numpy_image(permuted_rai)
+                    numpy_result = self.rai_to_numpy(permuted_rai, numpy_result)
+                    return self._dataset_to_xarray(permuted_rai,numpy_result)
                 if self._ij.convert().supports(data, RandomAccessibleInterval):
                     rai = self._ij.convert().convert(data, RandomAccessibleInterval)
-                    rai = self._permute_rai_to_python(rai)
-                    return self.rai_to_numpy(rai)
+                    permuted_rai = self._permute_rai_to_python(rai)
+                    numpy_result = self.initialize_numpy_image(permuted_rai)
+                    return self.rai_to_numpy(permuted_rai, numpy_result)
             except Exception as exc:
                 _dump_exception(exc)
                 raise exc
             return sj.to_python(data)
 
-        def _dataset_to_xarray(self, dataset):
-            """
-            Converts an ImageJ dataset into an xarray, inverting F-style (slow idx last) to C-style (slow idx first)
-            :param dataset: ImageJ dataset
-            :return: xarray with reversed (C-style) dims and coords as labeled by the dataset
-            """
-            permuted_img = self._permute_rai_to_python(dataset)
-            dims = dimensions.get_dims(permuted_img)
-            axes = dimensions.get_axes(permuted_img)
-            attrs = self.from_java(permuted_img.getProperties())
-            values = self.rai_to_numpy(permuted_img)
-            coords = self._get_axes_coords(axes, dims, values.shape)
 
-            xarr = xr.DataArray(values, dims=dims, coords=coords, attrs=attrs)
+        def _dataset_to_xarray(self, permuted_rai: RandomAccessibleInterval, numpy_array: np.ndarray) -> xr.DataArray:
+            """Wrap a numpy array with xarray and axes metadta from a RandomAccessibleInterval.
 
-            return xarr
+            Wraps a numpy array with the metadata from the source RandomAccessibleInterval 
+            metadata (i.e. axes).
+
+            :param permuted_rai: A RandomAccessibleInterval with axes (e.g. Dataset or ImgPlus).
+            :param numpy_array: A np.ndarray to wrap with xarray.
+            :return: xarray.DataArray with metadata/axes.
+            """
+            # get metadata
+            xr_axes = dims.get_axes(permuted_rai)
+            xr_dims = dims.get_dims(permuted_rai)
+            xr_attrs = self.from_java(permuted_rai.getProperties())
+
+            # reverse axes and dims to match numpy_array
+            xr_axes.reverse()
+            xr_dims.reverse()
+            xr_coords = self._get_axes_coords(xr_axes, xr_dims, numpy_array.shape)
+            return xr.DataArray(numpy_array, dims=xr_dims, coords=xr_coords, attrs=xr_attrs)
 
         
-        def _permute_rai_to_python(self, rai):
-            """
-            Permute a RandomAccessibleInterval's dimensions to match TZYXC order.
-            :param rai: A RandomAccessibleInterval.
-            """
-            rai_axes = dimensions.get_axes(rai)
-            rai_dims = dimensions.get_axes_labels(rai_axes)
-            python_permute = dimensions.to_python_order(rai_dims, label_output=False)
-            return dimensions.reorganize(rai, python_permute)
+        def _permute_rai_to_python(self, rai: RandomAccessibleInterval):
+            """Permute a RandomAccessibleInterval to the python reference order.
 
+            Permute a RandomAccessibleInterval to the Python reference order of
+            CXYZT (where dimensions exist). Note that this is reverse from the final array order of 
+            TZYXC.
 
-        def _permute_rai_to_java(self, rai):
+            :param rai: A RandomAccessibleInterval with axes.
+            :return: A permuted RandomAccessibleInterval.
             """
-            Permute a RandomAccessibleInterval's dimensions to match XYCZT order.
-            """
-            rai_axes = dimensions.get_axes(rai)
-            rai_dims = dimensions.get_axes_labels(rai_axes)
-            java_permute = dimensions.to_java_order(rai_dims, label_output=False)
-            return dimensions.reorganize(rai, java_permute)
+            rai_axis_types = dims.get_axis_types(rai)
+            permute_order = dims.prioritize_axes_order(rai_axis_types, dims._python_ref_order())
+    
+            return dims.reorganize(rai, permute_order)
+
 
         def _invert_except_last_element(self, lst):
             """
