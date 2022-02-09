@@ -74,7 +74,7 @@ def reorganize(image, permute_order: List[int]) -> 'ImgPlus':
     dim_num = image.numDimensions()
     
     if len(permute_order) != dim_num:
-        raise ValueError(f"Mismatched dimension coun: {len(permute_order)} != {dim_num}")
+        raise ValueError(f"Mismatched dimension count: {len(permute_order)} != {dim_num}")
 
     # get ImageJ resources
     ImgPlus = sj.jimport('net.imagej.ImgPlus')
