@@ -106,25 +106,28 @@ def reorganize(image, permute_order: List[int]) -> 'ImgPlus':
     return ImgPlus(ImgView.wrap(rai), img.getName(), axes)
 
 
-def to_python_axes_order(axis_types: List['AxisType']) -> List[int]:
-    """
-    Convert any dimension order to python/numpy order.
-    :param dimensions: Lower case single character dimensions.
-    """
-    Axes = sj.jimport('net.imagej.axis.Axes')
-    new_dim_order = []
-    python_ref_order = [Axes.CHANNEL, Axes.X, Axes.Y, Axes.Z, Axes.TIME]
+def prioritize_axes_order(axis_types: List['AxisType'], ref_order: List['AxisType']) -> List[int]:
+    """Prioritize the axes order to match a reference order.
 
-    for axis in python_ref_order:
+    The input list of 'AxisType' from the image to be permuted
+    will be prioritized to match (where dimensions exist) to
+    a reference order (e.g. _python_ref_order).
+
+    :param axis_types: List of 'net.imagej.axis.AxisType' from image.
+    :param ref_order: List of 'net.imagej.axis.AxisType' from reference order.
+    :return: List of int for permuting the image.
+    """
+    permute_order = []
+    for axis in ref_order:
         for i in range(len(axis_types)):
             if axis == axis_types[i]:
-                new_dim_order.append(i)
+                permute_order.append(i)
 
     for i in range(len(axis_types)):
-        if axis_types[i] not in python_ref_order:
-                new_dim_order.insert(1, i)
+        if axis_types[i] not in ref_order:
+                permute_order.insert(1, i)
 
-    return new_dim_order
+    return permute_order
 
 
 def _convert_to_imgplus(image):
@@ -135,6 +138,11 @@ def _convert_to_imgplus(image):
         return image.getImgPlus()
     else:
         return image
+
+
+def _python_ref_order():
+    Axes = sj.jimport('net.imagej.axis.Axes')
+    return [Axes.CHANNEL, Axes.X, Axes.Y, Axes.Z, Axes.TIME]
 
 
 def _to_lower_dims(dimensions: List[str]) -> List[str]:
