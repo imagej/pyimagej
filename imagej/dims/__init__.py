@@ -47,12 +47,12 @@ def get_dims(image) -> List[str]:
         return axes
 
 
-def get_shape(image) -> Tuple[int]:
+def get_shape(image) -> List[int]:
     """
     Get the dimensions of an image
     """
     if _is_arraylike(image):
-        return image.shape
+        return list(image.shape)
     if not sj.isjava(image):
         raise TypeError('Unsupported type: ' + str(type(image)))
     if isinstance(image, sj.jimport('net.imglib2.Dimensions')):
