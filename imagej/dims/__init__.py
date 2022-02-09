@@ -14,10 +14,10 @@ def get_axes_labels(axes) -> list:
     """
     Get the axes labels of a list of CalibratedAxis.
     """
-    return [(axes[idx].type().getLabel()) for idx in range(len(axes))]
+    return [str((axes[idx].type().getLabel())) for idx in range(len(axes))]
 
 
-def get_axis_types(rai: 'RandomAccessibleInterval') -> List['AxisType']:
+def get_axis_types(rai) -> List['AxisType']:
     """
     Get a List of 'AxisType' from a RandomAccessibleInterval. Note that Dataset
     and ImgPlus have axis metadata. Other intervals may not have axis metada, such as
@@ -31,7 +31,6 @@ def get_axis_types(rai: 'RandomAccessibleInterval') -> List['AxisType']:
         rai_axis_types = []
         for i in range(len(rai_dims)):
             rai_axis_types.append(Axes.get(rai_dims[i]))
-        
         return rai_axis_types
     else:
         print("Unsupported action _get_axis_type")
