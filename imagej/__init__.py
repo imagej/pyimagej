@@ -1273,6 +1273,7 @@ def _create_gateway():
             for key in vars.keys():
                 inputs[key] = vars[key]
             inputs['ij'] = ij
+            inputs['sj'] = sj
 
             old_stdout = sys.stdout
             old_stderr = sys.stderr
@@ -1287,7 +1288,7 @@ def _create_gateway():
             try:
                 exec(sj.to_python(script), inputs)
             except:
-                scriptContext.getWriter().write(traceback.format_exc())
+                scriptContext.getWriter().write(sj.to_java(traceback.format_exc()))
 
             outputs = {}
             for key in inputs.keys():
