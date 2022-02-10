@@ -9,7 +9,7 @@ tracker](issues).
 ## The ImageJ2 gateway
 
 The ImageJ2 gateway is the object interface that lets you use ImageJ-related
-features (see [INITIALIZATION.md](Initialization.md)).  This gateway contains
+features (see [Initialization.md](Initialization.md)).  This gateway contains
 all of the regular ImageJ2 Java functions. PyImageJ also adds a module of
 convenience functions under `ij.py`. For example, converting a numpy array to
 an ImageJ2 dataset:
@@ -89,7 +89,7 @@ a how-to on starting up PyImageJ with legacy support.
 ### Manipulating windows
 
 In order to use a graphical user interface, you must also initialize PyImageJ
-with `headless=False`. To work with windows, you can:
+with `mode='gui'` or `mode='interactive'`. To work with windows, you can:
 
 * Use ImageJ2's
   [`WindowService`](https://javadoc.scijava.org/ImageJ/net/imagej/display/WindowService.html)
