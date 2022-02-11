@@ -28,13 +28,17 @@ def get_axis_types(rai: 'RandomAccessibleInterval') -> List['AxisType']:
     if _has_axis(rai):
         Axes = sj.jimport('net.imagej.axis.Axes')
         rai_dims = get_dims(rai)
+        for i in range(len(rai_dims)):
+            if rai_dims[i] == 'C' or rai_dims[i] == 'c':
+                rai_dims[i] = 'Channel'
+            if rai_dims[i] == 'T' or rai_dims[i] == 't':
+                rai_dims[i] = 'Time'
         rai_axis_types = []
         for i in range(len(rai_dims)):
             rai_axis_types.append(Axes.get(rai_dims[i]))
         return rai_axis_types
     else:
-        print("Unsupported action _get_axis_type")
-        return
+        raise AttributeError(f"Unsupported Java type: {type(rai)} has no axis attribute.")
 
 
 def get_dims(image) -> List[str]:
