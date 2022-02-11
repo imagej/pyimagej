@@ -145,6 +145,23 @@ def prioritize_rai_axes_order(axis_types: List['AxisType'], ref_order: List['Axi
     return permute_order
 
 
+def prioritize_xarray_axes_order(dimensions: List[str], ref_order: List[str]) -> List[str]:
+    """Prioritize the axes order to match a reference order.
+
+    Ensure that the dimensions match the style of the reference order.
+    """
+    transpose_order = []
+    for dim in ref_order:
+        for i in range(len(dimensions)):
+            if dim == dimensions[i]:
+                transpose_order.append(dim)
+
+    for i in range(len(dimensions)):
+        if dimensions[i] not in ref_order:
+            transpose_order.insert(1, dimensions[i])
+
+    return transpose_order
+
 def _dataset_to_imgplus(rai: 'RandomAccessibleInterval') -> 'ImgPlus':
     """Get an ImgPlus from a Dataset.
 
