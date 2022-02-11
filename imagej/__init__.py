@@ -871,9 +871,19 @@ def _create_gateway():
             :return: A permuted RandomAccessibleInterval.
             """
             rai_axis_types = dims.get_axis_types(rai)
-            permute_order = dims.prioritize_axes_order(rai_axis_types, dims._python_ref_order())
+            permute_order = dims.prioritize_rai_axes_order(rai_axis_types, dims._python_rai_ref_order())
     
             return dims.reorganize(rai, permute_order)
+
+
+        def _transpose_xarray_to_java(self, xarr):
+            """Transpose an xarray to the Java reference order.
+            """
+            # get ImageJ style dims and transpose order
+            ij_dims = dims._pydim_to_ijdim(xarr.dims)
+            transpose_order = dims.prioritize_xarray_axes_order(ij_dims, dims._java_numpy_ref_order())
+
+            return xarr.transpose(*transpose_order)
 
 
         def _invert_except_last_element(self, lst):
