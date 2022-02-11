@@ -188,7 +188,7 @@ def _get_axis_labels(axes: List['CalibratedAxis']) -> List[str]:
     return [str((axes[idx].type().getLabel())) for idx in range(len(axes))]
 
 
-def _python_ref_order():
+def _python_rai_ref_order() -> List['AxisType']:
     """Get the Python reference order.
 
     Get a List of 'AxisType' in the Python/scikitimage
