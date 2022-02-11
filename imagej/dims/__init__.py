@@ -227,6 +227,8 @@ def _pydim_to_ijdim(dimensions: List[str]) -> List[str]:
     :return: A List of ImageJ style dimensions.
     """
     ij_dims = []
+    dimensions = [dim.lower() for dim in dimensions]
+
     for dim in dimensions:
         if dim in ['x', 'y', 'z']:
             ij_dims.append(dim.upper())
@@ -250,6 +252,7 @@ def _ijdim_to_pydim(dimensions: List[str]) -> List[str]:
     :return: A List of numpy style dimensions.
     """
     py_dims = []
+    dimensions = [dim.upper() for dim in dimensions]
     for dim in dimensions:
         if dim in ['X', 'Y', 'C', 'Z', 'T']:
             py_dims.append(dim.lower())
