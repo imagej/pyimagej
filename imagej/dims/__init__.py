@@ -269,9 +269,9 @@ def _ijdim_to_pydim(dimensions: List[str]) -> List[str]:
     for dim in dimensions:
         if dim in ['X', 'Y', 'C', 'Z', 'T']:
             py_dims.append(dim.lower())
-        elif dim == 'Channel':
+        elif dim == 'CHANNEL':
             py_dims.append('c')
-        elif dim == 'Time':
+        elif dim == 'TIME':
             py_dims.append('t')
         else:
             py_dims.append(dim)
