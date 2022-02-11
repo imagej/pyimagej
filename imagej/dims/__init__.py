@@ -175,6 +175,7 @@ def prioritize_xarray_axes_order(dimensions: List[str], ref_order: List[str]) ->
 
     return transpose_order
 
+
 def _dataset_to_imgplus(rai: 'RandomAccessibleInterval') -> 'ImgPlus':
     """Get an ImgPlus from a Dataset.
 
@@ -221,7 +222,6 @@ def _java_numpy_ref_order() -> List[str]:
     Note that this reference order is reversed.
     :return: List of dimensions in Java preferred order.
     """
-    # move 'c' into position for the F-contig array
     return ['t', 'z', 'y', 'x', 'c']
 
 
@@ -273,12 +273,6 @@ def _ijdim_to_pydim(dimensions: List[str]) -> List[str]:
             py_dims.append(dim)
 
     return py_dims
-
-
-def _to_upper_dims(dimensions: List[str]) -> List[str]:
-    """Convert a List of dimensions to lower case.
-    """
-    return [str(dim).upper() for dim in dimensions]
 
 
 def _has_axis(rai: 'RandomAccessibleInterval'):
