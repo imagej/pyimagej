@@ -108,7 +108,6 @@ def get_xarr():
 
 def assert_xarray_equal_to_dataset(ij_fixture, xarr):
     dataset = ij_fixture.py.to_java(xarr)
-
     axes = [dataset.axis(axnum) for axnum in range(5)]
     labels = [axis.type().getLabel() for axis in axes]
 
@@ -157,7 +156,8 @@ class TestXarrayConversion(object):
         assert ['X', 'Y', 'Z', 'T', 'C'] == labels
 
         # Test that automatic axis swapping works correctly
-        raw_values = ij_fixture.py.rai_to_numpy(dataset)
+        numpy_image = ij_fixture.py.initialize_numpy_image(dataset)
+        raw_values = ij_fixture.py.rai_to_numpy(dataset, numpy_image)
         assert (xarr.values == np.moveaxis(raw_values, 0, -1)).all()
 
         assert_inverted_xarr_equal_to_xarr(dataset, ij_fixture, xarr)
