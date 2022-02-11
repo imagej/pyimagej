@@ -471,18 +471,15 @@ def _create_gateway():
             raise TypeError('Unsupported Java type: ' + str(sj.jclass(image_or_type).getName()))
 
         def new_numpy_image(self, image):
-            """Create an empty numpy array.
-
-            Create a new numpy array with the same shape and
-            type as the input image, filled with zeros.
-
-            :param image: A numpy array.
-            :return: A new zero filled array of given shape and type.
+            """
+            ij.py.new_numpy_image() is deprecated.
+            Use ij.py.initialize_numpy_image() insteadl.
             """
             try:
                 dtype_to_use = self.dtype(image)
             except TypeError:
                 dtype_to_use = np.dtype('float64')
+            logging.warning("ij.py.new_numpy_image() is deprecated. Use ij.py.initialize_numpy_image() insteadl.")
             return np.zeros(self.dims(image), dtype=dtype_to_use)
 
         def initialize_numpy_image(self, rai: RandomAccessibleInterval) -> np.ndarray:
