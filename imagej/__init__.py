@@ -734,23 +734,6 @@ def _create_gateway():
             return axes
 
 
-        def _pydim_to_ijdim(self, axis):
-            """Convert between the lowercase Python convention (x, y, z, c, t) to IJ (X, Y, Z, C, T)"""
-            if str(axis) in ['x', 'y', 'z', 'c', 't']:
-                return str(axis).upper()
-            return str(axis)
-
-        def _ijdim_to_pydim(self, axis):
-            """Convert the IJ uppercase dimension convention (X, Y, Z C, T) to lowercase python (x, y, z, c, t) """
-            if str(axis) in ['X', 'Y', 'Z', 'C', 'T']:
-                return str(axis).lower()
-            elif str(axis) == 'Channel':
-                return 'c'
-            elif str(axis) == 'Time':
-                return 't'
-            else:
-                return str(axis)
-
         def _get_axis_num(self, xarr, axis):
             """
             Get the xarray -> java axis number due to inverted axis order for C style numpy arrays (default)
