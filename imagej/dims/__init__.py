@@ -121,16 +121,16 @@ def reorganize(rai: 'RandomAccessibleInterval', permute_order: List[int]) -> 'Im
     return ImgPlus(ImgView.wrap(rai), img.getName(), axes)
 
 
-def prioritize_axes_order(axis_types: List['AxisType'], ref_order: List['AxisType']) -> List[int]:
+def prioritize_rai_axes_order(axis_types: List['AxisType'], ref_order: List['AxisType']) -> List[int]:
     """Prioritize the axes order to match a reference order.
 
-    The input list of 'AxisType' from the image to be permuted
+    The input List of 'AxisType' from the image to be permuted
     will be prioritized to match (where dimensions exist) to
     a reference order (e.g. _python_ref_order).
 
     :param axis_types: List of 'net.imagej.axis.AxisType' from image.
     :param ref_order: List of 'net.imagej.axis.AxisType' from reference order.
-    :return: List of int for permuting the image.
+    :return: List of int for permuting a image.
     """
     permute_order = []
     for axis in ref_order:
