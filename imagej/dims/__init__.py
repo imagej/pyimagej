@@ -247,7 +247,7 @@ def _ijdim_to_pydim(dimensions: List[str]) -> List[str]:
     """
     py_dims = []
     for dim in dimensions:
-        if dim in ['X', 'Y', 'C', 'Z', 'T']
+        if dim in ['X', 'Y', 'C', 'Z', 'T']:
             py_dims.append(dim.lower())
         elif dim == 'Channel':
             py_dims.append('c')
