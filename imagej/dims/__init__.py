@@ -189,20 +189,27 @@ def _get_axis_labels(axes: List['CalibratedAxis']) -> List[str]:
 
 
 def _python_rai_ref_order() -> List['AxisType']:
-    """Get the Python reference order.
+    """Get the Java style numpy reference order.
 
     Get a List of 'AxisType' in the Python/scikitimage
     preferred order. Note that this reference order is
     reversed.
+    :return: List of dimensions in numpy preferred order.
     """
     Axes = sj.jimport('net.imagej.axis.Axes')
+
     return [Axes.CHANNEL, Axes.X, Axes.Y, Axes.Z, Axes.TIME]
 
 
 def _java_numpy_ref_order() -> List[str]:
-    """Get the Python numpy reference order.
+    """Get the numpy style Jav reference order.
+
+    Get a List of str in the Java preferred order.
+    Note that this reference order is reversed.
+    :return: List of dimensions in Java preferred order.
     """
-    return ['X', 'Y', 'Channel', 'Z', 'Time']
+    # move 'c' into position for the F-contig array
+    return ['t', 'z', 'y', 'x', 'c']
 
 
 def _pydim_to_ijdim(dimensions: List[str]) -> List[str]:
