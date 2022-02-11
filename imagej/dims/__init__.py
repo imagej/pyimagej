@@ -44,18 +44,22 @@ def get_axis_types(rai: 'RandomAccessibleInterval') -> List['AxisType']:
 def get_dims(image) -> List[str]:
     """Get the dimensions of an image.
 
-    Get the dimensions (e.g. TZYXC) of an image.
+    Get the dimensions (e.g. TZYXC) of an image. If no dimension
+    labels are found, the shape of the image is returned.
 
     :param image: An image (e.g. xarray, ImagePlus, Dataset)
     :return: List of dimensions.
     """
     if _is_xarraylike(image):
         return image.dims
+    if _is_arraylike(image):
+        return image.shape
     if hasattr(image, 'axis'):
         axes = get_axes(image)
         return _get_axis_labels(axes)
-    else:
+    if isinstance(image, sj.jimport('net.imglib2.RandomAccessibleInterval')):
         return image.dimensionsAsLongArray()
+    raise TypeError(f"Unsupported image type: {image}\n No dimensions or shape found.")
 
 
 def get_shape(image) -> List[int]:
