@@ -29,6 +29,7 @@ Here is an example of opening an image using ImageJ2 and displaying it:
 """
 
 import logging
+from math import perm
 import os
 import re
 import sys
@@ -884,10 +885,16 @@ def _create_gateway():
             :param rai: A RandomAccessibleInterval with axes.
             :return: A permuted RandomAccessibleInterval.
             """
+            # get input rai metadata and axes info
+            rai_metadata = rai.getProperties()
             rai_axis_types = dims.get_axis_types(rai)
+
+            # permute rai to specified order and transfer metadata
             permute_order = dims.prioritize_rai_axes_order(rai_axis_types, dims._python_rai_ref_order())
-    
-            return dims.reorganize(rai, permute_order)
+            permuted_rai = dims.reorganize(rai, permute_order)
+            permuted_rai.getProperties().putAll(rai_metadata)
+
+            return permuted_rai
 
 
         def _invert_except_last_element(self, lst):
