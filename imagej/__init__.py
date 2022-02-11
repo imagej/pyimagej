@@ -689,14 +689,18 @@ def _create_gateway():
             ends_with_axis = xarr.dims[len(xarr.dims)-1].lower() in ['c', 'channel']
             return ends_with_axis
 
+
         def _xarray_to_dataset(self, xarr):
             """
             Converts a xarray dataarray to a dataset, inverting C-style (slow axis first) to F-style (slow-axis last)
             :param xarr: Pass an xarray dataarray and turn into a dataset.
             :return: The dataset
             """
-            vals = xarr.values
-            dataset = self._numpy_to_dataset(vals)
+            if self._ends_with_channel_axis(xarr):
+                vals = np.moveaxis(xarr.values, -1, 0)
+                dataset = self._numpy_to_dataset(vals)
+            else:
+                dataset = self._numpy_to_dataset(xarr.values)
             axes = self._assign_axes(xarr)
             dataset.setAxes(axes)
             self._assign_dataset_metadata(dataset, xarr.attrs)
@@ -710,7 +714,6 @@ def _create_gateway():
             :return: A list of ImageJ Axis with the specified origin and scale
             """
             axes = ['']*len(xarr.dims)
-
             for axis in xarr.dims:
                 axis_str = self._pydim_to_ijdim(axis)
 
@@ -731,6 +734,7 @@ def _create_gateway():
                 axes[ax_num] = java_axis
 
             return axes
+
 
         def _pydim_to_ijdim(self, axis):
             """Convert between the lowercase Python convention (x, y, z, c, t) to IJ (X, Y, Z, C, T)"""
@@ -756,8 +760,18 @@ def _create_gateway():
             :param axis: Axis number to convert
             :return: Axis idx in java
             """
+            py_axnum = xarr.get_axis_num(axis)
+            if np.isfortran(xarr.values):
+                return py_axnum
 
-            return xarr.get_axis_num(axis)
+            if self._ends_with_channel_axis(xarr):
+                if axis == len(xarr.dims) - 1:
+                    return axis
+                else:
+                    return len(xarr.dims) - py_axnum - 2
+            else:
+                return len(xarr.dims) - py_axnum - 1
+
 
         def _assign_dataset_metadata(self, dataset, attrs):
             """
@@ -852,15 +866,15 @@ def _create_gateway():
             xr_axes = dims.get_axes(permuted_rai)
             xr_dims = dims.get_dims(permuted_rai)
             xr_attrs = self.from_java(permuted_rai.getProperties())
-
             # reverse axes and dims to match numpy_array
             xr_axes.reverse()
             xr_dims.reverse()
+            xr_dims = dims._ijdim_to_pydim(xr_dims)
             xr_coords = self._get_axes_coords(xr_axes, xr_dims, numpy_array.shape)
             return xr.DataArray(numpy_array, dims=xr_dims, coords=xr_coords, attrs=xr_attrs)
 
         
-        def _permute_rai_to_python(self, rai: RandomAccessibleInterval):
+        def _permute_rai_to_python(self, rai: RandomAccessibleInterval) -> RandomAccessibleInterval:
             """Permute a RandomAccessibleInterval to the python reference order.
 
             Permute a RandomAccessibleInterval to the Python reference order of
@@ -874,16 +888,6 @@ def _create_gateway():
             permute_order = dims.prioritize_rai_axes_order(rai_axis_types, dims._python_rai_ref_order())
     
             return dims.reorganize(rai, permute_order)
-
-
-        def _transpose_xarray_to_java(self, xarr):
-            """Transpose an xarray to the Java reference order.
-            """
-            # get ImageJ style dims and transpose order
-            ij_dims = dims._pydim_to_ijdim(xarr.dims)
-            transpose_order = dims.prioritize_xarray_axes_order(ij_dims, dims._java_numpy_ref_order())
-
-            return xarr.transpose(*transpose_order)
 
 
         def _invert_except_last_element(self, lst):
