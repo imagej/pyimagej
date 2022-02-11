@@ -134,11 +134,11 @@ def prioritize_rai_axes_order(axis_types: List['AxisType'], ref_order: List['Axi
 
     The input List of 'AxisType' from the image to be permuted
     will be prioritized to match (where dimensions exist) to
-    a reference order (e.g. _python_ref_order).
+    a reference order (e.g. _python_rai_ref_order).
 
     :param axis_types: List of 'net.imagej.axis.AxisType' from image.
     :param ref_order: List of 'net.imagej.axis.AxisType' from reference order.
-    :return: List of int for permuting a image.
+    :return: List of int for permuting a image (e.g. [0, 4, 3, 1, 2])
     """
     permute_order = []
     for axis in ref_order:
@@ -156,7 +156,12 @@ def prioritize_rai_axes_order(axis_types: List['AxisType'], ref_order: List['Axi
 def prioritize_xarray_axes_order(dimensions: List[str], ref_order: List[str]) -> List[str]:
     """Prioritize the axes order to match a reference order.
 
-    Ensure that the dimensions match the style of the reference order.
+    The input List of dimensions (type: str) from the xarray.DataArray 
+    to be transposed will be prioritizied to match (where dimensions exist)
+    to a reference order (e.g. _java_numpy_ref_order).
+
+    :param dimensions: List of dimensions (e.g. ['x', 'y', 'c'])
+    :return: List of dimensions for transposing an xarray.DataArray.
     """
     transpose_order = []
     for dim in ref_order:
