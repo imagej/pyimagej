@@ -47,7 +47,11 @@ def get_dims(image) -> List[str]:
     Get the dimensions (e.g. TZYXC) of an image. If no dimension
     labels are found, the shape of the image is returned.
 
-    :param image: An image (e.g. xarray, ImagePlus, Dataset)
+    :param image:
+        An numpy or xarray.DataArray
+        OR An ImgLib2 image ('net.imglib2.Interval').
+        OR An ImageJ2 Dataset ('net.imagej.Dataset').
+        OR An ImageJ ImagePlus ('ij.ImagePlus').
     :return: List of dimensions.
     """
     if _is_xarraylike(image):
