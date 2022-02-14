@@ -66,7 +66,7 @@ you chose this route over conda above.
 
 2. Install OpenJDK 8 or OpenJDK 11. PyImageJ should work with whichever
    distribution of OpenJDK you prefer; we recommend
-   [Zulu JDK+JX 8](https://www.azul.com/downloads/zulu-community/?version=java-8-lts&package=jdk-fx).
+   [Zulu JDK+FX 8](https://www.azul.com/downloads/zulu-community/?version=java-8-lts&package=jdk-fx).
    Another option is to install openjdk from your platform's package manager.
 
 3. Install Maven. You can either
