@@ -1,3 +1,39 @@
+# Known Limitations
+
+For technical reasons, there are some aspects of ImageJ and ImageJ2 that cannot fully work from a Python script:
+
+## The original ImageJ API is limited in headless mode
+
+Normally, the [original ImageJ](https://imagej.net/software/imagej) does not work headless at all. But thanks to [ImageJ2's runtime patching mechanism](https://imagej.net/libs/imagej-legacy), most aspects of the original ImageJ work in [headless mode](https://imagej.net/learn/headless), including via PyImageJ when initializing with `imagej.init(mode=Mode.HEADLESS)`.
+
+That said, there are a couple of major areas of functionality in the original ImageJ that do not work headless, and therefore do not work headless via PyImageJ.
+
+### ROI Manager
+
+ImageJ's [ROI Manager](https://imagej.nih.gov/ij/docs/guide/146-30.html#fig:The-ROI-Manager) allows you to work with multiple regions of interest (ROIs) simultaneously. The `ij.plugin.frame.RoiManager` class is the API for controlling these features. As one might guess just from its package name, `ij.plugin.frame.RoiManager` is a `java.awt.Frame`, and therefore cannot be used headless.
+
+If you need to work with multiple `ij.gui.Roi` objects, one option that works headless is to group them using an `ij.gui.Overlay`.
+
+### WindowManager
+
+ImageJ's `ij.WindowManager` class consists of static functions for working with Java AWT windows, including ImageJ's `ij.gui.ImageWindow`. Each ImageJ image is an `ij.ImagePlus` linked to a corresponding `ij.gui.ImageWindow`. However, in headless mode, there are no image windows, because they cannot exist headless. Therefore, attempts to use the functions of the `WindowManager` will fail, with functions like `WindowManager.getCurrentWindow()` always returning null. Unfortunately, ImageJ tracks open images via their windows; therefore, you cannot know which images have previously been opened while running headless, nor is there an "active image window" while running headless because _there are no windows_.
+
+Note that if you are having problems with a `null` or incorrect active image while **running in `GUI` or `INTERACTIVE` mode (i.e. not `HEADLESS`)**, you might need to call `ij.py.synchronize_ij1_to_ij2(imp)`, where `imp` is the `ij.ImagePlus` you want to register or update.
+
+## Non-blocking INTERACTIVE mode on macOS
+
+On macOS, the Cocoa event loop needs to be started from the main thread before any Java-AWT-specific functions can work. And doing so blocks the main thread. For this reason, PyImageJ includes two graphical modes, `GUI` and `INTERACTIVE`, with `GUI` blocking the `imagej.init` invocation, and `INTERACTIVE` returning immediately... but `INTERACTIVE` cannot work on macOS and is therefore not available, due to this OS-specific limitation.
+
+## Old versions of ImageJ2
+
+PyImageJ uses some functions of ImageJ2 and supporting libraries that are not available in older versions of ImageJ2. While it may be possible to initialize an ImageJ2 gateway with an older version of ImageJ2, certain functionality may not behave as intended, so we advise to use version 2.3.0 or later if possible.
+
+## Starting Python from inside ImageJ
+
+At the time of this writing, in order to use PyImageJ, you must start Python first, and initialize ImageJ2 from there.
+
+We have plans to make it possible to go the other direction: starting ImageJ2 as usual and then calling Python scripts for the Script Editor. But this architecture is not complete yet; see [this forum discussion](https://forum.image.sc/t/fiji-conda/59618/11) for details.
+
 # Common Errors
 
 ## Error in "mvn.CMD -B -f pom.xml" dependency:resolve: 1

@@ -24,7 +24,7 @@ def detections_to_pyplot(image: xr.DataArray, detections: np.ndarray):
     """
     Display image with detections in matplotlib.pyplot.
     """
-    fig, ax = plt.subplots(1, 2, figsize=(10,8), sharex=True, sharey=True)
+    fig, ax = plt.subplots(1, 2, figsize=(8,4), sharex=True, sharey=True)
     ax[0].imshow(image, interpolation='nearest')
     ax[1].imshow(image, interpolation='nearest')
     for blob in detections:
@@ -67,6 +67,7 @@ def detections_to_imagej(dataset, detections: np.ndarray, add_to_roi_manager=Fal
             rm.addRoi(roi)
 
     imp.setOverlay(ov)
+    imp.getProcessor().resetMinAndMax()
     imp.show()
 
 
@@ -123,7 +124,8 @@ if __name__ == "__main__":
     img = ij.io().open('../sample-data/test_image.tif')
     img_xr = ij.py.from_java(img)
     detected_blobs = find_blobs(img_xr, min_sigma=0.5, max_sigma=3, num_sigma=10, threshold=0.0075)
-    detections_to_pyplot(img_xr, detected_blobs)
+    ij.ui().showUI()
     detections_to_imagej(img, detected_blobs, True)
-    detections_to_bdv(img, detected_blobs)
-    detections_to_napari(img_xr, detected_blobs)
+    detections_to_pyplot(img_xr, detected_blobs)
+    #detections_to_bdv(img, detected_blobs)
+    #detections_to_napari(img_xr, detected_blobs)
