@@ -1,5 +1,8 @@
+import logging
+from matplotlib.pyplot import jet
 import scyjava as sj
-from jpype import JObject
+import numpy as np
+from jpype import JObject, JException
 from typing import List, Tuple
 
 def get_axes(rai: 'RandomAccessibleInterval') -> List['CalibratedAxis']:
@@ -179,6 +182,97 @@ def prioritize_xarray_axes_order(dimensions: List[str], ref_order: List[str]) ->
 
     return transpose_order
 
+def _assign_axes(xarr):
+    """
+    Obtain xarray axes names, origin, and scale and convert into ImageJ Axis; currently supports EnumeratedAxis
+    :param xarr: xarray that holds the units
+    :return: A list of ImageJ Axis with the specified origin and scale
+    """
+    Axes = sj.jimport('net.imagej.axis.Axes')
+    Double = sj.jimport('java.lang.Double')
+
+    axes = ['']*len(xarr.dims)
+    xarr_ij_dims = _pydim_to_ijdim(xarr.dims)
+
+    # try to get EnumeratedAxis, if not then default to LinearAxis in the loop
+    try:
+        EnumeratedAxis = _get_enumerated_axis()
+    except(JException, TypeError):
+        EnumeratedAxis = None
+
+    for i in range(len(xarr.dims)):
+        axis_str = xarr_ij_dims[i]
+        ax_type = Axes.get(axis_str)
+        ax_num = _get_axis_num(xarr, xarr.dims[i])
+        scale = _get_scale(xarr.coords[xarr.dims[i]])
+
+        if scale is None:
+            logging.warning(f"The {ax_type.label} axis is non-numeric and is translated to a linear index.")
+            doub_coords = [Double(np.double(x)) for x in np.arange(len(xarr.coords[xarr.dims[i]]))]
+        else:
+            doub_coords = [Double(np.double(x)) for x in xarr.coords[xarr.dims[i]]]
+
+        # EnumeratedAxis is a new axis made for xarray, so is only present in ImageJ versions that are released
+        # later than March 2020.  This actually returns a LinearAxis if using an earlier version.
+        if EnumeratedAxis != None:
+            java_axis = EnumeratedAxis(ax_type, sj.to_java(doub_coords))
+        else:
+            java_axis = _get_linear_axis(ax_type, sj.to_java(doub_coords))
+
+        axes[ax_num] = java_axis
+
+    return axes
+
+
+def _ends_with_channel_axis(xarr):
+    ends_with_axis = xarr.dims[len(xarr.dims)-1].lower() in ['c', 'channel']
+    return ends_with_axis
+
+
+def _get_axis_num(xarr, axis):
+    """
+    Get the xarray -> java axis number due to inverted axis order for C style numpy arrays (default)
+    :param xarr: Xarray to convert
+    :param axis: Axis number to convert
+    :return: Axis idx in java
+    """
+    py_axnum = xarr.get_axis_num(axis)
+    if np.isfortran(xarr.values):
+        return py_axnum
+
+    if _ends_with_channel_axis(xarr):
+        if axis == len(xarr.dims) - 1:
+            return axis
+        else:
+            return len(xarr.dims) - py_axnum - 2
+    else:
+        return len(xarr.dims) - py_axnum - 1
+
+
+def _get_scale(axis):
+    """
+    Get the scale of an axis, assuming it is linear and so the scale is simply second - first coordinate.
+    :param axis: A 1D list like entry accessible with indexing, which contains the axis coordinates
+    :return: The scale for this axis or None if it is a non-numeric scale.
+    """
+    try:
+        return axis.values[1] - axis.values[0]
+    except TypeError:
+        return None
+
+def _get_enumerated_axis():
+    # EnumeratedAxis is a new axis made for xarray, so is only present in
+    # ImageJ versions that are released later than March 2020. This check
+    # defaults to LinearAxis instead if Enumerated does not work.
+    return sj.jimport('net.imagej.axis.EnumeratedAxis')
+
+def _get_linear_axis(axis_type: 'AxisType', values):
+    DefaultLinearAxis = sj.jimport('net.imagej.axis.DefaultLinearAxis')
+    origin = values[0]
+    scale = values[1] - values[0]
+    axis = DefaultLinearAxis(axis_type, scale, origin)
+    return axis
+
 
 def _dataset_to_imgplus(rai: 'RandomAccessibleInterval') -> 'ImgPlus':
     """Get an ImgPlus from a Dataset.
@@ -246,9 +340,9 @@ def _pydim_to_ijdim(dimensions: List[str]) -> List[str]:
         if dim in ['x', 'y', 'z']:
             ij_dims.append(dim.upper())
         elif dim == 'c':
-            ij_dims.append('Channel')
+            ij_dims.append('C')
         elif dim == 't':
-            ij_dims.append('Time')
+            ij_dims.append('T')
         else:
             ij_dims.append(dim)
 

@@ -337,21 +337,6 @@ def _create_gateway():
     ImgPlus                  = sj.jimport('net.imagej.ImgPlus')
     Img                      = sj.jimport('net.imglib2.img.Img')
     RandomAccessibleInterval = sj.jimport('net.imglib2.RandomAccessibleInterval')
-    Axes                     = sj.jimport('net.imagej.axis.Axes')
-    Double                   = sj.jimport('java.lang.Double')
-
-    # EnumeratedAxis is a new axis made for xarray, so is only present in
-    # ImageJ versions that are released later than March 2020. This check
-    # defaults to LinearAxis instead if Enumerated does not work.
-    try:
-        EnumeratedAxis           = sj.jimport('net.imagej.axis.EnumeratedAxis')
-    except (JException, TypeError):
-        DefaultLinearAxis = sj.jimport('net.imagej.axis.DefaultLinearAxis')
-        def EnumeratedAxis(axis_type, values):
-            origin = values[0]
-            scale = values[1] - values[0]
-            axis = DefaultLinearAxis(axis_type, scale, origin)
-            return axis
 
     class ImageJPython:
         def __init__(self, ij):
@@ -683,10 +668,6 @@ def _create_gateway():
             rai = imglyb.to_imglib(data)
             return self._java_to_dataset(rai)
 
-        def _ends_with_channel_axis(self, xarr):
-            ends_with_axis = xarr.dims[len(xarr.dims)-1].lower() in ['c', 'channel']
-            return ends_with_axis
-
 
         def _xarray_to_dataset(self, xarr):
             """
@@ -694,64 +675,16 @@ def _create_gateway():
             :param xarr: Pass an xarray dataarray and turn into a dataset.
             :return: The dataset
             """
-            if self._ends_with_channel_axis(xarr):
+            if dims._ends_with_channel_axis(xarr):
                 vals = np.moveaxis(xarr.values, -1, 0)
                 dataset = self._numpy_to_dataset(vals)
             else:
                 dataset = self._numpy_to_dataset(xarr.values)
-            axes = self._assign_axes(xarr)
+            axes = dims._assign_axes(xarr)
             dataset.setAxes(axes)
             self._assign_dataset_metadata(dataset, xarr.attrs)
 
             return dataset
-
-        def _assign_axes(self, xarr):
-            """
-            Obtain xarray axes names, origin, and scale and convert into ImageJ Axis; currently supports EnumeratedAxis
-            :param xarr: xarray that holds the units
-            :return: A list of ImageJ Axis with the specified origin and scale
-            """
-            axes = ['']*len(xarr.dims)
-            for axis in xarr.dims:
-                axis_str = self._pydim_to_ijdim(axis)
-
-                ax_type = Axes.get(axis_str)
-                ax_num = self._get_axis_num(xarr, axis)
-
-                scale = self._get_scale(xarr.coords[axis])
-                if scale is None:
-                    logging.warning(f"The {ax_type.label} axis is non-numeric and is translated to a linear index.")
-                    doub_coords = [Double(np.double(x)) for x in np.arange(len(xarr.coords[axis]))]
-                else:
-                    doub_coords = [Double(np.double(x)) for x in xarr.coords[axis]]
-
-                # EnumeratedAxis is a new axis made for xarray, so is only present in ImageJ versions that are released
-                # later than March 2020.  This actually returns a LinearAxis if using an earlier version.
-                java_axis = EnumeratedAxis(ax_type, ij.py.to_java(doub_coords))
-
-                axes[ax_num] = java_axis
-
-            return axes
-
-
-        def _get_axis_num(self, xarr, axis):
-            """
-            Get the xarray -> java axis number due to inverted axis order for C style numpy arrays (default)
-            :param xarr: Xarray to convert
-            :param axis: Axis number to convert
-            :return: Axis idx in java
-            """
-            py_axnum = xarr.get_axis_num(axis)
-            if np.isfortran(xarr.values):
-                return py_axnum
-
-            if self._ends_with_channel_axis(xarr):
-                if axis == len(xarr.dims) - 1:
-                    return axis
-                else:
-                    return len(xarr.dims) - py_axnum - 2
-            else:
-                return len(xarr.dims) - py_axnum - 1
 
 
         def _assign_dataset_metadata(self, dataset, attrs):
@@ -769,16 +702,6 @@ def _create_gateway():
             """
             return axis.values[0]
 
-        def _get_scale(self, axis):
-            """
-            Get the scale of an axis, assuming it is linear and so the scale is simply second - first coordinate.
-            :param axis: A 1D list like entry accessible with indexing, which contains the axis coordinates
-            :return: The scale for this axis or None if it is a non-numeric scale.
-            """
-            try:
-                return axis.values[1] - axis.values[0]
-            except TypeError:
-                return None
 
         def _java_to_dataset(self, data):
             """
