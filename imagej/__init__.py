@@ -343,18 +343,15 @@ def _create_gateway():
             self._ij = ij
 
         def dims(self, image):
-            """Return the dimensions of the input image.
-
-            Return the dimensions (i.e. shape) of an input numpy array,
-            ImgLib2 image or an ImageJ ImagePlus.
-
-            :param image:
-                A numpy array.
-                OR An ImgLib2 image ('net.imglib2.Interval').
-                OR An ImageJ2 Dataset ('net.imagej.Dataset').
-                OR An ImageJ ImagePlus ('ij.ImagePlus').
-            :param return: Dimensions of the input image.
             """
+            ij.py.dims() is deprecated.
+            Import the 'dims' module and use dims.get_dims().
+
+            :example:
+                >>> import imagej.dims as dims
+                >>> dims.get_dims(image)
+            """
+            logging.warning("ij.py.dims() is deprecated. Import the 'dims' module and use dims.get_dims().")
             if self._is_arraylike(image):
                 return image.shape
             if not sj.isjava(image):
@@ -458,13 +455,13 @@ def _create_gateway():
         def new_numpy_image(self, image):
             """
             ij.py.new_numpy_image() is deprecated.
-            Use ij.py.initialize_numpy_image() insteadl.
+            Use ij.py.initialize_numpy_image() instead.
             """
             try:
                 dtype_to_use = self.dtype(image)
             except TypeError:
                 dtype_to_use = np.dtype('float64')
-            logging.warning("ij.py.new_numpy_image() is deprecated. Use ij.py.initialize_numpy_image() insteadl.")
+            logging.warning("ij.py.new_numpy_image() is deprecated. Use ij.py.initialize_numpy_image() instead.")
             return np.zeros(self.dims(image), dtype=dtype_to_use)
 
         def initialize_numpy_image(self, rai: RandomAccessibleInterval) -> np.ndarray:
