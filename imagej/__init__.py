@@ -771,7 +771,7 @@ def _create_gateway():
             xr_axes.reverse()
             xr_dims.reverse()
             xr_dims = dims._convert_dims(xr_dims, direction='python')
-            xr_coords = self._get_axes_coords(xr_axes, xr_dims, numpy_array.shape)
+            xr_coords = dims._get_axes_coords(xr_axes, xr_dims, numpy_array.shape)
             return xr.DataArray(numpy_array, dims=xr_dims, coords=xr_coords, attrs=xr_attrs)
 
         
@@ -807,18 +807,6 @@ def _create_gateway():
             reverse_cut = list(reversed(cut_list))
             reverse_cut.append(lst[-1])
             return reverse_cut
-
-        def _get_axes_coords(self, axes, dims, shape):
-            """
-            Get xarray style coordinate list dictionary from a dataset
-            :param axes: List of ImageJ axes
-            :param dims: List of axes labels for each dataset axis
-            :param shape: F-style, or reversed C-style, shape of axes numpy array.
-            :return: Dictionary of coordinates for each axis.
-            """
-            coords = {dims[idx]: [axes[idx].calibratedValue(position) for position in range(shape[idx])]
-                      for idx in range(len(dims))}
-            return coords
 
 
         def show(self, image, cmap=None):

@@ -250,6 +250,19 @@ def _get_axis_num(xarr, axis):
         return len(xarr.dims) - py_axnum - 1
 
 
+def _get_axes_coords(axes, dims, shape):
+    """
+    Get xarray style coordinate list dictionary from a dataset
+    :param axes: List of ImageJ axes
+    :param dims: List of axes labels for each dataset axis
+    :param shape: F-style, or reversed C-style, shape of axes numpy array.
+    :return: Dictionary of coordinates for each axis.
+    """
+    coords = {dims[idx]: [axes[idx].calibratedValue(position) for position in range(shape[idx])]
+                for idx in range(len(dims))}
+    return coords
+
+
 def _get_scale(axis):
     """
     Get the scale of an axis, assuming it is linear and so the scale is simply second - first coordinate.
