@@ -65,7 +65,7 @@ def get_dims(image) -> List[str]:
         axes = get_axes(image)
         return _get_axis_labels(axes)
     if isinstance(image, sj.jimport('net.imglib2.RandomAccessibleInterval')):
-        return image.dimensionsAsLongArray()
+        return list(image.dimensionsAsLongArray())
     raise TypeError(f"Unsupported image type: {image}\n No dimensions or shape found.")
 
 
