@@ -155,7 +155,7 @@ def prioritize_rai_axes_order(axis_types: List['AxisType'], ref_order: List['Axi
 
     for i in range(len(axis_types)):
         if axis_types[i] not in ref_order:
-                permute_order.insert(1, i)
+                permute_order.append(i)
 
     return permute_order
 
