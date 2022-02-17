@@ -224,7 +224,7 @@ def _assign_axes(xarr):
 
 
 def _ends_with_channel_axis(xarr):
-    ends_with_axis = xarr.dims[len(xarr.dims)-1].lower() in ['c', 'channel']
+    ends_with_axis = xarr.dims[len(xarr.dims)-1].lower() in ['c', 'ch','channel']
     return ends_with_axis
 
 
