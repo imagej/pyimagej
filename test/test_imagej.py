@@ -1,8 +1,9 @@
 import argparse
 import sys
 import unittest
-import imagej
 import pytest
+import imagej
+import imagej.dims as dims
 import scyjava as sj
 import numpy as np
 import xarray as xr
@@ -90,15 +91,15 @@ class TestImageJ(object):
 def get_xarr():
     def _get_xarr(option='C'):
         if option == 'C':
-            xarr = xr.DataArray(np.random.rand(5, 4, 6, 12, 3), dims=['t', 'z', 'y', 'x', 'c'],
-                                coords={'x': list(range(0, 12)), 'y': list(np.arange(0, 12, 2)), 'c': [0, 1, 2],
-                                        'z': list(np.arange(10, 50, 10)), 't': list(np.arange(0, 0.05, 0.01))},
-                                attrs={'Hello': 'Wrld'})
+            xarr = xr.DataArray(np.random.rand(5, 4, 6, 12, 3), dims=['t', 'pln', 'row', 'col', 'ch'],
+                                coords={'col': list(range(0, 12)), 'row': list(np.arange(0, 12, 2)), 'ch': [0, 1, 2],
+                                        'pln': list(np.arange(10, 50, 10)), 't': list(np.arange(0, 0.05, 0.01))},
+                                attrs={'Hello': 'World'})
         elif option == 'F':
-            xarr = xr.DataArray(np.ndarray([5, 4, 3, 6, 12], order='F'), dims=['t', 'z', 'c', 'y', 'x'],
-                                coords={'x': range(0, 12), 'y': np.arange(0, 12, 2),
-                                        'z': np.arange(10, 50, 10), 't': np.arange(0, 0.05, 0.01)},
-                                attrs={'Hello': 'Wrld'})
+            xarr = xr.DataArray(np.ndarray([5, 4, 3, 6, 12], order='F'), dims=['t', 'pln', 'ch', 'row', 'col'],
+                                coords={'col': range(0, 12), 'row': np.arange(0, 12, 2),
+                                        'pln': np.arange(10, 50, 10), 't': np.arange(0, 0.05, 0.01)},
+                                attrs={'Hello': 'World'})
         else:
             xarr = xr.DataArray(np.random.rand(1, 2, 3, 4, 5))
 
@@ -112,14 +113,14 @@ def assert_xarray_equal_to_dataset(ij_fixture, xarr):
     labels = [axis.type().getLabel() for axis in axes]
 
     for label, vals in xarr.coords.items():
-        cur_axis = axes[labels.index(label.upper())]
+        cur_axis = axes[labels.index(dims._convert_dim(label, direction='java'))]
         for loc in range(len(vals)):
             assert vals[loc] == cur_axis.calibratedValue(loc)
 
     if np.isfortran(xarr.values):
-        expected_labels = [dim.upper() for dim in xarr.dims]
+        expected_labels = [dims._convert_dim(dim, direction='java') for dim in xarr.dims]
     else:
-        expected_labels = ['X', 'Y', 'Z', 'T', 'C']
+        expected_labels = ['X', 'Y', 'Z', 'Time', 'Channel']
 
     assert expected_labels == labels
     assert xarr.attrs == ij_fixture.py.from_java(dataset.getProperties())
@@ -153,7 +154,7 @@ class TestXarrayConversion(object):
 
         axes = [dataset.axis(axnum) for axnum in range(5)]
         labels = [axis.type().getLabel() for axis in axes]
-        assert ['X', 'Y', 'Z', 'T', 'C'] == labels
+        assert ['X', 'Y', 'Z', 'Time', 'Channel'] == labels
 
         # Test that automatic axis swapping works correctly
         numpy_image = ij_fixture.py.initialize_numpy_image(dataset)
