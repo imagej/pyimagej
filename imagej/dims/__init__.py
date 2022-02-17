@@ -335,57 +335,6 @@ def _java_numpy_ref_order() -> List[str]:
     return ['t', 'z', 'y', 'x', 'c']
 
 
-def _pydim_to_ijdim(dimensions: List[str]) -> List[str]:
-    """Convert dimensions from numpy style to ImageJ style.
-
-    Convert dimensions from numpy style (t, z, y, x, c) to the ImageJ
-    style of (X, Y, Channel, Z, Time). This does not reorder
-    the dimensions.
-
-    :param dimensions: A List of numpy dimensions.
-    :return: A List of ImageJ style dimensions.
-    """
-    ij_dims = []
-    dimensions = [dim.lower() for dim in dimensions]
-
-    for dim in dimensions:
-        if dim in ['x', 'y', 'z']:
-            ij_dims.append(dim.upper())
-        elif dim == 'c':
-            ij_dims.append('C')
-        elif dim == 't':
-            ij_dims.append('T')
-        else:
-            ij_dims.append(dim)
-
-    return ij_dims
-
-
-def _ijdim_to_pydim(dimensions: List[str]) -> List[str]:
-    """Convert dimensions from ImageJ style to numpy style.
-
-    Convert dimensions from ImageJ style (X, Y, Channel, Z, Time) to the numpy
-    style of (t, z, y, x, c). This does not reorder the dimensions.
-
-    :param dimensions: A List of ImageJ dimensions.
-    :return: A List of numpy style dimensions.
-    """
-    py_dims = []
-    dimensions = [dim.upper() for dim in dimensions]
-
-    for dim in dimensions:
-        if dim in ['X', 'Y', 'C', 'Z', 'T']:
-            py_dims.append(dim.lower())
-        elif dim == 'CHANNEL':
-            py_dims.append('c')
-        elif dim == 'TIME':
-            py_dims.append('t')
-        else:
-            py_dims.append(dim)
-
-    return py_dims
-
-
 def _convert_dim(dim: str, direction: str) -> str:
     if direction.lower() == 'python':
         return _to_pydim(dim)
