@@ -192,6 +192,7 @@ def _assign_axes(xarr):
     Double = sj.jimport('java.lang.Double')
 
     axes = ['']*len(xarr.dims)
+    xarr_ij_dims = _convert_dims(xarr.dims, direction='java')
     xarr_ij_dims = _pydim_to_ijdim(xarr.dims)
 
     # try to get EnumeratedAxis, if not then default to LinearAxis in the loop
@@ -360,6 +361,7 @@ def _ijdim_to_pydim(dimensions: List[str]) -> List[str]:
     """
     py_dims = []
     dimensions = [dim.upper() for dim in dimensions]
+
     for dim in dimensions:
         if dim in ['X', 'Y', 'C', 'Z', 'T']:
             py_dims.append(dim.lower())
@@ -372,6 +374,29 @@ def _ijdim_to_pydim(dimensions: List[str]) -> List[str]:
 
     return py_dims
 
+
+def _convert_dim(dim: str, direction: str) -> str:
+    if direction.lower() == 'python':
+        return _to_pydim(dim)
+    elif direction.lower() == 'java':
+        return _to_ijdim(dim)
+    else:
+        return dim
+
+
+def _convert_dims(dimensions: List[str], direction: str) -> List[str]:
+    new_dims = []
+
+    if direction.lower() == "python":
+        for dim in dimensions:
+            new_dims.append(_to_pydim(dim))
+        return new_dims
+    elif direction.lower() == "java":
+        for dim in dimensions:
+            new_dims.append(_to_ijdim(dim))
+        return new_dims
+    else:
+        return dimensions
 
 def _has_axis(rai: 'RandomAccessibleInterval'):
     """Check if a RandomAccessibleInterval has axes.
@@ -395,3 +420,38 @@ def _is_xarraylike(xarr):
         hasattr(xarr, 'dims') and \
         hasattr(xarr, 'coords') and \
         _is_arraylike(xarr.values)
+
+
+def _to_pydim(key: str) -> str:
+    pydims = {
+        "Time" : "t",
+        "slice" : "pln",
+        "Z" : "pln",
+        "Y" : "row",
+        "X" : "col",
+        "Channel" : "ch",
+    }
+
+    if key in pydims:
+        return pydims[key]
+    else:
+        return key
+
+
+def _to_ijdim(key: str) -> str:
+    ijdims = {
+        "col" : "X",
+        "x" : "X",
+        "row" : "Y",
+        "y" : "Y",
+        "ch" : "Channel",
+        "c" : "Channel",
+        "pln" : "Z",
+        "z" : "Z",
+        "t": "Time",
+    }
+
+    if key in ijdims:
+        return ijdims[key]
+    else:
+        return key

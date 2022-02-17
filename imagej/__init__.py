@@ -766,11 +766,11 @@ def _create_gateway():
             # get metadata
             xr_axes = dims.get_axes(permuted_rai)
             xr_dims = dims.get_dims(permuted_rai)
-            xr_attrs = self.from_java(permuted_rai.getProperties())
+            xr_attrs = sj.to_python(permuted_rai.getProperties())
             # reverse axes and dims to match numpy_array
             xr_axes.reverse()
             xr_dims.reverse()
-            xr_dims = dims._ijdim_to_pydim(xr_dims)
+            xr_dims = dims._convert_dims(xr_dims, direction='python')
             xr_coords = self._get_axes_coords(xr_axes, xr_dims, numpy_array.shape)
             return xr.DataArray(numpy_array, dims=xr_dims, coords=xr_coords, attrs=xr_attrs)
 
