@@ -192,8 +192,6 @@ def _assign_axes(xarr):
     Double = sj.jimport('java.lang.Double')
 
     axes = ['']*len(xarr.dims)
-    xarr_ij_dims = _convert_dims(xarr.dims, direction='java')
-    xarr_ij_dims = _pydim_to_ijdim(xarr.dims)
 
     # try to get EnumeratedAxis, if not then default to LinearAxis in the loop
     try:
@@ -201,17 +199,17 @@ def _assign_axes(xarr):
     except(JException, TypeError):
         EnumeratedAxis = None
 
-    for i in range(len(xarr.dims)):
-        axis_str = xarr_ij_dims[i]
+    for dim in xarr.dims:
+        axis_str = _convert_dim(dim, direction='java')
         ax_type = Axes.get(axis_str)
-        ax_num = _get_axis_num(xarr, xarr.dims[i])
-        scale = _get_scale(xarr.coords[xarr.dims[i]])
+        ax_num = _get_axis_num(xarr, dim)
+        scale = _get_scale(xarr.coords[dim])
 
         if scale is None:
             logging.warning(f"The {ax_type.label} axis is non-numeric and is translated to a linear index.")
-            doub_coords = [Double(np.double(x)) for x in np.arange(len(xarr.coords[xarr.dims[i]]))]
+            doub_coords = [Double(np.double(x)) for x in np.arange(len(xarr.coords[dim]))]
         else:
-            doub_coords = [Double(np.double(x)) for x in xarr.coords[xarr.dims[i]]]
+            doub_coords = [Double(np.double(x)) for x in xarr.coords[dim]]
 
         # EnumeratedAxis is a new axis made for xarray, so is only present in ImageJ versions that are released
         # later than March 2020.  This actually returns a LinearAxis if using an earlier version.
