@@ -164,7 +164,7 @@ def assert_inverted_xarr_equal_to_xarr(dataset, ij_fixture, xarr):
     assert xarr.attrs == invert_xarr.attrs
 
 
-def assert_permuted_rai_equal_to_source_rai(ij_fixture, imgplus):
+def assert_permuted_rai_equal_to_source_rai(imgplus):
     # get java resources
     Axes = sj.jimport('net.imagej.axis.Axes')
 
@@ -259,7 +259,7 @@ class TestXarrayConversion(object):
         assert_xarray_equal_to_dataset(ij_fixture, get_xarr('F'))
 
     def test_7d_rai_to_python_permute(self, ij_fixture, get_imgplus):
-        assert_permuted_rai_equal_to_source_rai(ij_fixture, get_imgplus(ij_fixture))
+        assert_permuted_rai_equal_to_source_rai(get_imgplus(ij_fixture))
 
     def test_dataset_converts_to_xarray(self, ij_fixture, get_xarr):
         xarr = get_xarr()
