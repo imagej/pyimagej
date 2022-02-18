@@ -99,23 +99,6 @@ imp = ij.py.WindowManager.getCurrentImage()
 ij.py.synchronize_ij1_to_ij2(imp)
 ```
 
-## The GUI has issues on macOS
-
-The default UI may not work on macOS. You can try using ImageJ's
-Swing-UI-based GUI instead by initializing with:
-
-```python
-import imagej
-ij = imagej.init(..., headless=False)
-ij.ui().showUI("swing")
-```
-
-Replacing `...` with one of the usual possibilities
-(see [Initialization.md](Initialization.md)).
-
-See [this thread](https://github.com/imagej/pyimagej/issues/23)
-for additional information and updates.
-
 ## Original ImageJ classes not found
 
 If you try to load an original ImageJ class (with package prefix `ij`),
