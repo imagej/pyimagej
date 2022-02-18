@@ -123,3 +123,34 @@ log4j:WARN See http://logging.apache.org/log4j/1.2/faq.html#noconfig for more in
 ```
 
 This can safely be ignored and will be addressed in a future patch.
+
+## TypeError: No matching overloads
+
+Java has method overloading, whereas Python does not. The JPype library is very
+smart about figuring which Java method you intend to call based on the argument
+types. But it is not perfect&mdash;see e.g.
+[jpype-project/jpype#844](https://github.com/jpype-project/jpype/issues/844).
+Therefore, you might encounter an error `TypeError: No matching overloads` when
+trying to call certain Java methods in some scenarios. Here is an example:
+
+```python
+>>> ij = imagej.init()
+>>> ij.op().create()
+Traceback (most recent call last):
+  File "<stdin>", line 1, in <module>
+TypeError: No matching overloads found for org.scijava.plugin.PTService.create(), options are:
+	public default org.scijava.plugin.SciJavaPlugin org.scijava.plugin.PTService.create(java.lang.Class)
+```
+
+Until JPype is improved, you will need to work around the issue case by case.
+For example, to avoid the error above with the `create()` method, you can use:
+
+```python
+CreateNamespace = imagej.sj.jimport('net.imagej.ops.create.CreateNamespace')
+create = ij.op().namespace(CreateNamespace)
+```
+
+And then `create` will contain the same object normally accessed via
+`ij.op().create()`.
+
+If you are stuck, please post a topic on the [Image.sc Forum](https://forum.image.sc/).
