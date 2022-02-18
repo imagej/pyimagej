@@ -106,6 +106,34 @@ def get_xarr():
         return xarr
     return _get_xarr
 
+@pytest.fixture(scope='module')
+def get_imgplus():
+    def _get_imgplus(ij_fixture):
+        # get java resources
+        Random = sj.jimport('java.util.Random')
+        Axes = sj.jimport('net.imagej.axis.Axes')
+        UnsignedByteType = sj.jimport('net.imglib2.type.numeric.integer.UnsignedByteType')
+        DatasetService = ij_fixture.get('net.imagej.DatasetService')
+
+        # test image parameters
+        foo = Axes.get('foo')
+        bar = Axes.get('bar')
+        shape = [13, 17, 5, 2, 3, 7, 11]
+        axes = [Axes.X, Axes.Y, foo, bar, Axes.CHANNEL, Axes.TIME, Axes.Z]
+
+        # create image
+        dataset = DatasetService.create(UnsignedByteType(), shape, "fabulous7D", axes)
+        imgplus = dataset.typedImg(UnsignedByteType())
+
+        # fill the image with noise
+        rng = Random()
+        t = UnsignedByteType()
+
+        for t in imgplus:
+            t.set(rng.nextInt(256))
+
+        return imgplus
+    return _get_imgplus
 
 def assert_xarray_equal_to_dataset(ij_fixture, xarr):
     dataset = ij_fixture.py.to_java(xarr)
@@ -136,12 +164,102 @@ def assert_inverted_xarr_equal_to_xarr(dataset, ij_fixture, xarr):
     assert xarr.attrs == invert_xarr.attrs
 
 
+def assert_permuted_rai_equal_to_source_rai(ij_fixture, imgplus):
+    # get java resources
+    Axes = sj.jimport('net.imagej.axis.Axes')
+
+    # define extra axes
+    foo = Axes.get('foo')
+    bar = Axes.get('bar')
+
+    # permute the rai to python order
+    axis_types = dims.get_axis_types(imgplus)
+    permute_order = dims.prioritize_rai_axes_order(axis_types, dims._python_rai_ref_order())
+    permuted_rai = dims.reorganize(imgplus, permute_order)
+
+    # extract values for assertion
+    oc = imgplus.dimensionIndex(Axes.CHANNEL)
+    ox = imgplus.dimensionIndex(Axes.X)
+    oy = imgplus.dimensionIndex(Axes.Y)
+    oz = imgplus.dimensionIndex(Axes.Z)
+    ot = imgplus.dimensionIndex(Axes.TIME)
+    of = imgplus.dimensionIndex(foo)
+    ob = imgplus.dimensionIndex(bar)
+
+    nc = permuted_rai.dimensionIndex(Axes.CHANNEL)
+    nx = permuted_rai.dimensionIndex(Axes.X)
+    ny = permuted_rai.dimensionIndex(Axes.Y)
+    nz = permuted_rai.dimensionIndex(Axes.Z)
+    nt = permuted_rai.dimensionIndex(Axes.TIME)
+    nf = permuted_rai.dimensionIndex(foo)
+    nb = permuted_rai.dimensionIndex(bar)
+
+    oc_len = imgplus.dimension(oc)
+    ox_len = imgplus.dimension(ox)
+    oy_len = imgplus.dimension(oy)
+    oz_len = imgplus.dimension(oz)
+    ot_len = imgplus.dimension(ot)
+    of_len = imgplus.dimension(of)
+    ob_len = imgplus.dimension(ob)
+
+    nc_len = permuted_rai.dimension(nc)
+    nx_len = permuted_rai.dimension(nx)
+    ny_len = permuted_rai.dimension(ny)
+    nz_len = permuted_rai.dimension(nz)
+    nt_len = permuted_rai.dimension(nt)
+    nf_len = permuted_rai.dimension(nf)
+    nb_len = permuted_rai.dimension(nb)
+
+
+    # assert the number of pixels of each dimension
+    assert oc_len == nc_len
+    assert ox_len == nx_len
+    assert oy_len == ny_len
+    assert oz_len == nz_len
+    assert ot_len == nt_len
+    assert of_len == nf_len
+    assert ob_len == nb_len
+
+    # get RandomAccess
+    imgplus_access = imgplus.randomAccess()
+    permuted_rai_access = permuted_rai.randomAccess()
+
+    # assert pixels between source and permuted rai
+    for c in range(oc_len):
+        imgplus_access.setPosition(c, oc)
+        permuted_rai_access.setPosition(c, nc)
+        for x in range(ox_len):
+            imgplus_access.setPosition(x, ox)
+            permuted_rai_access.setPosition(x, nx)
+            for y in range(oy_len):
+                imgplus_access.setPosition(y, oy)
+                permuted_rai_access.setPosition(y, ny)
+                for z in range(oz_len):
+                    imgplus_access.setPosition(z, oz)
+                    permuted_rai_access.setPosition(z, nz)
+                    for t in range(ot_len):
+                        imgplus_access.setPosition(t, ot)
+                        permuted_rai_access.setPosition(t, nt)
+                        for f in range(of_len):
+                            imgplus_access.setPosition(f, of)
+                            permuted_rai_access.setPosition(f, nf)
+                            for b in range(ob_len):
+                                imgplus_access.setPosition(b, ob)
+                                permuted_rai_access.setPosition(b, nb)
+                                sample_name = f"C: {c}, X: {x}, Y: {y}, Z: {z}, T: {t}, F: {f}, B: {b}"
+                                assert imgplus_access.get() == permuted_rai_access.get()
+                                # TODO: Raise error with sample_name if assert fails.
+
+
 class TestXarrayConversion(object):
     def test_cstyle_array_with_labeled_dims_converts(self, ij_fixture, get_xarr):
         assert_xarray_equal_to_dataset(ij_fixture, get_xarr())
 
     def test_fstyle_array_with_labeled_dims_converts(self, ij_fixture, get_xarr):
         assert_xarray_equal_to_dataset(ij_fixture, get_xarr('F'))
+
+    def test_7d_rai_to_python_permute(self, ij_fixture, get_imgplus):
+        assert_permuted_rai_equal_to_source_rai(ij_fixture, get_imgplus(ij_fixture))
 
     def test_dataset_converts_to_xarray(self, ij_fixture, get_xarr):
         xarr = get_xarr()
