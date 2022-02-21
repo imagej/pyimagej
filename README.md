@@ -10,6 +10,10 @@ A major advantage of this approach is the ability to combine ImageJ and ImageJ2
 with other tools available from the Python software ecosystem, including NumPy,
 SciPy, scikit-image, [CellProfiler], [OpenCV], [ITK] and many more.
 
+## Quick Start
+
+Jump into the [documentation and tutorials](doc/README.md) to get started!
+
 ## Installation
 
 PyImageJ can be installed using conda. Here is how to create and activate
@@ -55,7 +59,7 @@ image = ij.py.from_java(jimage)
 ij.py.show(image, cmap='gray')
 ```
 
-For instructions on how to do certain tasks, see [USAGE.md](doc/Usage.md).
+For more, see the [documentation and tutorials](doc/README.md).
 
 ## Getting Help
 
@@ -76,8 +80,8 @@ You can also reach the developers at the
 
 ------------------------------------------------------------------------------
 
-[ImageJ][https://imagej.net/software/imagej]
 [ImageJ2][https://imagej.net/software/imagej2]
+[ImageJ][https://imagej.net/software/imagej]
 [CellProfiler][https://imagej.net/software/cellprofiler]
 [OpenCV][https://imagej.net/software/opencv]
 [ITK][https://imagej.net/software/itk]
