@@ -1,7 +1,7 @@
 import logging
-from matplotlib.pyplot import jet
 import scyjava as sj
 import numpy as np
+import xarray as xr
 from jpype import JObject, JException
 from typing import List, Tuple
 
@@ -12,7 +12,7 @@ def get_axes(rai: 'RandomAccessibleInterval') -> List['CalibratedAxis']:
     Dataset and ImgPlus have axes. Other inervals may not have axes, such as 
     a PlanarImg.
 
-    :param rai: Input Dataset or RandomAccessibleInterval.
+    :param rai: Input Dataset, ImgPlus or RandomAccessibleInterval.
     :return: A List of 'CalibratedAxis'.
     """
     return [(JObject(rai.axis(idx), sj.jimport('net.imagej.axis.CalibratedAxis'))) for idx in range(rai.numDimensions())]
@@ -32,9 +32,9 @@ def get_axis_types(rai: 'RandomAccessibleInterval') -> List['AxisType']:
         Axes = sj.jimport('net.imagej.axis.Axes')
         rai_dims = get_dims(rai)
         for i in range(len(rai_dims)):
-            if rai_dims[i] == 'C' or rai_dims[i] == 'c':
+            if rai_dims[i].lower() == 'c':
                 rai_dims[i] = 'Channel'
-            if rai_dims[i] == 'T' or rai_dims[i] == 't':
+            if rai_dims[i].lower() == 't':
                 rai_dims[i] = 'Time'
         rai_axis_types = []
         for i in range(len(rai_dims)):
@@ -169,7 +169,7 @@ def prioritize_xarray_axes_order(dimensions: List[str], ref_order: List[str]) ->
 
     The input List of dimensions (type: str) from the xarray.DataArray 
     to be transposed will be prioritizied to match (where dimensions exist)
-    to a reference order (e.g. _java_numpy_ref_order).
+    to a reference order (e.g. _python_rai_ref_order).
 
     :param dimensions: List of dimensions (e.g. ['x', 'y', 'c'])
     :return: List of dimensions for transposing an xarray.DataArray.
@@ -186,7 +186,8 @@ def prioritize_xarray_axes_order(dimensions: List[str], ref_order: List[str]) ->
 
     return transpose_order
 
-def _assign_axes(xarr):
+
+def _assign_axes(xarr: xr.DataArray):
     """
     Obtain xarray axes names, origin, and scale and convert into ImageJ Axis; currently supports EnumeratedAxis
     :param xarr: xarray that holds the units
@@ -227,12 +228,16 @@ def _assign_axes(xarr):
     return axes
 
 
-def _ends_with_channel_axis(xarr):
+def _ends_with_channel_axis(xarr: xr.DataArray) -> bool:
+    """Check if xarray.DataArray ends in the channel dimension.
+    :param xarr: xarray.DataArray to check.
+    :return: Boolean
+    """
     ends_with_axis = xarr.dims[len(xarr.dims)-1].lower() in ['c', 'ch','channel']
     return ends_with_axis
 
 
-def _get_axis_num(xarr, axis):
+def _get_axis_num(xarr: xr.DataArray, axis):
     """
     Get the xarray -> java axis number due to inverted axis order for C style numpy arrays (default)
     :param xarr: Xarray to convert
@@ -252,7 +257,7 @@ def _get_axis_num(xarr, axis):
         return len(xarr.dims) - py_axnum - 1
 
 
-def _get_axes_coords(axes, dims, shape):
+def _get_axes_coords(axes: List['CalibratedAxis'], dims: List[str], shape: Tuple[int]) -> dict:
     """
     Get xarray style coordinate list dictionary from a dataset
     :param axes: List of ImageJ axes
@@ -276,13 +281,23 @@ def _get_scale(axis):
     except TypeError:
         return None
 
+
 def _get_enumerated_axis():
-    # EnumeratedAxis is a new axis made for xarray, so is only present in
-    # ImageJ versions that are released later than March 2020. This check
-    # defaults to LinearAxis instead if Enumerated does not work.
+    """Get EnumeratedAxis.
+
+    EnumeratedAxis is only in releases later than March 2020. If using
+    an older version of ImageJ without EnumeratedAxis, use
+    _get_linear_axis() instead.
+    """
     return sj.jimport('net.imagej.axis.EnumeratedAxis')
 
+
 def _get_linear_axis(axis_type: 'AxisType', values):
+    """Get linear axis.
+
+    This is used if no EnumeratedAxis is found. If EnumeratedAxis
+    is available, use _get_enumerated_axis() instead.
+    """
     DefaultLinearAxis = sj.jimport('net.imagej.axis.DefaultLinearAxis')
     origin = values[0]
     scale = values[1] - values[0]
@@ -329,17 +344,19 @@ def _python_rai_ref_order() -> List['AxisType']:
     return [Axes.CHANNEL, Axes.X, Axes.Y, Axes.Z, Axes.TIME]
 
 
-def _java_numpy_ref_order() -> List[str]:
-    """Get the numpy style Jav reference order.
-
-    Get a List of str in the Java preferred order.
-    Note that this reference order is reversed.
-    :return: List of dimensions in Java preferred order.
-    """
-    return ['t', 'z', 'y', 'x', 'c']
-
-
 def _convert_dim(dim: str, direction: str) -> str:
+    """Convert a dimension to Python/NumPy or ImageJ convention.
+
+    Convert a single dimension to Python/NumPy or ImageJ convention by
+    indicating which direction ('python' or 'java'). A converted dimension
+    is returned.
+
+    :param dim: A dimension to be converted.
+    :param direction:
+        'python': Convert a single dimension from ImageJ to Python/NumPy convention.
+        'java': Convert a single dimension from Python/NumPy to ImageJ convention.
+    :return: A single converted dimension.
+    """
     if direction.lower() == 'python':
         return _to_pydim(dim)
     elif direction.lower() == 'java':
@@ -349,6 +366,18 @@ def _convert_dim(dim: str, direction: str) -> str:
 
 
 def _convert_dims(dimensions: List[str], direction: str) -> List[str]:
+    """Convert a List of dimensions to Python/NumPy or ImageJ conventions.
+
+    Convert a List of dimensions to Python/Numpy or ImageJ conventions by
+    indicating which direction ('python' or 'java'). A List of converted
+    dimentions is returned.
+
+    :param dimensions: List of dimensions (e.g. X, Y, Channel, Z, Time)
+    :param direction:
+        'python': Convert dimensions from ImageJ to Python/NumPy conventions.
+        'java': Convert dimensions from Python/NumPy to ImageJ conventions.
+    :return: List of converted dimensions.
+    """
     new_dims = []
 
     if direction.lower() == "python":
@@ -361,6 +390,7 @@ def _convert_dims(dimensions: List[str], direction: str) -> List[str]:
         return new_dims
     else:
         return dimensions
+
 
 def _has_axis(rai: 'RandomAccessibleInterval'):
     """Check if a RandomAccessibleInterval has axes.
@@ -388,6 +418,8 @@ def _is_xarraylike(xarr):
 
 
 def _to_pydim(key: str) -> str:
+    """Convert ImageJ dimension convention to Python/NumPy.
+    """
     pydims = {
         "Time" : "t",
         "slice" : "pln",
@@ -404,6 +436,8 @@ def _to_pydim(key: str) -> str:
 
 
 def _to_ijdim(key: str) -> str:
+    """Convert Python/NumPy dimension convention to ImageJ.
+    """
     ijdims = {
         "col" : "X",
         "x" : "X",
