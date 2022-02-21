@@ -164,29 +164,6 @@ def prioritize_rai_axes_order(axis_types: List['AxisType'], ref_order: List['Axi
     return permute_order
 
 
-def prioritize_xarray_axes_order(dimensions: List[str], ref_order: List[str]) -> List[str]:
-    """Prioritize the axes order to match a reference order.
-
-    The input List of dimensions (type: str) from the xarray.DataArray 
-    to be transposed will be prioritizied to match (where dimensions exist)
-    to a reference order (e.g. _python_rai_ref_order).
-
-    :param dimensions: List of dimensions (e.g. ['x', 'y', 'c'])
-    :return: List of dimensions for transposing an xarray.DataArray.
-    """
-    transpose_order = []
-    for dim in ref_order:
-        for i in range(len(dimensions)):
-            if dim == dimensions[i]:
-                transpose_order.append(dim)
-
-    for i in range(len(dimensions)):
-        if dimensions[i] not in ref_order:
-            transpose_order.insert(1, dimensions[i])
-
-    return transpose_order
-
-
 def _assign_axes(xarr: xr.DataArray):
     """
     Obtain xarray axes names, origin, and scale and convert into ImageJ Axis; currently supports EnumeratedAxis
