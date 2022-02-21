@@ -109,6 +109,8 @@ def get_xarr():
 @pytest.fixture(scope='module')
 def get_imgplus():
     def _get_imgplus(ij_fixture):
+        """Get a 7D ImgPlus.
+        """
         # get java resources
         Random = sj.jimport('java.util.Random')
         Axes = sj.jimport('net.imagej.axis.Axes')
@@ -249,7 +251,6 @@ def assert_permuted_rai_equal_to_source_rai(imgplus):
                                 sample_name = f"C: {c}, X: {x}, Y: {y}, Z: {z}, T: {t}, F: {f}, B: {b}"
                                 assert imgplus_access.get() == permuted_rai_access.get()
                                 # TODO: Raise error with sample_name if assert fails.
-
 
 class TestXarrayConversion(object):
     def test_cstyle_array_with_labeled_dims_converts(self, ij_fixture, get_xarr):

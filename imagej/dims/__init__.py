@@ -66,6 +66,9 @@ def get_dims(image) -> List[str]:
         return _get_axis_labels(axes)
     if isinstance(image, sj.jimport('net.imglib2.RandomAccessibleInterval')):
         return list(image.dimensionsAsLongArray())
+    if isinstance(image, sj.jimport('ij.ImagePlus')):
+        shape = image.getDimensions()
+        return [axis for axis in shape if axis > 1]
     raise TypeError(f"Unsupported image type: {image}\n No dimensions or shape found.")
 
 
@@ -84,7 +87,8 @@ def get_shape(image) -> List[int]:
     if isinstance(image, sj.jimport('net.imglib2.Dimensions')):
         return [image.dimension(d) for d in range(image.numDimensions())]
     if isinstance(image, sj.jimport('ij.ImagePlus')):
-        return image.getDimensions()
+        shape = image.getDimensions()
+        return [axis for axis in shape if axis > 1]
     raise TypeError(f'Unsupported Java type: {str(sj.jclass(image).getName())}')
 
 
@@ -361,7 +365,8 @@ def _convert_dims(dimensions: List[str], direction: str) -> List[str]:
 def _has_axis(rai: 'RandomAccessibleInterval'):
     """Check if a RandomAccessibleInterval has axes.
     """
-    return hasattr(rai, 'axis')
+    if sj.isjava(rai):
+        return hasattr(rai, 'axis')
 
 
 def _is_arraylike(arr):

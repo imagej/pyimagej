@@ -334,6 +334,7 @@ def _create_gateway():
 
     # Append some useful utility functions to the ImageJ gateway.
     Dataset                  = sj.jimport('net.imagej.Dataset')
+    ImagePlus                = sj.jimport('ij.ImagePlus')
     ImgPlus                  = sj.jimport('net.imagej.ImgPlus')
     Img                      = sj.jimport('net.imglib2.img.Img')
     RandomAccessibleInterval = sj.jimport('net.imglib2.RandomAccessibleInterval')
@@ -735,18 +736,20 @@ def _create_gateway():
             # todo: convert a dataset to xarray
             if not sj.isjava(data): return data
             try:
-                if self._ij.convert().supports(data, Dataset):
-                    # HACK: Converter exists for ImagePlus -> Dataset, but not ImagePlus -> RAI.
-                    data = self._ij.convert().convert(data, Dataset)
-                    permuted_rai = self._permute_rai_to_python(data)
-                    numpy_result = self.initialize_numpy_image(permuted_rai)
-                    numpy_result = self.rai_to_numpy(permuted_rai, numpy_result)
-                    return self._dataset_to_xarray(permuted_rai,numpy_result)
-                if self._ij.convert().supports(data, RandomAccessibleInterval):
-                    rai = self._ij.convert().convert(data, RandomAccessibleInterval)
-                    permuted_rai = self._permute_rai_to_python(rai)
-                    numpy_result = self.initialize_numpy_image(permuted_rai)
-                    return self.rai_to_numpy(permuted_rai, numpy_result)
+                if isinstance(data, ImagePlus):
+                    data = self._imageplus_to_imgplus(data)
+                if self._ij.convert().supports(data, ImgPlus):
+                    if dims._has_axis(data):
+                        # HACK: Converter exists for ImagePlus -> Dataset, but not ImagePlus -> RAI.
+                        data = self._ij.convert().convert(data, ImgPlus)
+                        permuted_rai = self._permute_rai_to_python(data)
+                        numpy_result = self.initialize_numpy_image(permuted_rai)
+                        numpy_result = self.rai_to_numpy(permuted_rai, numpy_result)
+                        return self._dataset_to_xarray(permuted_rai,numpy_result)
+                    if self._ij.convert().supports(data, RandomAccessibleInterval):
+                        rai = self._ij.convert().convert(data, RandomAccessibleInterval)
+                        numpy_result = self.initialize_numpy_image(rai)
+                        return self.rai_to_numpy(rai, numpy_result)
             except Exception as exc:
                 _dump_exception(exc)
                 raise exc
@@ -785,16 +788,31 @@ def _create_gateway():
             :param rai: A RandomAccessibleInterval with axes.
             :return: A permuted RandomAccessibleInterval.
             """
-            # get input rai metadata and axes info
-            rai_metadata = rai.getProperties()
+            # get input rai metadata if it exists
+            try:
+                rai_metadata = rai.getProperties()
+            except AttributeError:
+                rai_metadata = None
+
             rai_axis_types = dims.get_axis_types(rai)
 
             # permute rai to specified order and transfer metadata
             permute_order = dims.prioritize_rai_axes_order(rai_axis_types, dims._python_rai_ref_order())
             permuted_rai = dims.reorganize(rai, permute_order)
-            permuted_rai.getProperties().putAll(rai_metadata)
+
+            # add metadata to image if it exisits
+            if rai_metadata != None:
+                permuted_rai.getProperties().putAll(rai_metadata)
 
             return permuted_rai
+
+
+        def _imageplus_to_imgplus(self, imp: ImagePlus) -> ImgPlus:
+            if isinstance(imp, sj.jimport('ij.ImagePlus')):
+                ds = self._ij.convert().convert(imp, Dataset)
+                return ds.getImgPlus()
+            else:
+                return imp
 
 
         def _invert_except_last_element(self, lst):
