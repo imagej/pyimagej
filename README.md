@@ -80,8 +80,8 @@ You can also reach the developers at the
 
 ------------------------------------------------------------------------------
 
-[ImageJ2][https://imagej.net/software/imagej2]
-[ImageJ][https://imagej.net/software/imagej]
-[CellProfiler][https://imagej.net/software/cellprofiler]
-[OpenCV][https://imagej.net/software/opencv]
-[ITK][https://imagej.net/software/itk]
+[ImageJ2]: https://imagej.net/software/imagej2
+[ImageJ]: https://imagej.net/software/imagej
+[CellProfiler]: https://imagej.net/software/cellprofiler
+[OpenCV]: https://imagej.net/software/opencv
+[ITK]: https://imagej.net/software/itk
