@@ -1,10 +1,11 @@
+from jpype import JArray, JLong
 import scyjava as sj
 
 def rai_slice(rai, imin: tuple, imax: tuple):
     """Slice ImgLib2 images.
 
     Slice ImgLib2 images using Python's slice notation to define the
-    desired slice range.
+    desired slice range. Returned interval includes both imin and imax
 
     :param rai: An ImgLib2 RandomAccessibleInterval
     :param imin: Tuple of minimum interval range values.
@@ -12,20 +13,27 @@ def rai_slice(rai, imin: tuple, imax: tuple):
     :return: Sliced ImgLib2 RandomAccisbleInterval.
     """
     Views = sj.jimport('net.imglib2.view.Views')
-    imin_fix = []
-    imax_fix = []
     dims = _get_dims(rai)
+    imin_fix = JArray(JLong)(len(dims))
+    imax_fix = JArray(JLong)(len(dims))
 
-    for i in range(len(dims)):
-        if imin[i] == None:
-            imin_fix.append(0)
-        if imax[i] == None:
-            imax_fix.append(dims[i] - 1)
+    dim_itr = range(len(dims))
+    for py_dim, j_dim in zip(dim_itr, reversed(dim_itr)):
+
+        # Set minimum
+        if imin[py_dim] == None:
+            index = 0
         else:
-            imin_fix.append(imin[i])
-            imax_fix.append(imax[i])
+            index = imin[py_dim]
+        imin_fix[j_dim] = JLong(index % dims[j_dim])
+        # Set maximum
+        if imax[py_dim] == None:
+            index = (dims[j_dim] - 1)
+        else:
+            index = imax[py_dim]
+        imax_fix[j_dim] = JLong(index % dims[j_dim])
 
-    return Views.interval(rai, imin_fix, imax_fix)
+    return Views.dropSingletonDimensions(Views.interval(rai, imin_fix, imax_fix))
 
 def _get_dims(image):
     """Get ImgLib2 image dimensions."""

@@ -404,3 +404,71 @@ class TestNumpyConversion(object):
 
     def test_img_converts_to_ndarray(self, ij_fixture, get_img):
         convert_img_and_assert_equality(ij_fixture, get_img())
+
+class TestRAIArraylike(object):
+
+    @pytest.fixture
+    def img(self):
+        # Create img
+        ArrayImgs = sj.jimport('net.imglib2.img.array.ArrayImgs')
+        img = ArrayImgs.bytes(2, 3, 4)
+        # Insert a different value into each index
+        tmp_val = 1
+        cursor = img.cursor()
+        while cursor.hasNext():
+            cursor.next().set(tmp_val)
+            tmp_val += 1
+        # Return the new img
+        return img
+
+
+    def test_slice_index(self, ij_fixture, img):
+        assert img[0, 0, 0] == 1
+    
+    def test_slice_index_negative(self, ij_fixture, img):
+        assert img[-1, -1, -1] == 24
+
+    def test_slice_2d(self, ij_fixture, img):
+        Views = sj.jimport('net.imglib2.view.Views')
+        expected = Views.hyperSlice(img, 0, 0)
+        actual = img[:, :, 0]
+        for i in range(3):
+            for j in range(4):
+                assert expected[i, j] == actual[i, j]
+
+    def test_slice_2d_negative(self, ij_fixture, img):
+        Views = sj.jimport('net.imglib2.view.Views')
+        expected = Views.hyperSlice(img, 0, 1)
+        actual = img[:, :, -1]
+        for i in range(3):
+            for j in range(4):
+                assert expected[i, j] == actual[i, j]
+
+    def test_slice_1d(self, ij_fixture, img):
+        Views = sj.jimport('net.imglib2.view.Views')
+        expected = Views.hyperSlice(Views.hyperSlice(img, 0, 0), 0, 0)
+        actual = img[:, 0, 0]
+        for i in range(4):
+            assert expected[i] == actual[i]
+
+    def test_slice_1d_negative(self, ij_fixture, img):
+        Views = sj.jimport('net.imglib2.view.Views')
+        expected = Views.hyperSlice(Views.hyperSlice(img, 0, 1), 0, 1)
+        actual = img[:, -2, -1]
+        for i in range(4):
+            assert expected[i] == actual[i]
+
+    def test_slice_int(self, ij_fixture, img):
+        Views = sj.jimport('net.imglib2.view.Views')
+        expected = Views.hyperSlice(img, 2, 0)
+        actual = img[0]
+        for i in range(3):
+            for j in range(2):
+                assert expected[i, j] == actual[i, j]
+
+    def test_slice_not_enough_dims(self, ij_fixture, img):
+        Views = sj.jimport('net.imglib2.view.Views')
+        expected = Views.hyperSlice(Views.hyperSlice(img, 2, 0), 1, 0)
+        actual = img[0, 0]
+        for i in range(2):
+            assert expected[i] == actual[i]

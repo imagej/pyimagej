@@ -1112,36 +1112,56 @@ def _create_gateway():
             return ij.op().run('math.mul', self, other)
         def __truediv__(self, other):
             return ij.op().run('math.div', self, other)
+        def _index(self, position):
+            ra = self.randomAccess()
+            # Can we store this as a shape property?
+            dims = ij.py.dims(self)
+            for i in range(len(position)):
+                pos = position[i] % dims[i]
+                ra.setPosition(pos, i)
+            # TODO: Are we assuming too much here with the RealType.get()
+            return ra.get().get()
+        def _is_index(self, a):
+            # Check dimensionality - if we don't have enough dims, it's a slice
+            num_dims = 1 if type(a) == int else len(a)
+            if num_dims < self.numDimensions(): return False
+            # if an int, it is an index
+            if type(a) == int: return True
+            # if we have a tuple, it's an index if there are any slices
+            hasSlice = True in [type(item) == slice for item in a]
+            return not hasSlice
         def _slice(self, ranges):
             expected_dims = len(ranges)
             actual_dims = self.numDimensions()
-            if expected_dims != actual_dims:
-                raise ValueError(f'Dimension mismatch: {expected_dims} != {actual_dims}')
+            if expected_dims > actual_dims:
+                raise ValueError(f'Dimension mismatch: {expected_dims} > {actual_dims}')
+            elif expected_dims < actual_dims:
+                ranges = (list(ranges) + actual_dims * [slice(None)])[:actual_dims]
 
             imin = []
             imax = []
-            for dslice in ranges:
+            dslices = [r if type(r) == slice else slice(r, r+1) for r in ranges]
+            for dslice in dslices:
                 if dslice.step and dslice.step != 1:
                     raise ValueError(f'Unsupported step value: {dslice.step}')
-                imin.append(dslice.start)
-                if dslice.stop == None:
-                    imax.append(None)
-                else:
-                    imax.append(dslice.stop - 1)
+                imax.append(None if dslice.stop == None else dslice.stop - 1)
+                imin.append(None if dslice.start == None else dslice.start)
 
             # BE WARNED! This does not yet preserve net.imagej-level axis metadata!
             # We need to finish RichImg to support that properly.
 
             return stack.rai_slice(self, tuple(imin), tuple(imax))
 
+
         def __getitem__(self, key):
             if type(key) == slice:
                 # Wrap single slice into tuple of length 1.
                 return self._slice((key,))
             elif type(key) == tuple:
-                return self._slice(key)
+                return self._index(key) if self._is_index(key) else self._slice(key)
             elif type(key) == int:
-                return self.values[key]
+                # Wrap single int into tuple of length 1.
+                return self.__getitem__((key, ))
             else:
                 raise ValueError(f"Invalid key type: {type(key)}")
 
