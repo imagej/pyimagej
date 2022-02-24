@@ -1102,6 +1102,9 @@ def _create_gateway():
                 raise ImportError(f"The original ImageJ is not available in this environment. {usage_context} See: https://github.com/imagej/pyimagej/blob/master/doc/Initialization.md")
 
     # Overload operators for RandomAccessibleInterval so it's more Pythonic.
+    import threading
+    from threading import Lock
+    rai_lock = Lock()
     @JImplementationFor('net.imglib2.RandomAccessibleInterval')
     class RAIOperators(object):
 
@@ -1114,7 +1117,7 @@ def _create_gateway():
         def __truediv__(self, other):
             return ij.op().run('math.div', self, other)
         def _index(self, position):
-            ra = self.randomAccess()
+            ra = self.ra
             # Can we store this as a shape property?
             dims = ij.py.dims(self)
             for i in range(len(position)):
@@ -1177,6 +1180,24 @@ def _create_gateway():
                 view = ij.op().run('transform.permuteView', self, i, max_dim - i)
             return view 
         
+        @property
+        def ra(self):
+            threadLocal = getattr(self, '_threadLocal', None)
+            if threadLocal is None:
+                with rai_lock:
+                    threadLocal = getattr(self, '_threadLocal', None)
+                    if threadLocal is None:
+                        threadLocal = threading.local()
+                        self._threadLocal = threadLocal
+            ra = getattr(threadLocal, 'ra', None)
+            if ra is None:
+                with rai_lock:
+                    ra = getattr(threadLocal, 'ra', None)
+                    if ra is None:
+                        ra = self.randomAccess()
+                        threadLocal.ra = ra
+            return ra
+    
         def __getitem__(self, key):
             if type(key) == slice:
                 # Wrap single slice into tuple of length 1.
