@@ -720,6 +720,19 @@ def _create_gateway():
             return dataset
 
 
+        def _xarray_to_img(self, xarr):
+            """
+            Converts a xarray dataarray to an img, inverting C-style (slow axis first) to F-style (slow-axis last)
+            :param xarr: Pass an xarray dataarray and turn into a img.
+            :return: The img
+            """
+            if dims._ends_with_channel_axis(xarr):
+                vals = np.moveaxis(xarr.values, -1, 0)
+                return self._numpy_to_img(vals)
+            else:
+                return self._numpy_to_img(xarr.values)
+
+
         def _assign_dataset_metadata(self, dataset, attrs):
             """
             :param dataset: ImageJ Java dataset
