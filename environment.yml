@@ -1,6 +1,6 @@
 # You can use this environment to run the
 # PyImageJ tutorial notebooks in the doc folder.
-name: imagej
+name: pyimagej
 channels:
   - conda-forge
   - defaults
