@@ -1104,6 +1104,7 @@ def _create_gateway():
     # Overload operators for RandomAccessibleInterval so it's more Pythonic.
     @JImplementationFor('net.imglib2.RandomAccessibleInterval')
     class RAIOperators(object):
+
         def __add__(self, other):
             return ij.op().run('math.add', self, other)
         def __sub__(self, other):
@@ -1151,8 +1152,11 @@ def _create_gateway():
             # We need to finish RichImg to support that properly.
 
             return stack.rai_slice(self, tuple(imin), tuple(imax), tuple(istep))
-
-
+        
+        @property
+        def shape(self):
+            return tuple(reversed([self.dimension(i) for i in range(self.numDimensions())]))
+        
         def __getitem__(self, key):
             if type(key) == slice:
                 # Wrap single slice into tuple of length 1.

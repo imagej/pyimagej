@@ -508,3 +508,7 @@ class TestRAIArraylike(object):
         for i in range(2):
             for j in range(3):
                     assert expected[i, j] == actual[i, j]
+
+    def test_shape(self, ij_fixture, img):
+        assert hasattr(img, 'shape')
+        assert img.shape == (4, 3, 2)
