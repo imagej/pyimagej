@@ -15,6 +15,9 @@ def pytest_addoption(parser):
     parser.addoption(
         "--headless", type=str2bool, action="store", default=True, help="Start in headless mode"
     )
+    parser.addoption(
+        "--legacy", type=str2bool, action="store", default=True, help="Include the original ImageJ"
+    )
 
 
 @pytest.fixture(scope='session')
@@ -24,10 +27,11 @@ def ij_fixture(request):
     :param request: Pytest variable passed in to fixtures
     """
     ij_dir = request.config.getoption('--ij')
+    legacy = request.config.getoption('--legacy')
     headless = request.config.getoption('--headless')
 
     mode = 'headless' if headless else 'interactive'
-    ij_wrapper = imagej.init(ij_dir, mode=mode)
+    ij_wrapper = imagej.init(ij_dir, mode=mode, add_legacy=legacy)
 
     yield ij_wrapper
 
