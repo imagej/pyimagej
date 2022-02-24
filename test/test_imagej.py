@@ -1,16 +1,16 @@
 import argparse
+import random
 import sys
 import unittest
 
-from jpype.types import JLong
-import imagej
-import random
 import pytest
+import imagej
+import imagej.dims as dims
 import scyjava as sj
 import numpy as np
 import xarray as xr
 
-from jpype import JObject, JException, JArray, JInt
+from jpype import JObject, JException, JArray, JInt, JLong
 
 
 class TestImageJ(object):
@@ -93,37 +93,66 @@ class TestImageJ(object):
 def get_xarr():
     def _get_xarr(option='C'):
         if option == 'C':
-            xarr = xr.DataArray(np.random.rand(5, 4, 6, 12, 3), dims=['t', 'z', 'y', 'x', 'c'],
-                                coords={'x': list(range(0, 12)), 'y': list(np.arange(0, 12, 2)), 'c': [0, 1, 2],
-                                        'z': list(np.arange(10, 50, 10)), 't': list(np.arange(0, 0.05, 0.01))},
-                                attrs={'Hello': 'Wrld'})
+            xarr = xr.DataArray(np.random.rand(5, 4, 6, 12, 3), dims=['t', 'pln', 'row', 'col', 'ch'],
+                                coords={'col': list(range(0, 12)), 'row': list(np.arange(0, 12, 2)), 'ch': [0, 1, 2],
+                                        'pln': list(np.arange(10, 50, 10)), 't': list(np.arange(0, 0.05, 0.01))},
+                                attrs={'Hello': 'World'})
         elif option == 'F':
-            xarr = xr.DataArray(np.ndarray([5, 4, 3, 6, 12], order='F'), dims=['t', 'z', 'c', 'y', 'x'],
-                                coords={'x': range(0, 12), 'y': np.arange(0, 12, 2),
-                                        'z': np.arange(10, 50, 10), 't': np.arange(0, 0.05, 0.01)},
-                                attrs={'Hello': 'Wrld'})
+            xarr = xr.DataArray(np.ndarray([5, 4, 3, 6, 12], order='F'), dims=['t', 'pln', 'ch', 'row', 'col'],
+                                coords={'col': range(0, 12), 'row': np.arange(0, 12, 2),
+                                        'pln': np.arange(10, 50, 10), 't': np.arange(0, 0.05, 0.01)},
+                                attrs={'Hello': 'World'})
         else:
             xarr = xr.DataArray(np.random.rand(1, 2, 3, 4, 5))
 
         return xarr
     return _get_xarr
 
+@pytest.fixture(scope='module')
+def get_imgplus():
+    def _get_imgplus(ij_fixture):
+        """Get a 7D ImgPlus.
+        """
+        # get java resources
+        Random = sj.jimport('java.util.Random')
+        Axes = sj.jimport('net.imagej.axis.Axes')
+        UnsignedByteType = sj.jimport('net.imglib2.type.numeric.integer.UnsignedByteType')
+        DatasetService = ij_fixture.get('net.imagej.DatasetService')
+
+        # test image parameters
+        foo = Axes.get('foo')
+        bar = Axes.get('bar')
+        shape = [13, 17, 5, 2, 3, 7, 11]
+        axes = [Axes.X, Axes.Y, foo, bar, Axes.CHANNEL, Axes.TIME, Axes.Z]
+
+        # create image
+        dataset = DatasetService.create(UnsignedByteType(), shape, "fabulous7D", axes)
+        imgplus = dataset.typedImg(UnsignedByteType())
+
+        # fill the image with noise
+        rng = Random()
+        t = UnsignedByteType()
+
+        for t in imgplus:
+            t.set(rng.nextInt(256))
+
+        return imgplus
+    return _get_imgplus
 
 def assert_xarray_equal_to_dataset(ij_fixture, xarr):
     dataset = ij_fixture.py.to_java(xarr)
-
     axes = [dataset.axis(axnum) for axnum in range(5)]
     labels = [axis.type().getLabel() for axis in axes]
 
     for label, vals in xarr.coords.items():
-        cur_axis = axes[labels.index(label.upper())]
+        cur_axis = axes[labels.index(dims._convert_dim(label, direction='java'))]
         for loc in range(len(vals)):
             assert vals[loc] == cur_axis.calibratedValue(loc)
 
     if np.isfortran(xarr.values):
-        expected_labels = [dim.upper() for dim in xarr.dims]
+        expected_labels = [dims._convert_dim(dim, direction='java') for dim in xarr.dims]
     else:
-        expected_labels = ['X', 'Y', 'Z', 'T', 'C']
+        expected_labels = ['X', 'Y', 'Z', 'Time', 'Channel']
 
     assert expected_labels == labels
     assert xarr.attrs == ij_fixture.py.from_java(dataset.getProperties())
@@ -139,12 +168,101 @@ def assert_inverted_xarr_equal_to_xarr(dataset, ij_fixture, xarr):
     assert xarr.attrs == invert_xarr.attrs
 
 
+def assert_permuted_rai_equal_to_source_rai(imgplus):
+    # get java resources
+    Axes = sj.jimport('net.imagej.axis.Axes')
+
+    # define extra axes
+    foo = Axes.get('foo')
+    bar = Axes.get('bar')
+
+    # permute the rai to python order
+    axis_types = dims.get_axis_types(imgplus)
+    permute_order = dims.prioritize_rai_axes_order(axis_types, dims._python_rai_ref_order())
+    permuted_rai = dims.reorganize(imgplus, permute_order)
+
+    # extract values for assertion
+    oc = imgplus.dimensionIndex(Axes.CHANNEL)
+    ox = imgplus.dimensionIndex(Axes.X)
+    oy = imgplus.dimensionIndex(Axes.Y)
+    oz = imgplus.dimensionIndex(Axes.Z)
+    ot = imgplus.dimensionIndex(Axes.TIME)
+    of = imgplus.dimensionIndex(foo)
+    ob = imgplus.dimensionIndex(bar)
+
+    nc = permuted_rai.dimensionIndex(Axes.CHANNEL)
+    nx = permuted_rai.dimensionIndex(Axes.X)
+    ny = permuted_rai.dimensionIndex(Axes.Y)
+    nz = permuted_rai.dimensionIndex(Axes.Z)
+    nt = permuted_rai.dimensionIndex(Axes.TIME)
+    nf = permuted_rai.dimensionIndex(foo)
+    nb = permuted_rai.dimensionIndex(bar)
+
+    oc_len = imgplus.dimension(oc)
+    ox_len = imgplus.dimension(ox)
+    oy_len = imgplus.dimension(oy)
+    oz_len = imgplus.dimension(oz)
+    ot_len = imgplus.dimension(ot)
+    of_len = imgplus.dimension(of)
+    ob_len = imgplus.dimension(ob)
+
+    nc_len = permuted_rai.dimension(nc)
+    nx_len = permuted_rai.dimension(nx)
+    ny_len = permuted_rai.dimension(ny)
+    nz_len = permuted_rai.dimension(nz)
+    nt_len = permuted_rai.dimension(nt)
+    nf_len = permuted_rai.dimension(nf)
+    nb_len = permuted_rai.dimension(nb)
+
+
+    # assert the number of pixels of each dimension
+    assert oc_len == nc_len
+    assert ox_len == nx_len
+    assert oy_len == ny_len
+    assert oz_len == nz_len
+    assert ot_len == nt_len
+    assert of_len == nf_len
+    assert ob_len == nb_len
+
+    # get RandomAccess
+    imgplus_access = imgplus.randomAccess()
+    permuted_rai_access = permuted_rai.randomAccess()
+
+    # assert pixels between source and permuted rai
+    for c in range(oc_len):
+        imgplus_access.setPosition(c, oc)
+        permuted_rai_access.setPosition(c, nc)
+        for x in range(ox_len):
+            imgplus_access.setPosition(x, ox)
+            permuted_rai_access.setPosition(x, nx)
+            for y in range(oy_len):
+                imgplus_access.setPosition(y, oy)
+                permuted_rai_access.setPosition(y, ny)
+                for z in range(oz_len):
+                    imgplus_access.setPosition(z, oz)
+                    permuted_rai_access.setPosition(z, nz)
+                    for t in range(ot_len):
+                        imgplus_access.setPosition(t, ot)
+                        permuted_rai_access.setPosition(t, nt)
+                        for f in range(of_len):
+                            imgplus_access.setPosition(f, of)
+                            permuted_rai_access.setPosition(f, nf)
+                            for b in range(ob_len):
+                                imgplus_access.setPosition(b, ob)
+                                permuted_rai_access.setPosition(b, nb)
+                                sample_name = f"C: {c}, X: {x}, Y: {y}, Z: {z}, T: {t}, F: {f}, B: {b}"
+                                assert imgplus_access.get() == permuted_rai_access.get()
+                                # TODO: Raise error with sample_name if assert fails.
+
 class TestXarrayConversion(object):
     def test_cstyle_array_with_labeled_dims_converts(self, ij_fixture, get_xarr):
         assert_xarray_equal_to_dataset(ij_fixture, get_xarr())
 
     def test_fstyle_array_with_labeled_dims_converts(self, ij_fixture, get_xarr):
         assert_xarray_equal_to_dataset(ij_fixture, get_xarr('F'))
+
+    def test_7d_rai_to_python_permute(self, ij_fixture, get_imgplus):
+        assert_permuted_rai_equal_to_source_rai(get_imgplus(ij_fixture))
 
     def test_dataset_converts_to_xarray(self, ij_fixture, get_xarr):
         xarr = get_xarr()
@@ -157,10 +275,11 @@ class TestXarrayConversion(object):
 
         axes = [dataset.axis(axnum) for axnum in range(5)]
         labels = [axis.type().getLabel() for axis in axes]
-        assert ['X', 'Y', 'Z', 'T', 'C'] == labels
+        assert ['X', 'Y', 'Z', 'Time', 'Channel'] == labels
 
         # Test that automatic axis swapping works correctly
-        raw_values = ij_fixture.py.rai_to_numpy(dataset)
+        numpy_image = ij_fixture.py.initialize_numpy_image(dataset)
+        raw_values = ij_fixture.py.rai_to_numpy(dataset, numpy_image)
         assert (xarr.values == np.moveaxis(raw_values, 0, -1)).all()
 
         assert_inverted_xarr_equal_to_xarr(dataset, ij_fixture, xarr)

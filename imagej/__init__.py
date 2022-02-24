@@ -29,6 +29,7 @@ Here is an example of opening an image using ImageJ2 and displaying it:
 """
 
 import logging
+from math import perm
 import os
 import re
 import sys
@@ -39,10 +40,12 @@ import numpy as np
 import scyjava as sj
 import xarray as xr
 import imagej.stack as stack
+import imagej.dims as dims
 import subprocess
 
 from enum import Enum
 from pathlib import Path
+from typing import List, Tuple
 
 from jpype import JArray, JException, JImplementationFor, JObject, setupGuiEnvironment
 
@@ -335,49 +338,32 @@ def _create_gateway():
 
     # Append some useful utility functions to the ImageJ gateway.
     Dataset                  = sj.jimport('net.imagej.Dataset')
+    ImagePlus                = sj.jimport('ij.ImagePlus')
     ImgPlus                  = sj.jimport('net.imagej.ImgPlus')
     Img                      = sj.jimport('net.imglib2.img.Img')
     ImgView                  = sj.jimport('net.imglib2.img.ImgView')
     RandomAccessibleInterval = sj.jimport('net.imglib2.RandomAccessibleInterval')
-    Axes                     = sj.jimport('net.imagej.axis.Axes')
-    Double                   = sj.jimport('java.lang.Double')
-
-    # EnumeratedAxis is a new axis made for xarray, so is only present in
-    # ImageJ versions that are released later than March 2020. This check
-    # defaults to LinearAxis instead if Enumerated does not work.
-    try:
-        EnumeratedAxis           = sj.jimport('net.imagej.axis.EnumeratedAxis')
-    except (JException, TypeError):
-        DefaultLinearAxis = sj.jimport('net.imagej.axis.DefaultLinearAxis')
-        def EnumeratedAxis(axis_type, values):
-            origin = values[0]
-            scale = values[1] - values[0]
-            axis = DefaultLinearAxis(axis_type, scale, origin)
-            return axis
 
     class ImageJPython:
         def __init__(self, ij):
             self._ij = ij
 
         def dims(self, image):
-            """Return the dimensions of the input image.
-
-            Return the dimensions (i.e. shape) of an input numpy array,
-            ImgLib2 image or an ImageJ ImagePlus.
-
-            :param image:
-                A numpy array.
-                OR An ImgLib2 image ('net.imglib2.Interval').
-                OR An ImageJ2 Dataset ('net.imagej.Dataset').
-                OR An ImageJ ImagePlus ('ij.ImagePlus').
-            :param return: Dimensions of the input image.
             """
+            ij.py.dims() is deprecated.
+            Import the 'dims' module and use dims.get_dims().
+
+            :example:
+                >>> import imagej.dims as dims
+                >>> dims.get_dims(image)
+            """
+            logging.warning("ij.py.dims() is deprecated. Import the 'dims' module and use dims.get_dims().")
             if self._is_arraylike(image):
                 return image.shape
             if not sj.isjava(image):
                 raise TypeError('Unsupported type: ' + str(type(image)))
             if sj.jclass('net.imglib2.Dimensions').isInstance(image):
-                return [image.dimension(d) for d in range(image.numDimensions() -1, -1, -1)]
+                return list(image.dimensionsAsLongArray())
             if sj.jclass('ij.ImagePlus').isInstance(image):
                 dims = image.getDimensions()
                 dims.reverse()
@@ -473,28 +459,49 @@ def _create_gateway():
             raise TypeError('Unsupported Java type: ' + str(sj.jclass(image_or_type).getName()))
 
         def new_numpy_image(self, image):
-            """Create an empty numpy array.
-
-            Create a new numpy array with the same shape and
-            type as the input image, filled with zeros.
-
-            :param image: A numpy array.
-            :return: A new zero filled array of given shape and type.
+            """
+            ij.py.new_numpy_image() is deprecated.
+            Use ij.py.initialize_numpy_image() instead.
             """
             try:
                 dtype_to_use = self.dtype(image)
             except TypeError:
                 dtype_to_use = np.dtype('float64')
+            logging.warning("ij.py.new_numpy_image() is deprecated. Use ij.py.initialize_numpy_image() instead.")
             return np.zeros(self.dims(image), dtype=dtype_to_use)
 
-        def rai_to_numpy(self, rai):
-            """Convert a RandomAccessibleInterval into a numpy array.
+        def initialize_numpy_image(self, rai: RandomAccessibleInterval) -> np.ndarray:
+            """Initialize a numpy array with zeros and shape of the input RandomAccessibleInterval.
 
-            Convert a RandomAccessibleInterval ('net.imglib2.RandomAccessibleInterval') 
-            into a new numpy array.
+            Initialize a new numpy array with the same dtype and shape as the input
+            RandomAccessibleInterval with zeros.
 
-            :param rai: A RandomAccisbleInterval ('net.imglib2.RandomAccessibleInterval').
-            :return: A numpy array of the input RandomAccisbleInterval.
+            :param rai: A RandomAccessibleInterval
+            :return:
+                A numpy array with the same dtype and shape as the input 
+                RandomAccessibleInterval, filled with zeros.
+            """
+            try:
+                dtype_to_use = self.dtype(rai)
+            except TypeError:
+                dtype_to_use = np.dtype('float64')
+
+            # get shape of rai and invert
+            shape = dims.get_shape(rai)
+            shape.reverse()
+            return np.zeros(shape, dtype=dtype_to_use)
+
+        def rai_to_numpy(self, rai: RandomAccessibleInterval, numpy_array: np.ndarray) -> np.ndarray:
+            """Copy a RandomAccessibleInterval into a numpy array.
+
+            The input RandomAccessibleInterval is copied into the pre-initialized numpy array
+            with either (1) "fast copy" via 'net.imagej.util.Images.copy' if available or
+            the slower "copy.rai" method. Note that the input RandomAccessibleInterval and
+            numpy array must have reversed dimensions relative to each other (e.g. [t, z, y, x, c] and [c, x, y, z, t]).
+            Use _permute_rai_to_python() on the RandomAccessibleInterval to reorganize the dimensions.
+
+            :param rai: A RandomAccessibleInterval ('net.imglib2.RandomAccessibleInterval').
+            :return: A numpy array of the input RandomAccessibleInterval.
             """
             # check imagej-common version for fast copy availability.
             ijc_slow_copy_version = '0.30.0'
@@ -503,13 +510,11 @@ def _create_gateway():
 
             if fast_copy_available:
                 Images = sj.jimport('net.imagej.util.Images')
-                result = self.new_numpy_image(rai)
-                Images.copy(rai, self.to_java(result))
+                Images.copy(rai, self.to_java(numpy_array))
             else:
-                result = self.new_numpy_image(rai)
-                self._ij.op().run("copy.rai", self.to_java(result), rai)
+                self._ij.op().run("copy.rai", self.to_java(numpy_array), rai)
 
-            return result
+            return numpy_array
 
         def run_plugin(self, plugin, args=None, ij1_style=True):
             """Run an ImageJ plugin.
@@ -681,17 +686,16 @@ def _create_gateway():
             """
             return JObjectArray([self.to_java(arg) for arg in args])
 
+
         def _numpy_to_dataset(self, data):
             rai = imglyb.to_imglib(data)
             return self._java_to_dataset(rai)
+
 
         def _numpy_to_img(self, data):
             rai = imglyb.to_imglib(data)
             return self._java_to_img(rai)
 
-        def _ends_with_channel_axis(self, xarr):
-            ends_with_axis = xarr.dims[len(xarr.dims)-1].lower() in ['c', 'channel']
-            return ends_with_axis
 
         def _xarray_to_dataset(self, xarr):
             """
@@ -699,88 +703,17 @@ def _create_gateway():
             :param xarr: Pass an xarray dataarray and turn into a dataset.
             :return: The dataset
             """
-            if self._ends_with_channel_axis(xarr):
+            if dims._ends_with_channel_axis(xarr):
                 vals = np.moveaxis(xarr.values, -1, 0)
-                dataset = self._numpy_to_dataset(vals) # EE: investigate here....
+                dataset = self._numpy_to_dataset(vals)
             else:
                 dataset = self._numpy_to_dataset(xarr.values)
-            axes = self._assign_axes(xarr)
+            axes = dims._assign_axes(xarr)
             dataset.setAxes(axes)
             self._assign_dataset_metadata(dataset, xarr.attrs)
 
             return dataset
 
-        def _xarray_to_img(self, xarr):
-            """
-            Converts a xarray dataarray to an img, inverting C-style (slow axis first) to F-style (slow-axis last)
-            :param xarr: Pass an xarray dataarray and turn into a img.
-            :return: The img
-            """
-            if self._ends_with_channel_axis(xarr):
-                vals = np.moveaxis(xarr.values, -1, 0)
-                return self._numpy_to_img(vals) # EE: investigate here....
-            else:
-                return self._numpy_to_img(xarr.values)
-
-        def _assign_axes(self, xarr):
-            """
-            Obtain xarray axes names, origin, and scale and convert into ImageJ Axis; currently supports EnumeratedAxis
-            :param xarr: xarray that holds the units
-            :return: A list of ImageJ Axis with the specified origin and scale
-            """
-            axes = ['']*len(xarr.dims)
-
-            for axis in xarr.dims:
-                axis_str = self._pydim_to_ijdim(axis)
-
-                ax_type = Axes.get(axis_str)
-                ax_num = self._get_axis_num(xarr, axis)
-
-                scale = self._get_scale(xarr.coords[axis])
-                if scale is None:
-                    logging.warning(f"The {ax_type.label} axis is non-numeric and is translated to a linear index.")
-                    doub_coords = [Double(np.double(x)) for x in np.arange(len(xarr.coords[axis]))]
-                else:
-                    doub_coords = [Double(np.double(x)) for x in xarr.coords[axis]]
-
-                # EnumeratedAxis is a new axis made for xarray, so is only present in ImageJ versions that are released
-                # later than March 2020.  This actually returns a LinearAxis if using an earlier version.
-                java_axis = EnumeratedAxis(ax_type, ij.py.to_java(doub_coords))
-
-                axes[ax_num] = java_axis
-
-            return axes
-
-        def _pydim_to_ijdim(self, axis):
-            """Convert between the lowercase Python convention (x, y, z, c, t) to IJ (X, Y, Z, C, T)"""
-            if str(axis) in ['x', 'y', 'z', 'c', 't']:
-                return str(axis).upper()
-            return str(axis)
-
-        def _ijdim_to_pydim(self, axis):
-            """Convert the IJ uppercase dimension convention (X, Y, Z C, T) to lowercase python (x, y, z, c, t) """
-            if str(axis) in ['X', 'Y', 'Z', 'C', 'T']:
-                return str(axis).lower()
-            return str(axis)
-
-        def _get_axis_num(self, xarr, axis):
-            """
-            Get the xarray -> java axis number due to inverted axis order for C style numpy arrays (default)
-            :param xarr: Xarray to convert
-            :param axis: Axis number to convert
-            :return: Axis idx in java
-            """
-            py_axnum = xarr.get_axis_num(axis)
-            if np.isfortran(xarr.values):
-                return py_axnum
-
-            if self._ends_with_channel_axis(xarr):
-                if axis == len(xarr.dims) - 1:
-                    return axis
-                else:
-                    return len(xarr.dims) - py_axnum - 2
-            else:
-                return len(xarr.dims) - py_axnum - 1
 
         def _assign_dataset_metadata(self, dataset, attrs):
             """
@@ -797,16 +730,6 @@ def _create_gateway():
             """
             return axis.values[0]
 
-        def _get_scale(self, axis):
-            """
-            Get the scale of an axis, assuming it is linear and so the scale is simply second - first coordinate.
-            :param axis: A 1D list like entry accessible with indexing, which contains the axis coordinates
-            :return: The scale for this axis or None if it is a non-numeric scale.
-            """
-            try:
-                return axis.values[1] - axis.values[0]
-            except TypeError:
-                return None
 
         def _java_to_dataset(self, data):
             """
@@ -820,12 +743,11 @@ def _create_gateway():
                 if self._ij.convert().supports(data, ImgPlus):
                     imgPlus = self._ij.convert().convert(data, ImgPlus)
                     return self._ij.dataset().create(imgPlus)
-                if self._ij.convert().supports(data, Img):
+                if self._ij.convert().supports(data, Img): # no dim info
                     img = self._ij.convert().convert(data, Img)
                     return self._ij.dataset().create(ImgPlus(img))
-                if self._ij.convert().supports(data, RandomAccessibleInterval):
+                if self._ij.convert().supports(data, RandomAccessibleInterval): # no dim info
                     rai = self._ij.convert().convert(data, RandomAccessibleInterval)
-                    x = self._ij.dataset().create(rai)
                     return self._ij.dataset().create(rai)
             except Exception as exc:
                 _dump_exception(exc)
@@ -859,43 +781,86 @@ def _create_gateway():
             :return: A Python object convrted from Java.
             """
             # todo: convert a dataset to xarray
-
             if not sj.isjava(data): return data
             try:
-                if self._ij.convert().supports(data, Dataset):
-                    # HACK: Converter exists for ImagePlus -> Dataset, but not ImagePlus -> RAI.
-                    data = self._ij.convert().convert(data, Dataset)
-                    return self._dataset_to_xarray(data)
-                if self._ij.convert().supports(data, RandomAccessibleInterval):
-                    rai = self._ij.convert().convert(data, RandomAccessibleInterval)
-                    return self.rai_to_numpy(rai)
+                if isinstance(data, ImagePlus):
+                    data = self._imageplus_to_imgplus(data)
+                if self._ij.convert().supports(data, ImgPlus):
+                    if dims._has_axis(data):
+                        # HACK: Converter exists for ImagePlus -> Dataset, but not ImagePlus -> RAI.
+                        data = self._ij.convert().convert(data, ImgPlus)
+                        permuted_rai = self._permute_rai_to_python(data)
+                        numpy_result = self.initialize_numpy_image(permuted_rai)
+                        numpy_result = self.rai_to_numpy(permuted_rai, numpy_result)
+                        return self._dataset_to_xarray(permuted_rai,numpy_result)
+                    if self._ij.convert().supports(data, RandomAccessibleInterval):
+                        rai = self._ij.convert().convert(data, RandomAccessibleInterval)
+                        numpy_result = self.initialize_numpy_image(rai)
+                        return self.rai_to_numpy(rai, numpy_result)
             except Exception as exc:
                 _dump_exception(exc)
                 raise exc
             return sj.to_python(data)
 
-        def _dataset_to_xarray(self, dataset):
-            """
-            Converts an ImageJ dataset into an xarray, inverting F-style (slow idx last) to C-style (slow idx first)
-            :param dataset: ImageJ dataset
-            :return: xarray with reversed (C-style) dims and coords as labeled by the dataset
-            """
-            attrs = self.from_java(dataset.getProperties())
-            axes = [(JObject(dataset.axis(idx), sj.jimport('net.imagej.axis.CalibratedAxis')))
-                    for idx in range(dataset.numDimensions())]
 
-            dims = [self._ijdim_to_pydim(axes[idx].type().getLabel()) for idx in range(len(axes))]
-            values = self.rai_to_numpy(dataset)
-            coords = self._get_axes_coords(axes, dims, np.shape(np.transpose(values)))
+        def _dataset_to_xarray(self, permuted_rai: RandomAccessibleInterval, numpy_array: np.ndarray) -> xr.DataArray:
+            """Wrap a numpy array with xarray and axes metadta from a RandomAccessibleInterval.
 
-            if dims[len(dims)-1].lower() in ['c', 'channel']:
-                xarr_dims = self._invert_except_last_element(dims)
-                values = np.moveaxis(values, 0, -1)
+            Wraps a numpy array with the metadata from the source RandomAccessibleInterval 
+            metadata (i.e. axes).
+
+            :param permuted_rai: A RandomAccessibleInterval with axes (e.g. Dataset or ImgPlus).
+            :param numpy_array: A np.ndarray to wrap with xarray.
+            :return: xarray.DataArray with metadata/axes.
+            """
+            # get metadata
+            xr_axes = dims.get_axes(permuted_rai)
+            xr_dims = dims.get_dims(permuted_rai)
+            xr_attrs = sj.to_python(permuted_rai.getProperties())
+            # reverse axes and dims to match numpy_array
+            xr_axes.reverse()
+            xr_dims.reverse()
+            xr_dims = dims._convert_dims(xr_dims, direction='python')
+            xr_coords = dims._get_axes_coords(xr_axes, xr_dims, numpy_array.shape)
+            return xr.DataArray(numpy_array, dims=xr_dims, coords=xr_coords, attrs=xr_attrs)
+
+        
+        def _permute_rai_to_python(self, rai: RandomAccessibleInterval) -> RandomAccessibleInterval:
+            """Permute a RandomAccessibleInterval to the python reference order.
+
+            Permute a RandomAccessibleInterval to the Python reference order of
+            CXYZT (where dimensions exist). Note that this is reverse from the final array order of 
+            TZYXC.
+
+            :param rai: A RandomAccessibleInterval with axes.
+            :return: A permuted RandomAccessibleInterval.
+            """
+            # get input rai metadata if it exists
+            try:
+                rai_metadata = rai.getProperties()
+            except AttributeError:
+                rai_metadata = None
+
+            rai_axis_types = dims.get_axis_types(rai)
+
+            # permute rai to specified order and transfer metadata
+            permute_order = dims.prioritize_rai_axes_order(rai_axis_types, dims._python_rai_ref_order())
+            permuted_rai = dims.reorganize(rai, permute_order)
+
+            # add metadata to image if it exisits
+            if rai_metadata != None:
+                permuted_rai.getProperties().putAll(rai_metadata)
+
+            return permuted_rai
+
+
+        def _imageplus_to_imgplus(self, imp: ImagePlus) -> ImgPlus:
+            if isinstance(imp, sj.jimport('ij.ImagePlus')):
+                ds = self._ij.convert().convert(imp, Dataset)
+                return ds.getImgPlus()
             else:
-                xarr_dims = list(reversed(dims))
+                return imp
 
-            xarr = xr.DataArray(values, dims=xarr_dims, coords=coords, attrs=attrs)
-            return xarr
 
         def _invert_except_last_element(self, lst):
             """
@@ -907,18 +872,6 @@ def _create_gateway():
             reverse_cut = list(reversed(cut_list))
             reverse_cut.append(lst[-1])
             return reverse_cut
-
-        def _get_axes_coords(self, axes, dims, shape):
-            """
-            Get xarray style coordinate list dictionary from a dataset
-            :param axes: List of ImageJ axes
-            :param dims: List of axes labels for each dataset axis
-            :param shape: F-style, or reversed C-style, shape of axes numpy array.
-            :return: Dictionary of coordinates for each axis.
-            """
-            coords = {dims[idx]: [axes[idx].calibratedValue(position) for position in range(shape[idx])]
-                      for idx in range(len(dims))}
-            return coords
 
 
         def show(self, image, cmap=None):
