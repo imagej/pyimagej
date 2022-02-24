@@ -1120,8 +1120,7 @@ def _create_gateway():
             for i in range(len(position)):
                 pos = position[i] % dims[i]
                 ra.setPosition(pos, i)
-            # TODO: Are we assuming too much here with the RealType.get()
-            return ra.get().get()
+            return ra.get()
         def _is_index(self, a):
             # Check dimensionality - if we don't have enough dims, it's a slice
             num_dims = 1 if type(a) == int else len(a)
@@ -1156,6 +1155,11 @@ def _create_gateway():
         @property
         def shape(self):
             return tuple(reversed([self.dimension(i) for i in range(self.numDimensions())]))
+
+        @property
+        def dtype(self):
+            Util = sj.jimport('net.imglib2.util.Util')
+            return type(Util.getTypeFromInterval(self))
         
         def __getitem__(self, key):
             if type(key) == slice:

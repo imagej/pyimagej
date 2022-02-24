@@ -423,10 +423,10 @@ class TestRAIArraylike(object):
 
 
     def test_slice_index(self, ij_fixture, img):
-        assert img[0, 0, 0] == 1
+        assert img[0, 0, 0].get() == 1
     
     def test_slice_index_negative(self, ij_fixture, img):
-        assert img[-1, -1, -1] == 24
+        assert img[-1, -1, -1].get() == 24
 
     def test_slice_2d(self, ij_fixture, img):
         Views = sj.jimport('net.imglib2.view.Views')
@@ -512,3 +512,8 @@ class TestRAIArraylike(object):
     def test_shape(self, ij_fixture, img):
         assert hasattr(img, 'shape')
         assert img.shape == (4, 3, 2)
+
+    def test_dtype(self, ij_fixture, img):
+        assert hasattr(img, 'dtype')
+        ByteType = sj.jimport('net.imglib2.type.numeric.integer.ByteType')
+        assert img.dtype == ByteType
