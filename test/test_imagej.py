@@ -517,3 +517,23 @@ class TestRAIArraylike(object):
         assert hasattr(img, 'dtype')
         ByteType = sj.jimport('net.imglib2.type.numeric.integer.ByteType')
         assert img.dtype == ByteType
+
+    def test_transpose1d(self, ij_fixture, img):
+        img = img[0, 0]
+        transpose = img.T
+        for i in range(2):
+            assert transpose[i] == img[i]
+
+    def test_transpose2d(self, ij_fixture, img):
+        img = img[0]
+        transpose = img.T
+        for i in range(3):
+            for j in range(2):
+                assert transpose[i, j] == img[j, i]
+
+    def test_transpose3d(self, ij_fixture, img):
+        transpose = img.T
+        for i in range(4):
+            for j in range(3):
+                for k in range(2):
+                    assert transpose[i, j, k] == img[k, j, i]

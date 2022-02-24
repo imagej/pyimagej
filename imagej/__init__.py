@@ -1161,6 +1161,18 @@ def _create_gateway():
             Util = sj.jimport('net.imglib2.util.Util')
             return type(Util.getTypeFromInterval(self))
         
+        @property
+        def T(self):
+            return self.transpose
+        
+        @property
+        def transpose(self):
+            view = self
+            max_dim = self.numDimensions() - 1
+            for i in range(self.numDimensions() // 2):
+                view = ij.op().run('transform.permuteView', self, i, max_dim - i)
+            return view 
+        
         def __getitem__(self, key):
             if type(key) == slice:
                 # Wrap single slice into tuple of length 1.
