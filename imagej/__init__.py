@@ -1162,6 +1162,10 @@ def _create_gateway():
             return type(Util.getTypeFromInterval(self))
         
         @property
+        def ndim(self):
+            return self.numDimensions()
+
+        @property
         def T(self):
             return self.transpose
         

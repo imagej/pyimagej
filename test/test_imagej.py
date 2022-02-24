@@ -518,6 +518,10 @@ class TestRAIArraylike(object):
         ByteType = sj.jimport('net.imglib2.type.numeric.integer.ByteType')
         assert img.dtype == ByteType
 
+    def test_dtype(self, ij_fixture, img):
+        assert hasattr(img, 'ndim')
+        assert img.ndim == 3
+
     def test_transpose1d(self, ij_fixture, img):
         img = img[0, 0]
         transpose = img.T
