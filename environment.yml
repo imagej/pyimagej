@@ -1,5 +1,5 @@
-# You can use this environment to run the PyImageJ
-# tutorial notebook at doc/PyImageJ-Tutorial.ipynb.
+# You can use this environment to run the
+# PyImageJ tutorial notebooks in the doc folder.
 name: imagej
 channels:
   - conda-forge

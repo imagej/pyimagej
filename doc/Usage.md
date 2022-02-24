@@ -74,8 +74,8 @@ print(arr_output) # This output will be [[5, 12], [21, 32]]!
 ## Working with ops
 
 Working with ImageJ2 ops may require casting your data to different
-data structures in order to send it through to the op. See
-[this tutorial notebook](PyImageJ-Tutorial.ipynb)
+data structures in order to send it through to the op.
+See the [tutorial notebook series](README.md)
 for several examples of op usage and how to troubleshoot.
 
 ## Using the original ImageJ
