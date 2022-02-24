@@ -127,7 +127,8 @@ def init(ij_dir_or_version_or_endpoint=None, mode=Mode.HEADLESS, add_legacy=True
         Path to a local ImageJ2 installation (e.g. /Applications/Fiji.app),
         OR version of net.imagej:imagej artifact to launch (e.g. 2.3.0),
         OR endpoint of another artifact built on ImageJ2 (e.g. sc.fiji:fiji),
-        OR list of Maven artifacts to include (e.g. ['net.imagej:imagej:2.3.0', 'net.imagej:imagej-legacy', 'net.preibisch:BigStitcher']).
+        OR list of Maven artifacts to include (e.g.
+           ['net.imagej:imagej:2.3.0', 'net.imagej:imagej-legacy', 'net.preibisch:BigStitcher']).
         The default is the latest version of net.imagej:imagej.
     :param mode:
         How the environment will behave. Options include:
