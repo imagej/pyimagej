@@ -95,7 +95,7 @@ This bug can occur in certain circumstances when using original ImageJ plugins
 which update a corresponding `ImagePlus`. It can be worked around by calling:
 
 ```python
-imp = ij.py.WindowManager.getCurrentImage()
+imp = ij.WindowManager.getCurrentImage()
 ij.py.synchronize_ij1_to_ij2(imp)
 ```
 

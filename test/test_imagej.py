@@ -91,8 +91,7 @@ class TestImageJ(object):
 
         ij_fixture.script().run('macro.ijm', macro, True).get()
         ij_fixture.py.run_plugin(plugin, args)
-        WindowManager = sj.jimport('ij.WindowManager')
-        result_name = WindowManager.getCurrentImage().getTitle()
+        result_name = ij_fixture.WindowManager.getCurrentImage().getTitle()
 
         ij_fixture.script().run('macro.ijm', 'run("Close All");', True).get()
 
