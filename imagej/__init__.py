@@ -175,7 +175,10 @@ def init(ij_dir_or_version_or_endpoint=None, mode=Mode.HEADLESS, add_legacy=True
     if macos and mode == Mode.INTERACTIVE:
         raise EnvironmentError("Sorry, the interactive mode is not available on macOS.")
 
-    _create_jvm(ij_dir_or_version_or_endpoint, mode, add_legacy)
+    if not sj.jvm_started():
+        success = _create_jvm(ij_dir_or_version_or_endpoint, mode, add_legacy)
+        if not success:
+            raise RuntimeError('Failed to create a JVM with the requested environment.')
 
     if mode == Mode.GUI:
         # Show the GUI and block.
