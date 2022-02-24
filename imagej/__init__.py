@@ -571,8 +571,7 @@ def _create_gateway():
             macro_result = ij.py.run_macro(macro, args)
             print(macro_result.getOutput('output'))
             """
-            if not ij.legacy or not ij.legacy.isActive():
-                raise ImportError("Your environment does not support the original ImageJ, and thus cannot use original ImageJ macros.")
+            ij._check_legacy_active('Use of original ImageJ macros is not possible.')
 
             try:
                 if args is None:
@@ -1009,7 +1008,7 @@ def _create_gateway():
             return imp
 
         def synchronize_ij1_to_ij2(self, imp):
-            """ Syncronize data between ImageJ and ImageJ2.
+            """ Synchronize data between ImageJ and ImageJ2.
 
             Synchronize between a Dataset or ImageDisplay linked to an 
             ImagePlus by accepting the ImagePlus data as true.
@@ -1035,12 +1034,6 @@ def _create_gateway():
     # attach ImageJPython to imagej
     imagejPythonObj = ImageJPython(ij)
 
-    # Try to define the legacy service, and create a dummy method if it doesn't exist.
-
-    # create the legacy service object
-
-        #TODO here
-
     @JImplementationFor('net.imagej.ImageJ')
     class ImageJPlus(object):
         @property
@@ -1049,6 +1042,10 @@ def _create_gateway():
 
         @property
         def legacy(self):
+            """
+            Gets the ImageJ2 gateway's LegacyService, or None if original
+            ImageJ support is not available in the current environment.
+            """
             if not hasattr(self, '_legacy'):
                 try:
                     LegacyService = sj.jimport('net.imagej.legacy.LegacyService')
@@ -1057,9 +1054,6 @@ def _create_gateway():
                         logging.warning("Operating in headless mode - the original ImageJ will have limited functionality.")
                 except TypeError:
                     self._legacy = None
-
-            if self._legacy is None:
-                self._raise_legacy_missing_error()
 
             return self._legacy
 
@@ -1080,23 +1074,19 @@ def _create_gateway():
             return self._access_legacy_class('ij.WindowManager')
 
         def _access_legacy_class(self, fqcn:str):
-            self._check_legacy_active()
+            self._check_legacy_active(f'The {fqcn} class is not available.')
             class_name = fqcn[fqcn.rindex('.')+1:]
             property_name = f"_{class_name}"
             if not hasattr(self, property_name):
                 if self.ui().isHeadless():
                     logging.warning(f"Operating in headless mode - the {class_name} class will not be fully functional.")
                 setattr(self, property_name, sj.jimport(fqcn))
-            
+
             return getattr(self, property_name)
 
-
-        def _check_legacy_active(self):
+        def _check_legacy_active(self, usage_context=''):
             if not self.legacy or not self.legacy.isActive():
-                self._raise_legacy_missing_error()
-
-        def _raise_legacy_missing_error(self):
-            raise ImportError("The original ImageJ is not available in this environment. Please include ImageJ Legacy in initialization. See: https://github.com/imagej/pyimagej/blob/master/doc/Initialization.md")
+                raise ImportError(f"The original ImageJ is not available in this environment. {usage_context} See: https://github.com/imagej/pyimagej/blob/master/doc/Initialization.md")
 
     # Overload operators for RandomAccessibleInterval so it's more Pythonic.
     @JImplementationFor('net.imglib2.RandomAccessibleInterval')

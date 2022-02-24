@@ -81,10 +81,18 @@ for several examples of op usage and how to troubleshoot.
 ## Using the original ImageJ
 
 In order to use [original ImageJ](https://imagej.net/software/imagej) macros,
-plugins, or other code you must initiate the environment with legacy supported.
-If in doubt, you can check the `ij.legacy().isActive()` function to see if your
-initialization worked properly.  See [Initialization.md](Initialization.md) for
-a how-to on starting up PyImageJ with legacy support.
+plugins, or other code you must initialize the ImageJ2 gateway with legacy
+support enabled. The gateway includes legacy support by default (unless you
+pass `add_legacy=False`), but if in doubt, you can check by calling:
+
+```python
+ij.legacy and ij.legacy.isActive()
+```
+
+to see if original ImageJ functions are available with your gateway.
+
+See [Initialization.md](Initialization.md) for more on starting PyImageJ
+with or without legacy support.
 
 ### Manipulating windows
 

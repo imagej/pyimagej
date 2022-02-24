@@ -77,7 +77,7 @@ class TestImageJ(object):
         except TypeError:
             pytest.skip("No Pairwise Stitching plugin available. Skipping test.")
 
-        if not ij_fixture.legacy.isActive():
+        if not ij_fixture.legacy:
             pytest.skip("No original ImageJ. Skipping test.")
         if ij_fixture.ui().isHeadless():
             pytest.skip("No GUI. Skipping test.")
@@ -307,7 +307,7 @@ def arr():
 
 class TestSynchronization(object):
     def test_get_image_plus_synchronizes_from_imagej_to_imagej2(self, ij_fixture, arr):
-        if not ij_fixture.legacy.isActive():
+        if not ij_fixture.legacy:
             pytest.skip("No original ImageJ. Skipping test.")
         if ij_fixture.ui().isHeadless():
             pytest.skip("No GUI. Skipping test.")
@@ -322,7 +322,7 @@ class TestSynchronization(object):
         assert arr[0, 0] == original + 5
 
     def test_synchronize_from_imagej_to_numpy(self, ij_fixture, arr):
-        if not ij_fixture.legacy.isActive():
+        if not ij_fixture.legacy:
             pytest.skip("No original ImageJ. Skipping test.")
         if ij_fixture.ui().isHeadless():
             pytest.skip("No GUI. Skipping test.")
@@ -337,7 +337,7 @@ class TestSynchronization(object):
         assert arr[0, 0] == original + 5
 
     def test_window_to_numpy_converts_active_image_to_xarray(self, ij_fixture, arr):
-        if not ij_fixture.legacy.isActive():
+        if not ij_fixture.legacy:
             pytest.skip("No original ImageJ. Skipping test.")
         if ij_fixture.ui().isHeadless():
             pytest.skip("No GUI. Skipping test.")
@@ -348,7 +348,7 @@ class TestSynchronization(object):
         assert (arr == new_arr.values).all
 
     def test_functions_throw_warning_if_legacy_not_enabled(self, ij_fixture):
-        if ij_fixture.legacy.isActive():
+        if ij_fixture.legacy and ij_fixture.legacy.isActive():
             pytest.skip("Original ImageJ installed. Skipping test.")
 
         with pytest.raises(AttributeError):
