@@ -296,12 +296,12 @@ def arr():
     return empty_array
 
 
-class TestIJ1ToIJ2Synchronization(object):
-    def test_get_image_plus_synchronizes_from_ij1_to_ij2(self, ij_fixture, arr):
+class TestSynchronization(object):
+    def test_get_image_plus_synchronizes_from_imagej_to_imagej2(self, ij_fixture, arr):
         if not ij_fixture.legacy.isActive():
-            pytest.skip("No IJ1.  Skipping test.")
+            pytest.skip("No original ImageJ. Skipping test.")
         if ij_fixture.ui().isHeadless():
-            pytest.skip("No GUI.  Skipping test")
+            pytest.skip("No GUI. Skipping test.")
 
         original = arr[0, 0]
         ds = ij_fixture.py.to_java(arr)
@@ -312,11 +312,11 @@ class TestIJ1ToIJ2Synchronization(object):
 
         assert arr[0, 0] == original + 5
 
-    def test_synchronize_from_ij1_to_numpy(self, ij_fixture, arr):
+    def test_synchronize_from_imagej_to_numpy(self, ij_fixture, arr):
         if not ij_fixture.legacy.isActive():
-            pytest.skip("No IJ1.  Skipping test.")
+            pytest.skip("No original ImageJ. Skipping test.")
         if ij_fixture.ui().isHeadless():
-            pytest.skip("No GUI.  Skipping test")
+            pytest.skip("No GUI. Skipping test.")
 
         original = arr[0, 0]
         ds = ij_fixture.py.to_dataset(arr)
@@ -329,9 +329,9 @@ class TestIJ1ToIJ2Synchronization(object):
 
     def test_window_to_numpy_converts_active_image_to_xarray(self, ij_fixture, arr):
         if not ij_fixture.legacy.isActive():
-            pytest.skip("No IJ1.  Skipping test.")
+            pytest.skip("No original ImageJ. Skipping test.")
         if ij_fixture.ui().isHeadless():
-            pytest.skip("No GUI.  Skipping test")
+            pytest.skip("No GUI. Skipping test.")
 
         ds = ij_fixture.py.to_dataset(arr)
         ij_fixture.ui().show(ds)
@@ -340,7 +340,7 @@ class TestIJ1ToIJ2Synchronization(object):
 
     def test_functions_throw_warning_if_legacy_not_enabled(self, ij_fixture):
         if ij_fixture.legacy.isActive():
-            pytest.skip("IJ1 installed.  Skipping test")
+            pytest.skip("Original ImageJ installed. Skipping test.")
 
         with pytest.raises(AttributeError):
             ij_fixture.py.synchronize_ij1_to_ij2(None)
