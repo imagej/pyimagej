@@ -26,7 +26,8 @@ def ij_fixture(request):
     ij_dir = request.config.getoption('--ij')
     headless = request.config.getoption('--headless')
 
-    ij_wrapper = imagej.init(ij_dir, headless=headless)
+    mode = 'headless' if headless else 'interactive'
+    ij_wrapper = imagej.init(ij_dir, mode=mode)
 
     yield ij_wrapper
 

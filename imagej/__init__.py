@@ -1182,6 +1182,5 @@ def imagej_main():
     args = []
     for i in range(1, len(sys.argv)):
         args.append(sys.argv[i])
-    ij = init(headless='--headless' in args)
-    # TODO: Investigate why ij.launch(args) doesn't work.
-    ij.ui().showUI()
+    mode = 'headless' if '--headless' in args else 'gui'
+    ij = init(mode=mode)
