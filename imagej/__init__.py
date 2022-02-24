@@ -1096,7 +1096,7 @@ def _create_gateway():
                 self._raise_legacy_missing_error()
 
         def _raise_legacy_missing_error(self):
-            raise ImportError("The original ImageJ is not available in this environment. Please include ImageJ Legacy in initialization. See: https://github.com/imagej/pyimagej/blob/master/doc/Initialization.md#how-to-initialize-imagej")
+            raise ImportError("The original ImageJ is not available in this environment. Please include ImageJ Legacy in initialization. See: https://github.com/imagej/pyimagej/blob/master/doc/Initialization.md")
 
     # Overload operators for RandomAccessibleInterval so it's more Pythonic.
     @JImplementationFor('net.imglib2.RandomAccessibleInterval')
