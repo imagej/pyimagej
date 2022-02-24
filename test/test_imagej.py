@@ -72,6 +72,16 @@ class TestImageJ(object):
         assert result == correct_result
 
     def test_plugins_load_using_pairwise_stitching(self, ij_fixture):
+        try:
+            sj.jimport('plugin.Stitching_Pairwise')
+        except TypeError:
+            pytest.skip("No Pairwise Stitching plugin available. Skipping test.")
+
+        if not ij_fixture.legacy.isActive():
+            pytest.skip("No original ImageJ. Skipping test.")
+        if ij_fixture.ui().isHeadless():
+            pytest.skip("No GUI. Skipping test.")
+
         macro = """
         newImage("Tile1", "8-bit random", 512, 512, 1);
         newImage("Tile2", "8-bit random", 512, 512, 1);
