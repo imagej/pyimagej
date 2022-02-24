@@ -345,11 +345,16 @@ def _create_gateway():
 
     # Append some useful utility functions to the ImageJ gateway.
     Dataset                  = sj.jimport('net.imagej.Dataset')
-    ImagePlus                = sj.jimport('ij.ImagePlus')
     ImgPlus                  = sj.jimport('net.imagej.ImgPlus')
     Img                      = sj.jimport('net.imglib2.img.Img')
     ImgView                  = sj.jimport('net.imglib2.img.ImgView')
     RandomAccessibleInterval = sj.jimport('net.imglib2.RandomAccessibleInterval')
+
+    try:
+        ImagePlus = sj.jimport('ij.ImagePlus')
+    except TypeError:
+        # No original ImageJ on the classpath.
+        ImagePlus = None
 
     class ImageJPython:
         def __init__(self, ij):
@@ -371,7 +376,7 @@ def _create_gateway():
                 raise TypeError('Unsupported type: ' + str(type(image)))
             if sj.jclass('net.imglib2.Dimensions').isInstance(image):
                 return list(image.dimensionsAsLongArray())
-            if sj.jclass('ij.ImagePlus').isInstance(image):
+            if ImagePlus and isinstance(image, ImagePlus):
                 dims = image.getDimensions()
                 dims.reverse()
                 dims = [dim for dim in dims if dim > 1]
@@ -445,13 +450,7 @@ def _create_gateway():
                 return self.dtype(ij2_type)
 
             # -- Original ImageJ images --
-            ImagePlus = None
-            try:
-                ImagePlus = sj.jimport('ij.ImagePlus')
-            except TypeError:
-                # No original ImageJ in the environment.
-                pass
-            if ImagePlus and ImagePlus.class_.isInstance(image_or_type):
+            if ImagePlus and isinstance(image_or_type, ImagePlus):
                 ij1_type = image_or_type.getType()
                 ij1_types = {
                     ImagePlus.GRAY8:  'uint8',
@@ -790,7 +789,7 @@ def _create_gateway():
             # todo: convert a dataset to xarray
             if not sj.isjava(data): return data
             try:
-                if isinstance(data, ImagePlus):
+                if ImagePlus and isinstance(data, ImagePlus):
                     data = self._imageplus_to_imgplus(data)
                 if self._ij.convert().supports(data, ImgPlus):
                     if dims._has_axis(data):
@@ -862,11 +861,10 @@ def _create_gateway():
 
 
         def _imageplus_to_imgplus(self, imp: ImagePlus) -> ImgPlus:
-            if isinstance(imp, sj.jimport('ij.ImagePlus')):
+            if ImagePlus and isinstance(imp, ImagePlus):
                 ds = self._ij.convert().convert(imp, Dataset)
                 return ds.getImgPlus()
-            else:
-                return imp
+            raise ValueError('Input is not an ImagePlus')
 
 
         def _invert_except_last_element(self, lst):
