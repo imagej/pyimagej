@@ -71,6 +71,9 @@ class Mode(Enum):
     HEADLESS = "headless"
     INTERACTIVE = "interactive"
 
+    def __eq__(self, other):
+        return super() == other or self.value == other
+
 
 def _dump_exception(exc):
     if _logger.isEnabledFor(logging.DEBUG):
