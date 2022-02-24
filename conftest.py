@@ -5,12 +5,12 @@ import argparse
 
 def pytest_addoption(parser):
     """
-    Set up the command line parser for IJ location and headless mode
+    Set up the command line parser for ImageJ location and headless mode
     :param parser: pytest's parser, passed in automatically
     :return: None
     """
     parser.addoption(
-        "--ij", action="store", default="sc.fiji:fiji", help="directory to IJ"
+        "--ij", action="store", default=None, help="directory or endpoint (see imagej.init)"
     )
     parser.addoption(
         "--headless", type=str2bool, action="store", default=True, help="Start in headless mode"
