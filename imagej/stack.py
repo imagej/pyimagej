@@ -1,7 +1,7 @@
 from jpype import JArray, JLong
 import scyjava as sj
 
-def rai_slice(rai, imin: tuple, imax: tuple):
+def rai_slice(rai, imin: tuple, imax: tuple, istep: tuple):
     """Slice ImgLib2 images.
 
     Slice ImgLib2 images using Python's slice notation to define the
@@ -33,7 +33,12 @@ def rai_slice(rai, imin: tuple, imax: tuple):
             index = imax[py_dim]
         imax_fix[j_dim] = JLong(index % dims[j_dim])
 
-    return Views.dropSingletonDimensions(Views.interval(rai, imin_fix, imax_fix))
+    istep_fix = JArray(JLong)(istep[::-1])
+
+    intervaled = Views.interval(rai, imin_fix, imax_fix)
+    stepped = Views.subsample(intervaled, istep_fix)
+    dimension_reduced = Views.dropSingletonDimensions(stepped)
+    return dimension_reduced
 
 def _get_dims(image):
     """Get ImgLib2 image dimensions."""

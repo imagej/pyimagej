@@ -472,3 +472,39 @@ class TestRAIArraylike(object):
         actual = img[0, 0]
         for i in range(2):
             assert expected[i] == actual[i]
+    
+    def test_step(self, ij_fixture, img):
+        # Create a stepped img via Views
+        Views = sj.jimport('net.imglib2.view.Views')
+        steps = JArray(JLong)([1, 1, 2])
+        expected = Views.subsample(img, steps)
+        # Create a stepped img via slicing notation
+        actual = img[::2, :, :]
+        for i in range(2):
+            for j in range(3):
+                for k in range(2):
+                    assert expected[i, j, k] == actual[i, j, k]
+
+    def test_step_not_enough_dims(self, ij_fixture, img):
+        # Create a stepped img via Views
+        Views = sj.jimport('net.imglib2.view.Views')
+        steps = JArray(JLong)([1, 1, 2])
+        expected = Views.subsample(img, steps)
+        # Create a stepped img via slicing notation
+        actual = img[::2]
+        for i in range(2):
+            for j in range(3):
+                for k in range(2):
+                    assert expected[i, j, k] == actual[i, j, k]
+
+    def test_slice_and_step(self, ij_fixture, img):
+        # Create a stepped img via Views
+        Views = sj.jimport('net.imglib2.view.Views')
+        intervaled = Views.hyperSlice(img, 0, 0)
+        steps = JArray(JLong)([1, 2])
+        expected = Views.subsample(intervaled, steps)
+        # Create a stepped img via slicing notation
+        actual = img[::2, :, :1]
+        for i in range(2):
+            for j in range(3):
+                    assert expected[i, j] == actual[i, j]

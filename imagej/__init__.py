@@ -1140,17 +1140,17 @@ def _create_gateway():
 
             imin = []
             imax = []
+            istep = []
             dslices = [r if type(r) == slice else slice(r, r+1) for r in ranges]
             for dslice in dslices:
-                if dslice.step and dslice.step != 1:
-                    raise ValueError(f'Unsupported step value: {dslice.step}')
                 imax.append(None if dslice.stop == None else dslice.stop - 1)
                 imin.append(None if dslice.start == None else dslice.start)
+                istep.append(1 if dslice.step == None else dslice.step)
 
             # BE WARNED! This does not yet preserve net.imagej-level axis metadata!
             # We need to finish RichImg to support that properly.
 
-            return stack.rai_slice(self, tuple(imin), tuple(imax))
+            return stack.rai_slice(self, tuple(imin), tuple(imax), tuple(istep))
 
 
         def __getitem__(self, key):
