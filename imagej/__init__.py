@@ -363,11 +363,11 @@ def _create_gateway():
         def dims(self, image):
             """
             ij.py.dims() is deprecated.
-            Import the 'dims' module and use dims.get_dims().
+            Import the 'dims' module and use dims.get_shape().
 
             :example:
                 >>> import imagej.dims as dims
-                >>> dims.get_dims(image)
+                >>> dims.get_shape(image)
             """
             logging.warning("ij.py.dims() is deprecated. Import the 'dims' module and use dims.get_dims().")
             if self._is_arraylike(image):
