@@ -220,10 +220,14 @@ def _create_jvm(ij_dir_or_version_or_endpoint=None, mode=Mode.HEADLESS, add_lega
     # Initialize configuration.
     if mode == Mode.HEADLESS:
         sj.config.add_option('-Djava.awt.headless=true')
-    if hasattr(sj, 'jvm_version') and sj.jvm_version()[0] >= 9:
-        # Disable illegal reflection access warnings.
-        sj.config.add_option('--add-opens=java.base/java.lang=ALL-UNNAMED')
-        sj.config.add_option('--add-opens=java.base/java.util=ALL-UNNAMED')
+    try:
+        if hasattr(sj, 'jvm_version') and sj.jvm_version()[0] >= 9:
+            # Disable illegal reflection access warnings.
+            sj.config.add_option('--add-opens=java.base/java.lang=ALL-UNNAMED')
+            sj.config.add_option('--add-opens=java.base/java.util=ALL-UNNAMED')
+    except RuntimeError as e:
+        _logger.warning('Failed to guess the Java version.')
+        _logger.debug(e, exc_info=True)
 
     # We want ImageJ's endpoints to come first, so these will be restored later
     original_endpoints = sj.config.endpoints.copy()
