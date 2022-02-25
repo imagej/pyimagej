@@ -1119,9 +1119,9 @@ def _create_gateway():
         def _index(self, position):
             ra = self.ra
             # Can we store this as a shape property?
-            dims = ij.py.dims(self)
+            rai_shape = dims.get_shape(self)
             for i in range(len(position)):
-                pos = position[i] % dims[i]
+                pos = position[i] % rai_shape[i]
                 ra.setPosition(pos, i)
             return ra.get()
         def _is_index(self, a):
