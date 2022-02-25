@@ -1117,7 +1117,7 @@ def _create_gateway():
         def __truediv__(self, other):
             return ij.op().run('math.div', self, other)
         def _index(self, position):
-            ra = self.ra
+            ra = self._ra
             # Can we store this as a shape property?
             rai_shape = dims.get_shape(self)
             for i in range(len(position)):
@@ -1181,7 +1181,7 @@ def _create_gateway():
             return view 
         
         @property
-        def ra(self):
+        def _ra(self):
             threadLocal = getattr(self, '_threadLocal', None)
             if threadLocal is None:
                 with rai_lock:
@@ -1192,10 +1192,10 @@ def _create_gateway():
             ra = getattr(threadLocal, 'ra', None)
             if ra is None:
                 with rai_lock:
-                    ra = getattr(threadLocal, 'ra', None)
+                    ra = getattr(threadLocal, '_ra', None)
                     if ra is None:
                         ra = self.randomAccess()
-                        threadLocal.ra = ra
+                        threadLocal._ra = ra
             return ra
     
         def __getitem__(self, key):
