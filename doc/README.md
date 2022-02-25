@@ -26,6 +26,8 @@ Reference guides exist detailing the following topics:
 Here are links to some examples and use cases:
 
 * The [examples](examples/README.md) in this repository demonstrate some workflows.
+* The [pyimagej-dextr](https://github.com/imagej/pyimagej-dextr) repository
+  uses Deep Extreme Cut (DEXTR) to generate ImageJ ROIs via PyImageJ.
 * [PoreSpy](https://github.com/PMEAL/porespy), a collection of image analysis
   tools used to extract information from 3D images of porous materials,
   uses some ImageJ filters via PyImageJ.
