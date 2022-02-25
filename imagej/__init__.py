@@ -1021,10 +1021,16 @@ def _create_gateway():
             imp = self._ij.WindowManager.getCurrentImage()
             if imp is None: return None
             if sync:
-                self.synchronize_ij1_to_ij2(imp)
+                self.sync_image(imp)
             return imp
 
         def synchronize_ij1_to_ij2(self, imp):
+            """
+            This function is deprecated. Use sync_image instead.
+            """
+            logging.warning("The synchronize_ij1_to_ij2 function is deprecated. Use sync_image instead.")
+
+        def sync_image(self, imp):
             """ Synchronize data between ImageJ and ImageJ2.
 
             Synchronize between a Dataset or ImageDisplay linked to an 
@@ -1042,10 +1048,6 @@ def _create_gateway():
             # setting the stack to be the same as the imageprocessor.
             stack = imp.getStack()
             pixels = imp.getProcessor().getPixels()
-            # Don't sync if the ImagePlus is not linked back to a corresponding dataset
-            if str(type(pixels)) == '<class \'jnius.ByteArray\'>':
-                return
-
             stack.setPixels(pixels, imp.getCurrentSlice())
 
     # attach ImageJPython to imagej

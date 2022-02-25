@@ -113,9 +113,9 @@ Current convenience functions include `active_image_plus` to get the
 `ij.ImagePlus` from the current window and `active_xarray` to convert the
 current window into an `xarray.DataArray`.
 
-You can also use `synchronize_ij1_to_ij2` to synchronize the current data
-structures. See [Troubleshooting.md](Troubleshooting.md) for an explanation of
-when this is needed.
+You can also use `sync_image` to synchronize the current data structures.
+See [Troubleshooting.md](Troubleshooting.md) for an explanation of when this is
+needed.
 
 #### WindowService
 You can get a list of active ImageJ2 windows with the following command

@@ -332,7 +332,7 @@ class TestSynchronization(object):
         ij_fixture.ui().show(ds)
         imp = ij_fixture.py.active_image_plus()
         imp.getProcessor().add(5)
-        ij_fixture.py.synchronize_ij1_to_ij2(imp)
+        ij_fixture.py.sync_image(imp)
 
         assert arr[0, 0] == original + 5
 
@@ -352,7 +352,7 @@ class TestSynchronization(object):
             pytest.skip("Original ImageJ installed. Skipping test.")
 
         with pytest.raises(AttributeError):
-            ij_fixture.py.synchronize_ij1_to_ij2(None)
+            ij_fixture.py.sync_image(None)
         with pytest.raises(ImportError):
             ij_fixture.py.active_image_plus()
 

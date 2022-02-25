@@ -18,7 +18,7 @@ If you need to work with multiple `ij.gui.Roi` objects, one option that works he
 
 ImageJ's `ij.WindowManager` class consists of static functions for working with Java AWT windows, including ImageJ's `ij.gui.ImageWindow`. Each ImageJ image is an `ij.ImagePlus` linked to a corresponding `ij.gui.ImageWindow`. However, in headless mode, there are no image windows, because they cannot exist headless. Therefore, attempts to use the functions of the `WindowManager` will fail, with functions like `WindowManager.getCurrentWindow()` always returning null. Unfortunately, ImageJ tracks open images via their windows; therefore, you cannot know which images have previously been opened while running headless, nor is there an "active image window" while running headless because _there are no windows_.
 
-Note that if you are having problems with a `null` or incorrect active image while **running in `GUI` or `INTERACTIVE` mode (i.e. not `HEADLESS`)**, you might need to call `ij.py.synchronize_ij1_to_ij2(imp)`, where `imp` is the `ij.ImagePlus` you want to register or update.
+Note that if you are having problems with a `null` or incorrect active image while **running in `GUI` or `INTERACTIVE` mode (i.e. not `HEADLESS`)**, you might need to call `ij.py.sync_image(imp)`, where `imp` is the `ij.ImagePlus` you want to register or update.
 
 ## Non-blocking INTERACTIVE mode on macOS
 
@@ -96,7 +96,7 @@ which update a corresponding `ImagePlus`. It can be worked around by calling:
 
 ```python
 imp = ij.WindowManager.getCurrentImage()
-ij.py.synchronize_ij1_to_ij2(imp)
+ij.py.sync_image(imp)
 ```
 
 ## Original ImageJ classes not found
