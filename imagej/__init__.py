@@ -367,11 +367,11 @@ def _create_gateway():
         def dims(self, image):
             """
             ij.py.dims() is deprecated.
-            Import the 'dims' module and use dims.get_dims().
+            Import the 'dims' module and use dims.get_shape().
 
             :example:
                 >>> import imagej.dims as dims
-                >>> dims.get_dims(image)
+                >>> dims.get_shape(image)
             """
             logging.warning("ij.py.dims() is deprecated. Import the 'dims' module and use dims.get_dims().")
             if self._is_arraylike(image):
@@ -1106,8 +1106,12 @@ def _create_gateway():
                 raise ImportError(f"The original ImageJ is not available in this environment. {usage_context} See: https://github.com/imagej/pyimagej/blob/master/doc/Initialization.md")
 
     # Overload operators for RandomAccessibleInterval so it's more Pythonic.
+    import threading
+    from threading import Lock
+    rai_lock = Lock()
     @JImplementationFor('net.imglib2.RandomAccessibleInterval')
     class RAIOperators(object):
+
         def __add__(self, other):
             return ij.op().run('math.add', self, other)
         def __sub__(self, other):
@@ -1116,36 +1120,97 @@ def _create_gateway():
             return ij.op().run('math.mul', self, other)
         def __truediv__(self, other):
             return ij.op().run('math.div', self, other)
+        def _index(self, position):
+            ra = self._ra
+            # Can we store this as a shape property?
+            rai_shape = dims.get_shape(self)
+            for i in range(len(position)):
+                pos = position[i] % rai_shape[i]
+                ra.setPosition(pos, i)
+            return ra.get()
+        def _is_index(self, a):
+            # Check dimensionality - if we don't have enough dims, it's a slice
+            num_dims = 1 if type(a) == int else len(a)
+            if num_dims < self.numDimensions(): return False
+            # if an int, it is an index
+            if type(a) == int: return True
+            # if we have a tuple, it's an index if there are any slices
+            hasSlice = True in [type(item) == slice for item in a]
+            return not hasSlice
         def _slice(self, ranges):
             expected_dims = len(ranges)
             actual_dims = self.numDimensions()
-            if expected_dims != actual_dims:
-                raise ValueError(f'Dimension mismatch: {expected_dims} != {actual_dims}')
+            if expected_dims > actual_dims:
+                raise ValueError(f'Dimension mismatch: {expected_dims} > {actual_dims}')
+            elif expected_dims < actual_dims:
+                ranges = (list(ranges) + actual_dims * [slice(None)])[:actual_dims]
 
             imin = []
             imax = []
-            for dslice in ranges:
-                if dslice.step and dslice.step != 1:
-                    raise ValueError(f'Unsupported step value: {dslice.step}')
-                imin.append(dslice.start)
-                if dslice.stop == None:
-                    imax.append(None)
-                else:
-                    imax.append(dslice.stop - 1)
+            istep = []
+            dslices = [r if type(r) == slice else slice(r, r+1) for r in ranges]
+            for dslice in dslices:
+                imax.append(None if dslice.stop == None else dslice.stop - 1)
+                imin.append(None if dslice.start == None else dslice.start)
+                istep.append(1 if dslice.step == None else dslice.step)
 
             # BE WARNED! This does not yet preserve net.imagej-level axis metadata!
             # We need to finish RichImg to support that properly.
 
-            return stack.rai_slice(self, tuple(imin), tuple(imax))
+            return stack.rai_slice(self, tuple(imin), tuple(imax), tuple(istep))
+        
+        @property
+        def shape(self):
+            return tuple(reversed([self.dimension(i) for i in range(self.numDimensions())]))
 
+        @property
+        def dtype(self):
+            Util = sj.jimport('net.imglib2.util.Util')
+            return type(Util.getTypeFromInterval(self))
+        
+        @property
+        def ndim(self):
+            return self.numDimensions()
+
+        @property
+        def T(self):
+            return self.transpose
+        
+        @property
+        def transpose(self):
+            view = self
+            max_dim = self.numDimensions() - 1
+            for i in range(self.numDimensions() // 2):
+                view = ij.op().run('transform.permuteView', self, i, max_dim - i)
+            return view 
+        
+        @property
+        def _ra(self):
+            threadLocal = getattr(self, '_threadLocal', None)
+            if threadLocal is None:
+                with rai_lock:
+                    threadLocal = getattr(self, '_threadLocal', None)
+                    if threadLocal is None:
+                        threadLocal = threading.local()
+                        self._threadLocal = threadLocal
+            ra = getattr(threadLocal, 'ra', None)
+            if ra is None:
+                with rai_lock:
+                    ra = getattr(threadLocal, '_ra', None)
+                    if ra is None:
+                        ra = self.randomAccess()
+                        threadLocal._ra = ra
+            return ra
+    
         def __getitem__(self, key):
             if type(key) == slice:
                 # Wrap single slice into tuple of length 1.
                 return self._slice((key,))
             elif type(key) == tuple:
-                return self._slice(key)
+                return self._index(key) if self._is_index(key) else self._slice(key)
             elif type(key) == int:
-                return self.values[key]
+                # Wrap single int into tuple of length 1.
+                return self.__getitem__((key, ))
             else:
                 raise ValueError(f"Invalid key type: {type(key)}")
 
