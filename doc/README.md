@@ -6,7 +6,7 @@ To learn PyImageJ, follow this numbered sequence of tutorial notebooks:
 2. [Opening and Displaying Images](2-Opening-and-Displaying-Images.ipynb)
 3. [Sending Data to Java](3-Sending-Data-to-Java.ipynb)
 4. [Retrieving Data from Java](4-Retrieving-Data-from-Java.ipynb)
-5. [Convenience-methods-of-PyImageJ](5-Convenience-methods-of-PyImageJ.ipynb)
+5. [Convenience methods of PyImageJ](5-Convenience-methods-of-PyImageJ.ipynb)
 6. [Working with Images](6-Working-with-Images.ipynb)
 7. [Running Macros, Scripts, and Plugins](7-Running-Macros-Scripts-and-Plugins.ipynb)
 8. [Working with Large Images](8-Working-with-Large-Images.ipynb)
