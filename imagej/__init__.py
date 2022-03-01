@@ -1126,10 +1126,13 @@ def _create_gateway():
             ra = self._ra
             # Can we store this as a shape property?
             rai_shape = dims.get_shape(self)
-            for i in range(len(position)):
-                pos = position[i] % rai_shape[i]
-                ra.setPosition(pos, i)
-            return ra.get()
+            if stack._index_within_range(position, rai_shape):
+                for i in range(len(position)):
+                    pos = position[i]
+                    if pos < 0:
+                        pos += rai_shape[i]
+                    ra.setPosition(pos, i)
+                return ra.get()
         def _is_index(self, a):
             # Check dimensionality - if we don't have enough dims, it's a slice
             num_dims = 1 if type(a) == int else len(a)
@@ -1146,7 +1149,6 @@ def _create_gateway():
                 raise ValueError(f'Dimension mismatch: {expected_dims} > {actual_dims}')
             elif expected_dims < actual_dims:
                 ranges = (list(ranges) + actual_dims * [slice(None)])[:actual_dims]
-
             imin = []
             imax = []
             istep = []
@@ -1163,7 +1165,7 @@ def _create_gateway():
         
         @property
         def shape(self):
-            return tuple(reversed([self.dimension(i) for i in range(self.numDimensions())]))
+            return tuple([self.dimension(i) for i in range(self.numDimensions())])
 
         @property
         def dtype(self):

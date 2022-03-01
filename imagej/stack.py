@@ -1,7 +1,9 @@
-from jpype import JArray, JLong
 import scyjava as sj
+import imagej.dims as dims
+from typing import List, Tuple
+from jpype import JArray, JLong
 
-def rai_slice(rai, imin: tuple, imax: tuple, istep: tuple):
+def rai_slice(rai, imin: Tuple, imax: Tuple, istep: Tuple):
     """Slice ImgLib2 images.
 
     Slice ImgLib2 images using Python's slice notation to define the
@@ -13,34 +15,49 @@ def rai_slice(rai, imin: tuple, imax: tuple, istep: tuple):
     :return: Sliced ImgLib2 RandomAccisbleInterval.
     """
     Views = sj.jimport('net.imglib2.view.Views')
-    dims = _get_dims(rai)
-    imin_fix = JArray(JLong)(len(dims))
-    imax_fix = JArray(JLong)(len(dims))
+    shape = dims.get_shape(rai)
+    imin_fix = JArray(JLong)(len(shape))
+    imax_fix = JArray(JLong)(len(shape))
+    dim_itr = range(len(shape))
 
-    dim_itr = range(len(dims))
-    for py_dim, j_dim in zip(dim_itr, reversed(dim_itr)):
+    for py_dim, j_dim in zip(dim_itr, dim_itr):
 
         # Set minimum
         if imin[py_dim] == None:
             index = 0
         else:
             index = imin[py_dim]
-        imin_fix[j_dim] = JLong(index % dims[j_dim])
+            if index < 0:
+                index += shape[j_dim]
+        imin_fix[j_dim] = JLong(index)
         # Set maximum
         if imax[py_dim] == None:
-            index = (dims[j_dim] - 1)
+            index = (shape[j_dim] - 1)
         else:
             index = imax[py_dim]
-        imax_fix[j_dim] = JLong(index % dims[j_dim])
+            if index < 0:
+                index += shape[j_dim]
+        imax_fix[j_dim] = JLong(index)
 
-    istep_fix = JArray(JLong)(istep[::-1])
+    istep_fix = JArray(JLong)(istep)
 
-    intervaled = Views.interval(rai, imin_fix, imax_fix)
-    stepped = Views.subsample(intervaled, istep_fix)
+    if _index_within_range(imin_fix, shape) and _index_within_range(imax_fix, shape):
+        intervaled = Views.interval(rai, imin_fix, imax_fix)
+        stepped = Views.subsample(intervaled, istep_fix)
+
+    # TODO: better mach NumPy squeeze behavior. See pyimagej/#1231
     dimension_reduced = Views.dropSingletonDimensions(stepped)
     return dimension_reduced
 
-def _get_dims(image):
-    """Get ImgLib2 image dimensions."""
-    if isinstance(image, sj.jimport('net.imglib2.RandomAccessibleInterval')):
-        return tuple(sj.jimport('net.imglib2.util.Intervals').dimensionsAsLongArray(image))
+
+def _index_within_range(query: List[int], source: List[int]) -> bool:
+    """Check if query is within range of source index.
+    :param query: List of query int
+    :param source: List of soure int
+    """
+    dim_num = len(query)
+    for i in range(dim_num):
+        if query[i] > source[i]:
+            raise IndexError(f"index {query[i]} is out of bound for axis {i} with size {source[i]}")
+
+    return True

@@ -425,52 +425,57 @@ class TestRAIArraylike(object):
     def test_slice_index(self, ij_fixture, img):
         assert img[0, 0, 0].get() == 1
     
+
     def test_slice_index_negative(self, ij_fixture, img):
         assert img[-1, -1, -1].get() == 24
+
 
     def test_slice_2d(self, ij_fixture, img):
         Views = sj.jimport('net.imglib2.view.Views')
         expected = Views.hyperSlice(img, 0, 0)
-        actual = img[:, :, 0]
+        actual = img[0, :, :]
         for i in range(3):
             for j in range(4):
                 assert expected[i, j] == actual[i, j]
+
 
     def test_slice_2d_negative(self, ij_fixture, img):
         Views = sj.jimport('net.imglib2.view.Views')
         expected = Views.hyperSlice(img, 0, 1)
-        actual = img[:, :, -1]
+        actual = img[-1, :, :]
         for i in range(3):
             for j in range(4):
                 assert expected[i, j] == actual[i, j]
 
+
     def test_slice_1d(self, ij_fixture, img):
         Views = sj.jimport('net.imglib2.view.Views')
         expected = Views.hyperSlice(Views.hyperSlice(img, 0, 0), 0, 0)
-        actual = img[:, 0, 0]
+        actual = img[0, 0, :]
         for i in range(4):
             assert expected[i] == actual[i]
+
 
     def test_slice_1d_negative(self, ij_fixture, img):
         Views = sj.jimport('net.imglib2.view.Views')
         expected = Views.hyperSlice(Views.hyperSlice(img, 0, 1), 0, 1)
-        actual = img[:, -2, -1]
+        actual = img[-1, -2, :]
         for i in range(4):
             assert expected[i] == actual[i]
 
     def test_slice_int(self, ij_fixture, img):
         Views = sj.jimport('net.imglib2.view.Views')
-        expected = Views.hyperSlice(img, 2, 0)
+        expected = Views.hyperSlice(img, 0, 0)
         actual = img[0]
         for i in range(3):
-            for j in range(2):
+            for j in range(4):
                 assert expected[i, j] == actual[i, j]
 
     def test_slice_not_enough_dims(self, ij_fixture, img):
         Views = sj.jimport('net.imglib2.view.Views')
-        expected = Views.hyperSlice(Views.hyperSlice(img, 2, 0), 1, 0)
+        expected = Views.hyperSlice(Views.hyperSlice(img, 0, 0), 0, 0)
         actual = img[0, 0]
-        for i in range(2):
+        for i in range(4):
             assert expected[i] == actual[i]
     
     def test_step(self, ij_fixture, img):
@@ -479,7 +484,7 @@ class TestRAIArraylike(object):
         steps = JArray(JLong)([1, 1, 2])
         expected = Views.subsample(img, steps)
         # Create a stepped img via slicing notation
-        actual = img[::2, :, :]
+        actual = img[:, :, ::2]
         for i in range(2):
             for j in range(3):
                 for k in range(2):
@@ -488,14 +493,14 @@ class TestRAIArraylike(object):
     def test_step_not_enough_dims(self, ij_fixture, img):
         # Create a stepped img via Views
         Views = sj.jimport('net.imglib2.view.Views')
-        steps = JArray(JLong)([1, 1, 2])
+        steps = JArray(JLong)([2, 1, 1])
         expected = Views.subsample(img, steps)
+        expected = Views.dropSingletonDimensions(expected)
         # Create a stepped img via slicing notation
         actual = img[::2]
-        for i in range(2):
-            for j in range(3):
-                for k in range(2):
-                    assert expected[i, j, k] == actual[i, j, k]
+        for i in range(3):
+            for j in range(4):
+                assert expected[i, j] == actual[i, j]
 
     def test_slice_and_step(self, ij_fixture, img):
         # Create a stepped img via Views
@@ -504,14 +509,14 @@ class TestRAIArraylike(object):
         steps = JArray(JLong)([1, 2])
         expected = Views.subsample(intervaled, steps)
         # Create a stepped img via slicing notation
-        actual = img[::2, :, :1]
-        for i in range(2):
-            for j in range(3):
+        actual = img[:1, :, ::2]
+        for i in range(3):
+            for j in range(2):
                     assert expected[i, j] == actual[i, j]
 
     def test_shape(self, ij_fixture, img):
         assert hasattr(img, 'shape')
-        assert img.shape == (4, 3, 2)
+        assert img.shape == (2, 3, 4)
 
     def test_dtype(self, ij_fixture, img):
         assert hasattr(img, 'dtype')
