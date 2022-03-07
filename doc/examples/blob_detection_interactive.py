@@ -114,6 +114,8 @@ def detections_to_bdv(image, detections:np.ndarray):
     # show image
     BdvFunctions.show(image, 'test', BdvOptions.options().is2D())
 
+    # TODO: Add detections to bdv ROI
+
 
 if __name__ == "__main__":
     # initialize imagej
@@ -126,6 +128,6 @@ if __name__ == "__main__":
     detected_blobs = find_blobs(img_xr, min_sigma=0.5, max_sigma=3, num_sigma=10, threshold=0.0075)
     ij.ui().showUI()
     detections_to_imagej(img, detected_blobs, True)
+    detections_to_napari(img_xr, detected_blobs)
     detections_to_pyplot(img_xr, detected_blobs)
     #detections_to_bdv(img, detected_blobs)
-    #detections_to_napari(img_xr, detected_blobs)
