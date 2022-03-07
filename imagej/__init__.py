@@ -815,10 +815,10 @@ def _create_gateway():
                         numpy_result = self.initialize_numpy_image(permuted_rai)
                         numpy_result = self.rai_to_numpy(permuted_rai, numpy_result)
                         return self._dataset_to_xarray(permuted_rai,numpy_result)
-                    if self._ij.convert().supports(data, RandomAccessibleInterval):
-                        rai = self._ij.convert().convert(data, RandomAccessibleInterval)
-                        numpy_result = self.initialize_numpy_image(rai)
-                        return self.rai_to_numpy(rai, numpy_result)
+                if self._ij.convert().supports(data, RandomAccessibleInterval):
+                    rai = self._ij.convert().convert(data, RandomAccessibleInterval)
+                    numpy_result = self.initialize_numpy_image(rai)
+                    return self.rai_to_numpy(rai, numpy_result)
             except Exception as exc:
                 _dump_exception(exc)
                 raise exc

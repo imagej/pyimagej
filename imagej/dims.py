@@ -374,6 +374,8 @@ def _has_axis(rai: 'RandomAccessibleInterval'):
     """
     if sj.isjava(rai):
         return hasattr(rai, 'axis')
+    else:
+        False
 
 
 def _is_arraylike(arr):
