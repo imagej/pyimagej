@@ -480,25 +480,29 @@ def _create_gateway():
             logging.warning("ij.py.new_numpy_image() is deprecated. Use ij.py.initialize_numpy_image() instead.")
             return np.zeros(self.dims(image), dtype=dtype_to_use)
 
-        def initialize_numpy_image(self, rai: RandomAccessibleInterval) -> np.ndarray:
-            """Initialize a numpy array with zeros and shape of the input RandomAccessibleInterval.
+        def initialize_numpy_image(self, image) -> np.ndarray:
+            """Initialize a NumPy array with zeros and shape of the input image.
 
             Initialize a new numpy array with the same dtype and shape as the input
-            RandomAccessibleInterval with zeros.
+            image with zeros.
 
-            :param rai: A RandomAccessibleInterval
+            :param image: A RandomAccessibleInterval or NumPy image
             :return:
                 A numpy array with the same dtype and shape as the input 
-                RandomAccessibleInterval, filled with zeros.
+                image, filled with zeros.
             """
             try:
-                dtype_to_use = self.dtype(rai)
+                dtype_to_use = self.dtype(image)
             except TypeError:
                 dtype_to_use = np.dtype('float64')
 
-            # get shape of rai and invert
-            shape = dims.get_shape(rai)
-            shape.reverse()
+            # get shape of image and invert
+            shape = dims.get_shape(image)
+
+            # reverse shape if image is a RandomAccessibleInterval
+            if isinstance(image, RandomAccessibleInterval):
+                shape.reverse()
+
             return np.zeros(shape, dtype=dtype_to_use)
 
         def rai_to_numpy(self, rai: RandomAccessibleInterval, numpy_array: np.ndarray) -> np.ndarray:
