@@ -29,7 +29,6 @@ Here is an example of opening an image using ImageJ2 and displaying it:
 """
 
 import logging
-from math import perm
 import os
 import re
 import sys
