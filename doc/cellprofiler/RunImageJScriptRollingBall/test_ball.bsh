@@ -1,0 +1,7 @@
+#@ ImagePlus(label="Testing image", description="Stack or a single 2D image") testImage
+#@OUTPUT ImagePlus backsub
+
+import ij.IJ;
+
+backsub = testImage.duplicate();
+IJ.run(backsub, "Subtract Background...", "rolling=50");

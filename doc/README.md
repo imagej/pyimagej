@@ -26,7 +26,10 @@ Reference guides exist detailing the following topics:
 
 Here are links to some examples and use cases:
 
-* The [examples](examples/README.md) in this repository demonstrate some workflows.
+* The [examples](examples) in this repository demonstrate some workflows.
+* The [cellprofiler](cellprofiler) folder in this repository contains some
+  sample [CellProfiler](https://cellprofiler.org/) workflows demonstrating
+  integration with ImageJ via PyImageJ.
 * The [pyimagej-dextr](https://github.com/imagej/pyimagej-dextr) repository
   uses Deep Extreme Cut (DEXTR) to generate ImageJ ROIs via PyImageJ.
 * [PoreSpy](https://github.com/PMEAL/porespy), a collection of image analysis

@@ -1,0 +1,19 @@
+#@ ImagePlus(label="Testing image", description="Stack or a single 2D image") testImage
+#@ File(label="Weka model", description="Select the Weka model to apply") modelPath
+#@OUTPUT ImagePlus labels
+#@OUTPUT ImagePlus probs
+
+import ij.IJ;
+import trainableSegmentation.WekaSegmentation;
+import hr.irb.fastRandomForest.FastRandomForest;
+
+
+// create Weka segmentator
+seg = new WekaSegmentation();
+seg.loadClassifier( modelPath.getCanonicalPath() );
+
+IJ.log( "successfully loaded classifier" );
+
+// Apply trained classifier to test image and get probabilities
+labels = seg.applyClassifier( testImage, 0, false );
+probs = seg.applyClassifier( testImage, 0, true );
