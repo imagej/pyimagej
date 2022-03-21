@@ -9,8 +9,9 @@ To learn PyImageJ, follow this numbered sequence of tutorial notebooks:
 5. [Convenience methods of PyImageJ](5-Convenience-methods-of-PyImageJ.ipynb)
 6. [Working with Images](6-Working-with-Images.ipynb)
 7. [Running Macros, Scripts, and Plugins](7-Running-Macros-Scripts-and-Plugins.ipynb)
-8. [Working with Large Images](8-Working-with-Large-Images.ipynb)
-9. [Troubleshooting](9-Troubleshooting.ipynb)
+8. [Discover and run ImageJ commands](8-Discover-and-run-ImageJ-commands.ipynb)
+9. [Working with Large Images](9-Working-with-Large-Images.ipynb)
+10. [Troubleshooting](10-Troubleshooting.ipynb)
 
 ## Reference Documentation
 
