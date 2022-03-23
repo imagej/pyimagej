@@ -42,10 +42,10 @@ jobs:
         mamba install -c conda-forge pytest
     - name: Test ImageJ2 + original ImageJ
       run: |
-        pytest -p no:faulthandler
+        pytest test/ -p no:faulthandler
     - name: Test ImageJ2 standalone
       run: |
-        pytest -p no:faulthandler --legacy=false
+        pytest test/ -p no:faulthandler --legacy=false
     - name: Test Fiji Is Just ImageJ(2)
       run: |
-        pytest -p no:faulthandler --ij=sc.fiji:fiji
+        pytest test/ -p no:faulthandler --ij=sc.fiji:fiji
