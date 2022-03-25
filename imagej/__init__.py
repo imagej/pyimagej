@@ -1286,7 +1286,7 @@ def _create_gateway():
             for key in vars.keys():
                 inputs[key] = vars[key]
             inputs['ij'] = ij
-            inputs['sj'] = imagej.sj
+            inputs['sj'] = sj
 
             stdoutContextWriter.addScriptContext(threading.currentThread(), scriptContext)
 
@@ -1296,9 +1296,9 @@ def _create_gateway():
             inputKeys.append('__builtins__')
 
             try:
-                exec(imagej.sj.to_python(script), inputs)
+                exec(sj.to_python(script), inputs)
             except:
-                scriptContext.getErrorWriter().write(imagej.sj.to_java(traceback.format_exc()))
+                scriptContext.getErrorWriter().write(sj.to_java(traceback.format_exc()))
 
             stdoutContextWriter.removeScriptContext(threading.currentThread())
 
