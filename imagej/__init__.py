@@ -1257,6 +1257,7 @@ def _create_gateway():
     ij.py._outputMapper = JavaOutputListener()
     ij.console().addOutputListener(ij.py._outputMapper)
 
+    import threading
     class ScriptContextWriter():
         def __init__(self, std):
             self._std_default = std
@@ -1276,7 +1277,6 @@ def _create_gateway():
     sys.stdout = stdoutContextWriter
 
     import traceback
-    import threading
     @JImplements('org.scijava.plugins.scripting.python.PythonScriptRunner')
     class PythonScriptRunnerImpl():
 
