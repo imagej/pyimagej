@@ -1258,12 +1258,25 @@ def _create_gateway():
     ij.console().addOutputListener(ij.py._outputMapper)
 
     class ScriptContextWriter():
-        def __init__(self, scriptContext):
-            self.scriptContext = scriptContext
+        def __init__(self, std):
+            self._std_default = std
+            self._thread_to_context = {}
+        def addScriptContext(self, thread, scriptContext):
+            self._thread_to_context[thread] = scriptContext
+        def removeScriptContext(self, thread):
+            if thread in self._thread_to_context:
+                del self._thread_to_context[thread]
         def write(self, s):
-            self.scriptContext.getWriter().write(sj.to_java(s))
+            if threading.currentThread() in self._thread_to_context:
+                self._thread_to_context[threading.currentThread()].getWriter().write(imagej.sj.to_java(s))
+            else:
+                self._std_default.write(s)
+
+    stdoutContextWriter = ScriptContextWriter(sys.stdout)
+    sys.stdout = stdoutContextWriter
 
     import traceback
+    import threading
     @JImplements('org.scijava.plugins.scripting.python.PythonScriptRunner')
     class PythonScriptRunnerImpl():
 
@@ -1273,12 +1286,9 @@ def _create_gateway():
             for key in vars.keys():
                 inputs[key] = vars[key]
             inputs['ij'] = ij
-            inputs['sj'] = sj
+            inputs['sj'] = imagej.sj
 
-            old_stdout = sys.stdout
-            old_stderr = sys.stderr
-            sys.stdout = ScriptContextWriter(scriptContext)
-            sys.stderr = ScriptContextWriter(scriptContext)
+            stdoutContextWriter.addScriptContext(threading.currentThread(), scriptContext)
 
             inputKeys = []
             for key in inputs.keys():
@@ -1286,9 +1296,11 @@ def _create_gateway():
             inputKeys.append('__builtins__')
 
             try:
-                exec(sj.to_python(script), inputs)
+                exec(imagej.sj.to_python(script), inputs)
             except:
-                scriptContext.getWriter().write(sj.to_java(traceback.format_exc()))
+                scriptContext.getErrorWriter().write(imagej.sj.to_java(traceback.format_exc()))
+
+            stdoutContextWriter.removeScriptContext(threading.currentThread())
 
             outputs = {}
             for key in inputs.keys():
@@ -1302,8 +1314,6 @@ def _create_gateway():
                         #to ensure script parameter outputs are returned
                         vars[key] = outputs[key]
 
-            sys.stdout = old_stdout
-            sys.stderr = old_stderr
             return ij.py.to_java(outputs)
 
     ij.object().addObject(PythonScriptRunnerImpl())
