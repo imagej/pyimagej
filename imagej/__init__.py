@@ -841,6 +841,62 @@ class ImageJPython:
             return self._numpy_to_img(xarr.values)
 
 
+@JImplementationFor('net.imagej.ImageJ')
+class ImageJPlus(object):
+    @property
+    @lru_cache(maxsize=None)
+    def py(self):
+        return ImageJPython(self)
+
+    @property
+    def legacy(self):
+        """
+        Gets the ImageJ2 gateway's LegacyService, or None if original
+        ImageJ support is not available in the current environment.
+        """
+        if not hasattr(self, '_legacy'):
+            try:
+                LegacyService = sj.jimport('net.imagej.legacy.LegacyService')
+                self._legacy = self.get('net.imagej.legacy.LegacyService')
+                if self.ui().isHeadless():
+                    logging.warning("Operating in headless mode - the original ImageJ will have limited functionality.")
+            except TypeError:
+                self._legacy = None
+
+        return self._legacy
+
+    @property
+    def IJ(self):
+        return self._access_legacy_class('ij.IJ')
+
+    @property
+    def ResultsTable(self):
+        return self._access_legacy_class('ij.measure.ResultsTable')
+
+    @property
+    def RoiManager(self):
+        return self._access_legacy_class('ij.plugin.frame.RoiManager')
+
+    @property
+    def WindowManager(self):
+        return self._access_legacy_class('ij.WindowManager')
+
+    def _access_legacy_class(self, fqcn:str):
+        self._check_legacy_active(f'The {fqcn} class is not available.')
+        class_name = fqcn[fqcn.rindex('.')+1:]
+        property_name = f"_{class_name}"
+        if not hasattr(self, property_name):
+            if self.ui().isHeadless():
+                logging.warning(f"Operating in headless mode - the {class_name} class will not be fully functional.")
+            setattr(self, property_name, sj.jimport(fqcn))
+
+        return getattr(self, property_name)
+
+    def _check_legacy_active(self, usage_context=''):
+        if not self.legacy or not self.legacy.isActive():
+            raise ImportError(f"The original ImageJ is not available in this environment. {usage_context} See: https://github.com/imagej/pyimagej/blob/master/doc/Initialization.md")
+
+
 def _dump_exception(exc):
     if _logger.isEnabledFor(logging.DEBUG):
         jtrace = jstacktrace(exc)
@@ -1110,61 +1166,6 @@ def _create_gateway():
 
     global ij
     ij = ImageJ()
-
-    @JImplementationFor('net.imagej.ImageJ')
-    class ImageJPlus(object):
-        @property
-        @lru_cache(maxsize=None)
-        def py(self):
-            return ImageJPython(self) #TODO: figure out if 'self' is a jpype wrapped imagej object or imagejplus object, if former pass 'self', not 'ij'.
-
-        @property
-        def legacy(self):
-            """
-            Gets the ImageJ2 gateway's LegacyService, or None if original
-            ImageJ support is not available in the current environment.
-            """
-            if not hasattr(self, '_legacy'):
-                try:
-                    LegacyService = sj.jimport('net.imagej.legacy.LegacyService')
-                    self._legacy = self.get('net.imagej.legacy.LegacyService')
-                    if self.ui().isHeadless():
-                        logging.warning("Operating in headless mode - the original ImageJ will have limited functionality.")
-                except TypeError:
-                    self._legacy = None
-
-            return self._legacy
-
-        @property
-        def IJ(self):
-            return self._access_legacy_class('ij.IJ')
-
-        @property
-        def ResultsTable(self):
-            return self._access_legacy_class('ij.measure.ResultsTable')
-
-        @property
-        def RoiManager(self):
-            return self._access_legacy_class('ij.plugin.frame.RoiManager')
-
-        @property
-        def WindowManager(self):
-            return self._access_legacy_class('ij.WindowManager')
-
-        def _access_legacy_class(self, fqcn:str):
-            self._check_legacy_active(f'The {fqcn} class is not available.')
-            class_name = fqcn[fqcn.rindex('.')+1:]
-            property_name = f"_{class_name}"
-            if not hasattr(self, property_name):
-                if self.ui().isHeadless():
-                    logging.warning(f"Operating in headless mode - the {class_name} class will not be fully functional.")
-                setattr(self, property_name, sj.jimport(fqcn))
-
-            return getattr(self, property_name)
-
-        def _check_legacy_active(self, usage_context=''):
-            if not self.legacy or not self.legacy.isActive():
-                raise ImportError(f"The original ImageJ is not available in this environment. {usage_context} See: https://github.com/imagej/pyimagej/blob/master/doc/Initialization.md")
 
     # Overload operators for RandomAccessibleInterval so it's more Pythonic.
     rai_lock = threading.Lock()
