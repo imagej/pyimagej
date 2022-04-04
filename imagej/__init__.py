@@ -921,6 +921,70 @@ class RAIOperators(object):
         return self._op.run('math.div', self, other) if self._op is not None else self._ImgMath(self, other, 'div')
 
 
+    def __getitem__(self, key):
+        if type(key) == slice:
+            # Wrap single slice into tuple of length 1.
+            return self._slice((key,))
+        elif type(key) == tuple:
+            return self._index(key) if self._is_index(key) else self._slice(key)
+        elif type(key) == int:
+            # Wrap single int into tuple of length 1.
+            return self.__getitem__((key, ))
+        else:
+            raise ValueError(f"Invalid key type: {type(key)}")
+
+
+    @property
+    def dtype(self):
+        Util = sj.jimport('net.imglib2.util.Util')
+        return type(Util.getTypeFromInterval(self))
+
+
+    @property
+    def ndim(self):
+        return self.numDimensions()
+
+
+    @property
+    def shape(self):
+        return tuple([self.dimension(i) for i in range(self.numDimensions())])
+
+
+    def squeeze(self, axis=None):
+        if axis is None:
+            # Process all dimensions.
+            axis = tuple(range(self.numDimensions()))
+        if type(axis) == int:
+            # Convert int to singleton tuple.
+            axis = (axis,)
+        if type(axis) != tuple:
+            raise ValueError(f'Invalid type for axis parameter: {type(axis)}')
+
+        Views = sj.jimport('net.imglib2.view.Views')
+        res = self
+        for d in range(self.numDimensions() - 1, -1, -1):
+            if d in axis and self.dimension(d) == 1:
+                res = Views.hyperSlice(res, d, self.min(d))
+        return res
+
+
+    @property
+    def T(self):
+        return self.transpose
+
+
+    @property
+    def transpose(self):
+        view = self
+        max_dim = self.numDimensions() - 1
+        for i in range(self.numDimensions() // 2):
+            if self._op is not None:
+                view = ij.op().run('transform.permuteView', self, i, max_dim - i)
+            else:
+                raise RuntimeError(f"OpService is unavailable for this operation.")
+        return view
+
+
     def _index(self, position):
         ra = self._ra
         # Can we store this as a shape property?
@@ -934,6 +998,17 @@ class RAIOperators(object):
             return ra.get()
 
 
+    def _ImgMath(self, other, operation: str):
+        ImgMath = sj.jimport('net.imglib2.algorithm.math.ImgMath')
+        ImgMath_operations = {
+            'add' : ImgMath.add(self._jargs(self, other)),
+            'sub' : ImgMath.sub(self._jargs(self, other)),
+            'mul' : ImgMath.mul(self._jargs(self, other)),
+            'div' : ImgMath.div(self._jargs(self, other))
+        }
+        return ImgMath_operations[operation]
+
+
     def _is_index(self, a):
         # Check dimensionality - if we don't have enough dims, it's a slice
         num_dims = 1 if type(a) == int else len(a)
@@ -943,6 +1018,47 @@ class RAIOperators(object):
         # if we have a tuple, it's an index if there are any slices
         hasSlice = True in [type(item) == slice for item in a]
         return not hasSlice
+
+
+    def _jargs(self, *args):
+        return _JObjectArray.fget()([sj.to_java(arg) for arg in args])
+
+
+    @property
+    @lru_cache
+    def _op(self):
+        # check if has getcontext() attribute
+        op = None
+        if hasattr(self, 'getContext'):
+            op =  self.getContext().getService('net.imagej.ops.OpService')
+
+        # if not context, try to get global ij or return None
+        if op == None:
+            try:
+                return ij.op()
+            except:
+                return None
+        else:
+            return op
+
+
+    @property
+    def _ra(self):
+        threadLocal = getattr(self, '_threadLocal', None)
+        if threadLocal is None:
+            with rai_lock:
+                threadLocal = getattr(self, '_threadLocal', None)
+                if threadLocal is None:
+                    threadLocal = threading.local()
+                    self._threadLocal = threadLocal
+        ra = getattr(threadLocal, 'ra', None)
+        if ra is None:
+            with rai_lock:
+                ra = getattr(threadLocal, '_ra', None)
+                if ra is None:
+                    ra = self.randomAccess()
+                    threadLocal._ra = ra
+        return ra
 
 
     def _slice(self, ranges):
@@ -965,121 +1081,6 @@ class RAIOperators(object):
         # We need to finish RichImg to support that properly.
 
         return stack.rai_slice(self, tuple(imin), tuple(imax), tuple(istep))
-
-    @property
-    @lru_cache
-    def _op(self):
-        # check if has getcontext() attribute
-        op = None
-        if hasattr(self, 'getContext'):
-            op =  self.getContext().getService('net.imagej.ops.OpService')
-
-        # if not context, try to get global ij or return None
-        if op == None:
-            try:
-                return ij.op()
-            except:
-                return None
-        else:
-            return op
-
-
-    def _ImgMath(self, other, operation: str):
-        ImgMath = sj.jimport('net.imglib2.algorithm.math.ImgMath')
-        ImgMath_operations = {
-            'add' : ImgMath.add(self._jargs(self, other)),
-            'sub' : ImgMath.sub(self._jargs(self, other)),
-            'mul' : ImgMath.mul(self._jargs(self, other)),
-            'div' : ImgMath.div(self._jargs(self, other))
-        }
-        return ImgMath_operations[operation]
-
-
-    def _jargs(self, *args):
-        return _JObjectArray.fget()([sj.to_java(arg) for arg in args])
-
-
-    @property
-    def shape(self):
-        return tuple([self.dimension(i) for i in range(self.numDimensions())])
-
-
-    @property
-    def dtype(self):
-        Util = sj.jimport('net.imglib2.util.Util')
-        return type(Util.getTypeFromInterval(self))
-
-
-    @property
-    def ndim(self):
-        return self.numDimensions()
-
-
-    @property
-    def T(self):
-        return self.transpose
-
-
-    @property
-    def transpose(self):
-        view = self
-        max_dim = self.numDimensions() - 1
-        for i in range(self.numDimensions() // 2):
-            if self._op is not None:
-                view = ij.op().run('transform.permuteView', self, i, max_dim - i)
-            else:
-                raise RuntimeError(f"OpService is unavailable for this operation.")
-        return view
-
-
-    @property
-    def _ra(self):
-        threadLocal = getattr(self, '_threadLocal', None)
-        if threadLocal is None:
-            with rai_lock:
-                threadLocal = getattr(self, '_threadLocal', None)
-                if threadLocal is None:
-                    threadLocal = threading.local()
-                    self._threadLocal = threadLocal
-        ra = getattr(threadLocal, 'ra', None)
-        if ra is None:
-            with rai_lock:
-                ra = getattr(threadLocal, '_ra', None)
-                if ra is None:
-                    ra = self.randomAccess()
-                    threadLocal._ra = ra
-        return ra
-
-
-    def __getitem__(self, key):
-        if type(key) == slice:
-            # Wrap single slice into tuple of length 1.
-            return self._slice((key,))
-        elif type(key) == tuple:
-            return self._index(key) if self._is_index(key) else self._slice(key)
-        elif type(key) == int:
-            # Wrap single int into tuple of length 1.
-            return self.__getitem__((key, ))
-        else:
-            raise ValueError(f"Invalid key type: {type(key)}")
-
-
-    def squeeze(self, axis=None):
-        if axis is None:
-            # Process all dimensions.
-            axis = tuple(range(self.numDimensions()))
-        if type(axis) == int:
-            # Convert int to singleton tuple.
-            axis = (axis,)
-        if type(axis) != tuple:
-            raise ValueError(f'Invalid type for axis parameter: {type(axis)}')
-
-        Views = sj.jimport('net.imglib2.view.Views')
-        res = self
-        for d in range(self.numDimensions() - 1, -1, -1):
-            if d in axis and self.dimension(d) == 1:
-                res = Views.hyperSlice(res, d, self.min(d))
-        return res
 
 
 def _dump_exception(exc):
