@@ -61,53 +61,6 @@ try:
 except KeyError as e:
     pass
 
-# Import ImageJ resources on demand.
-@property
-@lru_cache
-def _ImagePlus():
-    try:
-        return sj.jimport('ij.ImagePlus')
-    except TypeError:
-        # No original ImageJ on the classpath.
-        return None
-
-
-@property
-@lru_cache
-def _RandomAccessibleInterval():
-    return sj.jimport('net.imglib2.RandomAccessibleInterval')
-
-
-@property
-@lru_cache
-def _Dataset():
-    return sj.jimport('net.imagej.Dataset')
-
-
-@property
-@lru_cache
-def _ImgPlus():
-    return sj.jimport('net.imagej.ImgPlus')
-
-
-@property
-@lru_cache
-def _Img():
-    return sj.jimport('net.imglib2.img.Img')
-
-
-@property
-@lru_cache
-def _ImgView():
-    return sj.jimport('net.imglib2.img.ImgView')
-
-
-@property
-@lru_cache
-def _JObjectArray():
-    return JArray(JObject)
-
-
 class Mode(Enum):
     """
     An environment mode for the ImageJ2 gateway.
@@ -1083,48 +1036,6 @@ class RAIOperators(object):
         return stack.rai_slice(self, tuple(imin), tuple(imax), tuple(istep))
 
 
-def _dump_exception(exc):
-    if _logger.isEnabledFor(logging.DEBUG):
-        jtrace = jstacktrace(exc)
-        if jtrace:
-            _logger.debug(jtrace)
-
-
-def _search_for_jars(target_dir, subfolder=''):
-    """
-    Search and recursively add .jar files to a list.
-
-    :param target_dir: Base path to search.
-    :param subfolder: Optional sub-directory to start the search.
-    :return: A list of jar files.
-    """
-    jars = []
-    for root, dirs, files in os.walk(target_dir + subfolder):
-        for f in files:
-            if f.endswith('.jar'):
-                path = root + '/' + f
-                jars.append(path)
-                _logger.debug('Added %s', path)
-    return jars
-
-
-def _set_ij_env(ij_dir):
-    """
-    Create a list of required jars and add to the java classpath.
-
-    :param ij_dir: System path for Fiji.app.
-    :return: num_jar(int): Number of jars added.
-    """
-    jars = []
-    # search jars directory
-    jars.extend(_search_for_jars(ij_dir, '/jars'))
-    # search plugins directory
-    jars.extend(_search_for_jars(ij_dir, '/plugins'))
-    # add to classpath
-    sj.config.add_classpath(os.pathsep.join(jars))
-    return len(jars)
-
-
 def init(ij_dir_or_version_or_endpoint=None, mode=Mode.HEADLESS, add_legacy=True, headless=None):
     """Initialize an ImageJ2 environment.
 
@@ -1208,6 +1119,52 @@ def init(ij_dir_or_version_or_endpoint=None, mode=Mode.HEADLESS, add_legacy=True
     else:
         # HEADLESS or INTERACTIVE mode: create the gateway and return it.
         return _create_gateway()
+
+
+def imagej_main():
+    args = []
+    for i in range(1, len(sys.argv)):
+        args.append(sys.argv[i])
+    mode = 'headless' if '--headless' in args else 'gui'
+    ij = init(mode=mode)
+
+
+def _create_gateway():
+    # Initialize ImageJ
+    try:
+        ImageJ = sj.jimport('net.imagej.ImageJ')
+    except TypeError:
+        _logger.error("""
+***Invalid initialization: ImageJ was not found***
+   Please update your initialization call to include an ImageJ application or endpoint (e.g. net.imagej:imagej).
+   NOTE: You MUST restart your python interpreter as Java can only be started once.
+""")
+        return False
+
+    global ij
+    ij = ImageJ()
+
+    # Forward stdout and stderr from Java to Python.
+    @JImplements('org.scijava.console.OutputListener')
+    class JavaOutputListener():
+
+        @JOverride
+        def outputOccurred(self, e):
+            source = e.getSource().toString
+            output = e.getOutput()
+            if source == 'STDOUT':
+                sys.stdout.write(output)
+            elif source == 'STDERR':
+                sys.stderr.write(output)
+            else:
+                sys.stderr.write('[{}] {}'.format(source, output))
+
+    ij.py._outputMapper = JavaOutputListener()
+    ij.console().addOutputListener(ij.py._outputMapper)
+
+    sj.when_jvm_stops(lambda: ij.dispose())
+
+    return ij
 
 
 def _create_jvm(ij_dir_or_version_or_endpoint=None, mode=Mode.HEADLESS, add_legacy=True):
@@ -1338,47 +1295,90 @@ def _create_jvm(ij_dir_or_version_or_endpoint=None, mode=Mode.HEADLESS, add_lega
     return True
 
 
-def _create_gateway():
-    # Initialize ImageJ
+def _dump_exception(exc):
+    if _logger.isEnabledFor(logging.DEBUG):
+        jtrace = jstacktrace(exc)
+        if jtrace:
+            _logger.debug(jtrace)
+
+
+def _search_for_jars(target_dir, subfolder=''):
+    """
+    Search and recursively add .jar files to a list.
+
+    :param target_dir: Base path to search.
+    :param subfolder: Optional sub-directory to start the search.
+    :return: A list of jar files.
+    """
+    jars = []
+    for root, dirs, files in os.walk(target_dir + subfolder):
+        for f in files:
+            if f.endswith('.jar'):
+                path = root + '/' + f
+                jars.append(path)
+                _logger.debug('Added %s', path)
+    return jars
+
+
+def _set_ij_env(ij_dir):
+    """
+    Create a list of required jars and add to the java classpath.
+
+    :param ij_dir: System path for Fiji.app.
+    :return: num_jar(int): Number of jars added.
+    """
+    jars = []
+    # search jars directory
+    jars.extend(_search_for_jars(ij_dir, '/jars'))
+    # search plugins directory
+    jars.extend(_search_for_jars(ij_dir, '/plugins'))
+    # add to classpath
+    sj.config.add_classpath(os.pathsep.join(jars))
+    return len(jars)
+
+
+# Import ImageJ resources on demand.
+@property
+@lru_cache
+def _Dataset():
+    return sj.jimport('net.imagej.Dataset')
+
+
+@property
+@lru_cache
+def _ImagePlus():
     try:
-        ImageJ = sj.jimport('net.imagej.ImageJ')
+        return sj.jimport('ij.ImagePlus')
     except TypeError:
-        _logger.error("""
-***Invalid initialization: ImageJ was not found***
-   Please update your initialization call to include an ImageJ application or endpoint (e.g. net.imagej:imagej).
-   NOTE: You MUST restart your python interpreter as Java can only be started once.
-""")
-        return False
-
-    global ij
-    ij = ImageJ()
-
-    # Forward stdout and stderr from Java to Python.
-    @JImplements('org.scijava.console.OutputListener')
-    class JavaOutputListener():
-
-        @JOverride
-        def outputOccurred(self, e):
-            source = e.getSource().toString
-            output = e.getOutput()
-            if source == 'STDOUT':
-                sys.stdout.write(output)
-            elif source == 'STDERR':
-                sys.stderr.write(output)
-            else:
-                sys.stderr.write('[{}] {}'.format(source, output))
-
-    ij.py._outputMapper = JavaOutputListener()
-    ij.console().addOutputListener(ij.py._outputMapper)
-
-    sj.when_jvm_stops(lambda: ij.dispose())
-
-    return ij
+        # No original ImageJ on the classpath.
+        return None
 
 
-def imagej_main():
-    args = []
-    for i in range(1, len(sys.argv)):
-        args.append(sys.argv[i])
-    mode = 'headless' if '--headless' in args else 'gui'
-    ij = init(mode=mode)
+@property
+@lru_cache
+def _Img():
+    return sj.jimport('net.imglib2.img.Img')
+
+
+@property
+@lru_cache
+def _ImgPlus():
+    return sj.jimport('net.imagej.ImgPlus')
+
+
+@property
+@lru_cache
+def _ImgView():
+    return sj.jimport('net.imglib2.img.ImgView')
+
+
+@property
+@lru_cache
+def _RandomAccessibleInterval():
+    return sj.jimport('net.imglib2.RandomAccessibleInterval')
+
+
+@property
+@lru_cache
+def _JObjectArray():
+    return JArray(JObject)
