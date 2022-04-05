@@ -12,6 +12,9 @@ pandas, etc.) and Java (ImageJ, ImageJ2, ImgLib2, etc.) structures.
 
 Here is an example of opening an image using ImageJ2 and displaying it:
 
+.. highlight:: python
+.. code-block:: python
+
     # Create an ImageJ2 gateway with the newest available version of ImageJ2.
     import imagej
     ij = imagej.init()
@@ -64,7 +67,7 @@ except KeyError as e:
 class Mode(Enum):
     """
     An environment mode for the ImageJ2 gateway.
-    See the imagej.init function for details.
+    See the imagej.init function for  more details.
     """
     GUI = "gui"
     HEADLESS = "headless"
@@ -75,26 +78,32 @@ class Mode(Enum):
 
 
 class ImageJPython:
+    """ImageJ/Python convenience methods.
+
+    This class should not be initialized manually. Upon initialization
+    the ImageJPython class is attached to the newly initialized imagej
+    instance through ImageJPlus.py.
+    """
     def __init__(self, ij):
         self._ij = ij
 
 
-    def active_dataset(self):
+    def active_dataset(self) -> 'Dataset':
         """Get the active Dataset image.
 
-        Get the currently active Dataset from the Dataset service.
+        Get the active image as a Dataset from the Dataset service.
 
         :return: The Dataset corresponding to the active image.
         """
         return self._ij.imageDisplay().getActiveDataset()
 
 
-    def active_image_plus(self, sync=True):
+    def active_image_plus(self, sync=True) -> 'ImagePlus':
         """Get the active ImagePlus image.
 
-        Get the currently active ImagePlus image, optionally synchronizing from ImageJ to ImageJ2.
+        Get the active image as an ImagePlus, optionally synchronizing from ImageJ to ImageJ2.
 
-        :param sync: Manually synchronize the current ImageJ slice if True.
+        :param sync: Synchronize the current ImageJ slice if True.
         :return: The ImagePlus corresponding to the active image.
         """
         imp = self._ij.WindowManager.getCurrentImage()
@@ -104,13 +113,13 @@ class ImageJPython:
         return imp
 
 
-    def active_xarray(self, sync=True):
+    def active_xarray(self, sync=True) -> xr.DataArray:
         """Get the active image as an xarray.
 
-        Convert the active image to a xarray.DataArray, synchronizing from ImageJ to ImageJ2.
+        Get the active image as an xarray.DataArray, synchronizing from ImageJ to ImageJ2.
 
-        :param sync: Manually synchronize the current IJ1 slice if True.
-        :return: numpy array containing the image data.
+        :param sync: Synchronize the current IJ1 slice if True.
+        :return: xarray.DataArray array containing the image data.
         """
         # todo: make the behavior use pure IJ2 if legacy is not active
 
@@ -126,10 +135,6 @@ class ImageJPython:
         """
         ij.py.dims() is deprecated.
         Import the 'dims' module and use dims.get_shape().
-
-        :example:
-            >>> import imagej.dims as dims
-            >>> dims.get_shape(image)
         """
         logging.warning("ij.py.dims() is deprecated. Import the 'dims' module and use dims.get_dims().")
         if self._is_arraylike(image):
@@ -147,18 +152,19 @@ class ImageJPython:
 
 
     def dtype(self, image_or_type):
-        """Return the dtype of the input image.
+        """Get the dtype of the input image.
 
-        Return the dtype of an input numpy array, ImgLib2 image
+        Return the dtype of an input NumPy array, ImgLib2 image
         or an Image ImagePlus.
 
         :param image_or_type:
-            A numpy array.
-            OR A numpy array dtype.
-            OR An ImgLib2 image ('net.imglib2.Interval').
-            OR An ImageJ2 Dataset ('net.imagej.Dataset').
-            OR An ImageJ ImagePlus ('ij.ImagePlus').
-        :param return: Input image dtype.
+            | A NumPy array.
+            | OR A NumPy array dtype.
+            | OR An ImgLib2 image ('net.imglib2.Interval').
+            | OR An ImageJ2 Dataset ('net.imagej.Dataset').
+            | OR An ImageJ ImagePlus ('ij.ImagePlus').
+
+        :return: Input image dtype.
         """
         if type(image_or_type) == np.dtype:
             return image_or_type
@@ -263,12 +269,12 @@ class ImageJPython:
     def initialize_numpy_image(self, image) -> np.ndarray:
         """Initialize a NumPy array with zeros and shape of the input image.
 
-        Initialize a new numpy array with the same dtype and shape as the input
+        Initialize a new NumPy array with the same dtype and shape as the input
         image with zeros.
 
         :param image: A RandomAccessibleInterval or NumPy image
         :return:
-            A numpy array with the same dtype and shape as the input
+            A NumPy array with the same dtype and shape as the input
             image, filled with zeros.
         """
         try:
@@ -313,17 +319,19 @@ class ImageJPython:
         return np.zeros(self.dims(image), dtype=dtype_to_use)
 
 
-    def rai_to_numpy(self, rai, numpy_array: np.ndarray) -> np.ndarray:
+    def rai_to_numpy(self, rai: 'RandomAccessibleInterval', numpy_array: np.ndarray) -> np.ndarray:
         """Copy a RandomAccessibleInterval into a numpy array.
 
         The input RandomAccessibleInterval is copied into the pre-initialized numpy array
-        with either (1) "fast copy" via 'net.imagej.util.Images.copy' if available or
+        with either "fast copy" via 'net.imagej.util.Images.copy' if available or
         the slower "copy.rai" method. Note that the input RandomAccessibleInterval and
-        numpy array must have reversed dimensions relative to each other (e.g. [t, z, y, x, c] and [c, x, y, z, t]).
-        Use _permute_rai_to_python() on the RandomAccessibleInterval to reorganize the dimensions.
+        numpy array must have reversed dimensions relative to each other (e.g. [t, z, y, x, c]
+        and [c, x, y, z, t]). Use _permute_rai_to_python() on the RandomAccessibleInterval
+        to reorganize the dimensions.
 
         :param rai: A RandomAccessibleInterval ('net.imglib2.RandomAccessibleInterval').
-        :return: A numpy array of the input RandomAccessibleInterval.
+        :param numpy_array: A NumPy array with the same shape as the input RandomAccessibleInterval.
+        :return: NumPy array with the input RandomAccessibleInterval data.
         """
         # check imagej-common version for fast copy availability.
         ijc_slow_copy_version = '0.30.0'
@@ -339,7 +347,7 @@ class ImageJPython:
         return numpy_array
 
 
-    def run_macro(self, macro, args=None):
+    def run_macro(self, macro: str, args=None):
         """Run an ImageJ macro.
 
         Run an ImageJ macro by providing the macro code/script in a string and
@@ -350,18 +358,20 @@ class ImageJPython:
         :return: Runs the specified macro with the given arguments.
 
         :example:
+        .. highlight:: python
+        .. code-block:: python
 
-        macro = \"""
-        #@ String name
-        #@ int age
-        output = name + " is " + age " years old."
-        \"""
-        args = {
-            'name': 'Sean',
-            'age': 26
-        }
-        macro_result = ij.py.run_macro(macro, args)
-        print(macro_result.getOutput('output'))
+            macro = \"""
+            #@ String name
+            #@ int age
+            output = name + " is " + age " years old."
+            \"""
+            args = {
+                'name': 'Sean',
+                'age': 26
+            }
+            macro_result = ij.py.run_macro(macro, args)
+            print(macro_result.getOutput('output'))
         """
         ij._check_legacy_active('Use of original ImageJ macros is not possible.')
 
@@ -375,7 +385,7 @@ class ImageJPython:
             raise exc
 
 
-    def run_plugin(self, plugin, args=None, ij1_style=True):
+    def run_plugin(self, plugin: str, args=None, ij1_style=True):
         """Run an ImageJ plugin.
 
         Run an ImageJ plugin by specifiying the plugin name as a string,
@@ -389,19 +399,21 @@ class ImageJPython:
         :return: Runs the specified plugin with the given arguments.
 
         :example:
+        .. highlight:: python
+        .. code-block:: python
 
-        plugin = 'Mean'
-        args = {
-            'block_radius_x': 10,
-            'block_radius_y': 10
-        }
-        ij.py.run_plugin(plugin, args)
+            plugin = 'Mean'
+            args = {
+                'block_radius_x': 10,
+                'block_radius_y': 10
+            }
+            ij.py.run_plugin(plugin, args)
         """
         macro = self._assemble_plugin_macro(plugin, args=args, ij1_style=ij1_style)
         return self.run_macro(macro)
 
 
-    def run_script(self, language, script, args=None):
+    def run_script(self, language: str, script: str, args=None):
         """Run an ImageJ script.
 
         Run a script in one of ImageJ's supported scripting languages.
@@ -414,19 +426,21 @@ class ImageJPython:
         :return: A Java map of output names and values, key: value pais.
 
         :example:
+        .. highlight:: python
+        .. code-block:: python
 
-        language = 'ijm'
-        script = \"""
-        #@ String name
-        #@ int age
-        output = name + " is " + age " years old."
-        \"""
-        args = {
-            'name': 'Sean',
-            'age': 26
-        }
-        script_result = ij.py.run_script(language, script, args)
-        print(script_result.getOutput('output'))
+            language = 'ijm'
+            script = \"""
+            #@ String name
+            #@ int age
+            output = name + " is " + age " years old."
+            \"""
+            args = {
+                'name': 'Sean',
+                'age': 26
+            }
+            script_result = ij.py.run_script(language, script, args)
+            print(script_result.getOutput('output'))
         """
         script_lang = self._ij.script().getLanguageByName(language)
         if script_lang is None:
@@ -449,10 +463,10 @@ class ImageJPython:
     def show(self, image, cmap=None):
         """Display a Java or Python 2D image.
 
-        Display a java or python 2D image.
+        Display a Java or Python 2D image.
 
-        :param image: A Java or Python image that can be converted to a numpy array.
-        :param cmap: The colormap of the image.
+        :param image: A Java or Python image that can be converted to a NumPy array.
+        :param cmap: The colormap for the matplotlib.pyplot image display.
         :return: Displayed image.
         """
         if image is None:
@@ -467,7 +481,7 @@ class ImageJPython:
         pyplot.show()
 
 
-    def sync_image(self, imp):
+    def sync_image(self, imp: 'ImagePlus'):
         """ Synchronize data between ImageJ and ImageJ2.
 
         Synchronize between a Dataset or ImageDisplay linked to an
@@ -488,7 +502,7 @@ class ImageJPython:
         stack.setPixels(pixels, imp.getCurrentSlice())
 
 
-    def synchronize_ij1_to_ij2(self, imp):
+    def synchronize_ij1_to_ij2(self, imp: 'ImagePlus'):
         """
         This function is deprecated. Use sync_image instead.
         """
@@ -578,7 +592,7 @@ class ImageJPython:
         return macro
 
 
-    def _assign_dataset_metadata(self, dataset, attrs):
+    def _assign_dataset_metadata(self, dataset: 'Dataset', attrs):
         """
         :param dataset: ImageJ Java dataset
         :param attrs: Dictionary containing metadata
@@ -586,7 +600,7 @@ class ImageJPython:
         dataset.getProperties().putAll(self.to_java(attrs))
 
 
-    def _dataset_to_xarray(self, permuted_rai, numpy_array: np.ndarray) -> xr.DataArray:
+    def _dataset_to_xarray(self, permuted_rai: 'RandomAccessibleInterval', numpy_array: np.ndarray) -> xr.DataArray:
         """Wrap a numpy array with xarray and axes metadta from a RandomAccessibleInterval.
 
         Wraps a numpy array with the metadata from the source RandomAccessibleInterval
@@ -654,8 +668,6 @@ class ImageJPython:
     def _invert_except_last_element(self, lst):
         """
         Invert a list except for the last element.
-        :param lst:
-        :return:
         """
         cut_list = lst[0:-1]
         reverse_cut = list(reversed(cut_list))
@@ -735,7 +747,7 @@ class ImageJPython:
         return self._java_to_img(rai)
 
 
-    def _permute_rai_to_python(self, rai):
+    def _permute_rai_to_python(self, rai: 'RandomAccessibleInterval'):
         """Permute a RandomAccessibleInterval to the python reference order.
 
         Permute a RandomAccessibleInterval to the Python reference order of
@@ -797,9 +809,17 @@ class ImageJPython:
 
 @JImplementationFor('net.imagej.ImageJ')
 class ImageJPlus(object):
+    """ImageJ gateway addons.
+
+    This class should not be initialized manually. Upon initialization
+    the ImageJPlus class is attached to the newly initialized
+    imagej instance.
+    """
     @property
     @lru_cache(maxsize=None)
     def py(self):
+        """ImageJPython convenience methods.
+        """
         return ImageJPython(self)
 
     @property
@@ -821,18 +841,26 @@ class ImageJPlus(object):
 
     @property
     def IJ(self):
+        """Get the original ImageJ 'IJ' object.
+        """
         return self._access_legacy_class('ij.IJ')
 
     @property
     def ResultsTable(self):
+        """Get the original ImageJ 'ResultsTable'.
+        """
         return self._access_legacy_class('ij.measure.ResultsTable')
 
     @property
     def RoiManager(self):
+        """Get the original ImageJ 'RoiManager'.
+        """
         return self._access_legacy_class('ij.plugin.frame.RoiManager')
 
     @property
     def WindowManager(self):
+        """Get the original ImageJ 'WindowManager'.
+        """
         return self._access_legacy_class('ij.WindowManager')
 
     def _access_legacy_class(self, fqcn:str):
@@ -853,7 +881,11 @@ class ImageJPlus(object):
 
 @JImplementationFor('net.imglib2.RandomAccessibleInterval')
 class RAIOperators(object):
-    #TODO: Add docstring describing this class as a container. You should not initializie this class yourself
+    """RandomAccessibleInterval operators.
+
+    This class should not be initialized manually. Upon initialization
+    the RAIOperators class extends the Java RandomAccessibleIntervals.
+    """
     def __add__(self, other):
         """Return self + value."""
         return self._op.run('math.add', self, other) if self._op is not None else self._ImgMath(self, other, 'add')
@@ -1046,14 +1078,18 @@ def init(ij_dir_or_version_or_endpoint=None, mode=Mode.HEADLESS, add_legacy=True
     Note: some original ImageJ operations do not function in headless mode.
 
     :param ij_dir_or_version_or_endpoint:
-        Path to a local ImageJ2 installation (e.g. /Applications/Fiji.app),
-        OR version of net.imagej:imagej artifact to launch (e.g. 2.3.0),
-        OR endpoint of another artifact built on ImageJ2 (e.g. sc.fiji:fiji),
-        OR list of Maven artifacts to include (e.g.
-           ['net.imagej:imagej:2.3.0', 'net.imagej:imagej-legacy', 'net.preibisch:BigStitcher']).
-        The default is the latest version of net.imagej:imagej.
+
+        | Path to a local ImageJ2 installation (e.g. /Applications/Fiji.app),
+        | OR version of net.imagej:imagej artifact to launch (e.g. 2.3.0),
+        | OR endpoint of another artifact built on ImageJ2 (e.g. sc.fiji:fiji),
+        | OR list of Maven artifacts to include (e.g.
+        |   ['net.imagej:imagej:2.3.0', 'net.imagej:imagej-legacy', 'net.preibisch:BigStitcher']).
+        | The default is the latest version of net.imagej:imagej.
+
     :param mode:
+
         How the environment will behave. Options include:
+
         * Mode.HEADLESS -
             Start the JVM in headless mode, i.e. with no GUI. This is the
             default mode. Useful if you want to use ImageJ as a library, or
@@ -1074,18 +1110,26 @@ def init(ij_dir_or_version_or_endpoint=None, mode=Mode.HEADLESS, add_legacy=True
             threading model.
             NB: In this mode with add_legacy=True, the JVM and Python will
             both terminate when ImageJ closes!
+
     :param add_legacy:
+
         Whether or not to include support for original ImageJ functionality.
         If True, original ImageJ functions (ij.* packages) will be available.
         If False, the environment will be "pure ImageJ2", without ij.* support.
         NB: With legacy support enabled in GUI or interactive mode,
         the JVM and Python will both terminate when ImageJ closes!
         For further details, see: https://imagej.net/libs/imagej-legacy
+
     :param headless:
+
         Deprecated. Please use the mode parameter instead.
+
     :return: An instance of the net.imagej.ImageJ gateway
 
     :example:
+    .. hilight:: python
+    .. code-block:: python
+
         ij = imagej.init('sc.fiji:fiji', mode=imagej.Mode.GUI)
     """
     if headless is not None:
