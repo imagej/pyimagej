@@ -82,7 +82,7 @@ class ImageJPython:
 
     This class should not be initialized manually. Upon initialization
     the ImageJPython class is attached to the newly initialized imagej
-    instance through ImageJPlus.py.
+    instance through ImageJGatewayAddons.py.
     """
     def __init__(self, ij):
         self._ij = ij
@@ -808,11 +808,11 @@ class ImageJPython:
 
 
 @JImplementationFor('net.imagej.ImageJ')
-class ImageJPlus(object):
+class ImageJGatewayAddons(object):
     """ImageJ gateway addons.
 
     This class should not be initialized manually. Upon initialization
-    the ImageJPlus class is attached to the newly initialized
+    the ImageJGatewayAddons class is attached to the newly initialized
     imagej instance.
     """
     @property
