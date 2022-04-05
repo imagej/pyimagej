@@ -83,7 +83,7 @@ you chose this route over conda above.
 
 Here's one way to test that it works:
 ```
-python -c 'import imagej; ij = imagej.init('2.1.0'); print(ij.getVersion()); ij.dispose()'
+python -c 'import imagej; ij = imagej.init("2.1.0"); print(ij.getVersion()); ij.dispose()'
 ```
 Should print `2.1.0` on the console.
 
