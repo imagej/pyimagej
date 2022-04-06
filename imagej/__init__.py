@@ -818,15 +818,23 @@ class ImageJGatewayAddons(object):
     @property
     @lru_cache(maxsize=None)
     def py(self):
-        """ImageJPython convenience methods.
+        """Access the ImageJPython convenience methods.
+
+        Access to the ImageJPython convenience methods through
+        the '.py' attribute.
+
+        :return: ImageJPython convenience methods.
         """
         return ImageJPython(self)
 
     @property
     def legacy(self):
-        """
+        """Get the ImageJ2 LegacyService.
+
         Gets the ImageJ2 gateway's LegacyService, or None if original
         ImageJ support is not available in the current environment.
+
+        :return: The ImageJ2 LegacyService.
         """
         if not hasattr(self, '_legacy'):
             try:
@@ -841,27 +849,36 @@ class ImageJGatewayAddons(object):
 
     @property
     def IJ(self):
-        """Get the original ImageJ 'IJ' object.
+        """Get the original ImageJ `IJ` utility class.
+
+        :return: The `ij.IJ` class.
         """
         return self._access_legacy_class('ij.IJ')
 
     @property
     def ResultsTable(self):
-        """Get the original ImageJ 'ResultsTable'.
+        """Get the original ImageJ `ResultsTable` class.
+
+        :return: The `ij.measure.ResultsTable` class.
         """
         return self._access_legacy_class('ij.measure.ResultsTable')
 
     @property
     def RoiManager(self):
-        """Get the original ImageJ 'RoiManager'.
+        """Get the original ImageJ `RoiManager` class.
+
+        :return: The `ij.plugin.frame.RoiManager` class.
         """
         return self._access_legacy_class('ij.plugin.frame.RoiManager')
 
     @property
     def WindowManager(self):
-        """Get the original ImageJ 'WindowManager'.
+        """Get the original ImageJ `WindowManager` class.
+
+        :return: The `ij.WindowManager` class.
         """
         return self._access_legacy_class('ij.WindowManager')
+
 
     def _access_legacy_class(self, fqcn:str):
         self._check_legacy_active(f'The {fqcn} class is not available.')
@@ -873,6 +890,7 @@ class ImageJGatewayAddons(object):
             setattr(self, property_name, sj.jimport(fqcn))
 
         return getattr(self, property_name)
+
 
     def _check_legacy_active(self, usage_context=''):
         if not self.legacy or not self.legacy.isActive():
@@ -921,21 +939,37 @@ class RAIOperators(object):
 
     @property
     def dtype(self):
+        """Get the dtype of a RandomAccessibleInterval.
+
+        :return: dtype of a RandomAccessibleInterval.
+        """
         Util = sj.jimport('net.imglib2.util.Util')
         return type(Util.getTypeFromInterval(self))
 
 
     @property
     def ndim(self):
+        """Get the number of RandomAccessibleInterval dimensions.
+
+        :return: Number of RandomAccessibleInterval dimensions.
+        """
         return self.numDimensions()
 
 
     @property
     def shape(self):
+        """Get the shape of the RandomAccessibleInterval.
+
+        :return: Tuple of the RandomAccessibleInterval shape.
+        """
         return tuple([self.dimension(i) for i in range(self.numDimensions())])
 
 
     def squeeze(self, axis=None):
+        """Remove axes of length one from array.
+
+        :return: Squeezed RandomAccessibleInterval.
+        """
         if axis is None:
             # Process all dimensions.
             axis = tuple(range(self.numDimensions()))
@@ -955,11 +989,19 @@ class RAIOperators(object):
 
     @property
     def T(self):
+        """Transpose RandomAccessibleInterval.
+
+        :return: Transposed RandomAccessibleInterval.
+        """
         return self.transpose
 
 
     @property
     def transpose(self):
+        """Transpose RandomAccessibleInterval.
+
+        :return: Transposed RandomAccessibleInterval.
+        """
         view = self
         max_dim = self.numDimensions() - 1
         for i in range(self.numDimensions() // 2):
