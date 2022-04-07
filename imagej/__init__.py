@@ -1,10 +1,10 @@
 """
-PyImageJ provides a set of wrapper functions for integration between ImageJ
-and Python. A major advantage of this approach is the ability to combine
-ImageJ with other tools available from the Python software ecosystem,
-including NumPy, SciPy, scikit-image, CellProfiler, OpenCV, ITK and more.
+PyImageJ provides a set of wrapper functions for integration between
+ImageJ+ImageJ2 and Python. A major advantage of this approach is the ability to
+combine ImageJ+ImageJ2 with other tools available from the Python software
+ecosystem, e.g. NumPy, SciPy, scikit-image, CellProfiler, OpenCV, and ITK.
 
-The first step when using pyimagej is to create an ImageJ2 gateway.
+The first step when using PyImageJ is to create an ImageJ2 gateway.
 This gateway can point to any official release of ImageJ2 or to a local
 installation. Using the gateway, you have full access to the ImageJ2 API,
 plus utility functions for translating between Python (NumPy, xarray,
@@ -23,7 +23,7 @@ Here is an example of opening an image using ImageJ2 and displaying it:
     image_url = 'https://imagej.net/images/clown.png'
     jimage = ij.io().open(image_url)
 
-    # Convert the image from ImageJ to xarray, a package that adds
+    # Convert the image from ImageJ2 to xarray, a package that adds
     # labeled datasets to numpy (http://xarray.pydata.org/en/stable/).
     image = ij.py.from_java(jimage)
 
@@ -80,9 +80,11 @@ class Mode(Enum):
 class ImageJPython:
     """ImageJ/Python convenience methods.
 
-    This class should not be initialized manually. Upon initialization
-    the ImageJPython class is attached to the newly initialized imagej
-    instance through ImageJGatewayAddons.py.
+    This class should not be initialized manually. Upon initialization the
+    ImageJPython class is attached to the newly initialized ImageJ2 instance in
+    the GatewayAddons class via JPype class customization mechanism:
+
+    https://jpype.readthedocs.io/en/latest/userguide.html#class-customizers
     """
     def __init__(self, ij):
         self._ij = ij
@@ -103,7 +105,7 @@ class ImageJPython:
 
         Get the active image as an ImagePlus, optionally synchronizing from ImageJ to ImageJ2.
 
-        :param sync: Synchronize the current ImageJ slice if True.
+        :param sync: Synchronize the current ImagePlus slice if True.
         :return: The ImagePlus corresponding to the active image.
         """
         imp = self._ij.WindowManager.getCurrentImage()
@@ -118,10 +120,10 @@ class ImageJPython:
 
         Get the active image as an xarray.DataArray, synchronizing from ImageJ to ImageJ2.
 
-        :param sync: Synchronize the current IJ1 slice if True.
+        :param sync: Synchronize the current ImagePlus slice if True.
         :return: xarray.DataArray array containing the image data.
         """
-        # todo: make the behavior use pure IJ2 if legacy is not active
+        # todo: make the behavior use pure ImageJ2 if legacy is not active
 
         if ij.legacy and ij.legacy.isActive():
             imp = self.active_image_plus(sync=sync)
@@ -296,7 +298,7 @@ class ImageJPython:
         """Converts Python arguments into a Java Object[]
 
         Converts Python arguments into a Java Object[] (i.e.: array of Java
-        objects). This is particularly useful in combination with ImageJ's
+        objects). This is particularly useful in combination with ImageJ2's
         various run functions, including ij.command().run(...),
         ij.module().run(...), ij.script().run(...), and ij.op().run(...).
 
@@ -414,9 +416,9 @@ class ImageJPython:
 
 
     def run_script(self, language: str, script: str, args=None):
-        """Run an ImageJ script.
+        """Run an ImageJ2 script.
 
-        Run a script in one of ImageJ's supported scripting languages.
+        Run a script in one of ImageJ2's supported scripting languages.
         Specify the language of the script, provide the code as a string
         and the arguments as a dictionary.
 
@@ -510,7 +512,7 @@ class ImageJPython:
 
 
     def to_dataset(self, data):
-        """Converts the data into an ImageJ dataset
+        """Converts the data into an ImageJ2 Dataset
 
         Converts a Python image object (e.g 'xarray.DataArray') into a 'net.imagej.Dataset' Java
         object.
@@ -529,7 +531,7 @@ class ImageJPython:
 
 
     def to_img(self, data):
-        """Converts the data into an ImageJ img
+        """Converts the data into an ImgLib2 Img
 
         Converts a Python image object (e.g 'xarray.DataArray') into a 'net.imglib2.Img' Java
         object.
@@ -577,7 +579,7 @@ class ImageJPython:
         Assemble an ImageJ macro string given a plugin to run and optional arguments in a dict
         :param plugin: The string call for the function to run
         :param args: A dict of macro arguments in key/value pairs
-        :param ij1_style: Whether to use implicit booleans in IJ1 style or explicit booleans in IJ2 style
+        :param ij1_style: True to use implicit booleans in original ImageJ style, or False for explicit booleans in ImageJ2 style
         :return: A string version of the macro run
         """
         if args is None:
@@ -594,7 +596,7 @@ class ImageJPython:
 
     def _assign_dataset_metadata(self, dataset: 'Dataset', attrs):
         """
-        :param dataset: ImageJ Java dataset
+        :param dataset: ImageJ2 Dataset
         :param attrs: Dictionary containing metadata
         """
         dataset.getProperties().putAll(self.to_java(attrs))
@@ -697,10 +699,11 @@ class ImageJPython:
 
     def _java_to_dataset(self, data):
         """
-        Converts the data into a ImageJ Dataset
+        Converts the data into an ImageJ2 Dataset
         """
-        # This try checking is necessary because the set of ImageJ converters is not complete.  E.g., here is no way
-        # to directly go from Img to Dataset, instead you need to chain the Img->ImgPlus->Dataset converters.
+        # NB: This try checking is necessary because the set of ImageJ2 converters is not complete.
+        # E.g., here is no way to directly go from Img to Dataset, instead you need to chain the
+        # Img->ImgPlus->Dataset converters.
         try:
             if self._ij.convert().supports(data, _Dataset.fget()):
                 return self._ij.convert().convert(data, _Dataset.fget())
@@ -721,9 +724,9 @@ class ImageJPython:
 
     def _java_to_img(self, data):
         """
-        Converts the data into a ImageJ Img
+        Converts the data into an ImgLib2 Img
         """
-        # This try checking is necessary because the set of ImageJ converters is not complete.
+        # NB: This try checking is necessary because the set of ImageJ2 converters is not complete.
         try:
             if self._ij.convert().supports(data, _Img.fget()):
                 return self._ij.convert().convert(data, _Img.fget())
@@ -808,12 +811,14 @@ class ImageJPython:
 
 
 @JImplementationFor('net.imagej.ImageJ')
-class ImageJGatewayAddons(object):
-    """ImageJ gateway addons.
+class GatewayAddons(object):
+    """ImageJ2 gateway addons.
 
     This class should not be initialized manually. Upon initialization
-    the ImageJGatewayAddons class is attached to the newly initialized
-    imagej instance.
+    the GatewayAddons class is attached to the newly initialized
+    ImageJ2 instance via JPype's class customization mechanism:
+
+    https://jpype.readthedocs.io/en/latest/userguide.html#class-customizers
     """
     @property
     @lru_cache(maxsize=None)
@@ -902,7 +907,10 @@ class RAIOperators(object):
     """RandomAccessibleInterval operators.
 
     This class should not be initialized manually. Upon initialization
-    the RAIOperators class extends the Java RandomAccessibleIntervals.
+    the RAIOperators class automatically extends the Java
+    RandomAccessibleInterval via JPype's class customization mechanism:
+
+    https://jpype.readthedocs.io/en/latest/userguide.html#class-customizers
     """
     def __add__(self, other):
         """Return self + value."""
@@ -1216,13 +1224,13 @@ def imagej_main():
 
 
 def _create_gateway():
-    # Initialize ImageJ
+    # Initialize ImageJ2
     try:
         ImageJ = sj.jimport('net.imagej.ImageJ')
     except TypeError:
         _logger.error("""
-***Invalid initialization: ImageJ was not found***
-   Please update your initialization call to include an ImageJ application or endpoint (e.g. net.imagej:imagej).
+***Invalid initialization: ImageJ2 was not found***
+   Please update your initialization call to include an ImageJ2 application or endpoint (e.g. net.imagej:imagej).
    NOTE: You MUST restart your python interpreter as Java can only be started once.
 """)
         return False
@@ -1280,14 +1288,14 @@ def _create_jvm(ij_dir_or_version_or_endpoint=None, mode=Mode.HEADLESS, add_lega
         _logger.warning('Failed to guess the Java version.')
         _logger.debug(e, exc_info=True)
 
-    # We want ImageJ's endpoints to come first, so these will be restored later
+    # We want ImageJ2's endpoints to come first, so these will be restored later
     original_endpoints = sj.config.endpoints.copy()
     sj.config.endpoints.clear()
     init_failed = False
 
     if ij_dir_or_version_or_endpoint is None:
-        # Use latest release of ImageJ.
-        _logger.debug('Using newest ImageJ release')
+        # Use latest release of ImageJ2.
+        _logger.debug('Using newest ImageJ2 release')
         sj.config.endpoints.append('net.imagej:imagej')
 
     elif isinstance(ij_dir_or_version_or_endpoint, list):
@@ -1300,15 +1308,15 @@ def _create_jvm(ij_dir_or_version_or_endpoint=None, mode=Mode.HEADLESS, add_lega
         sj.config.endpoints.append(endpoint)
 
     elif os.path.isdir(ij_dir_or_version_or_endpoint):
-        # Assume path to local ImageJ installation.
+        # Assume path to local ImageJ2 installation.
         add_legacy = False
         path = ij_dir_or_version_or_endpoint
-        # Adjust the CWD to the ImageJ app directory
+        # Adjust the CWD to the ImageJ2 app directory
         os.chdir(path)
-        _logger.debug('Local path to ImageJ installation given: %s', path)
+        _logger.debug('Local path to ImageJ2 installation given: %s', path)
         num_jars = _set_ij_env(path)
         if num_jars <= 0:
-            _logger.error('Given directory does not appear to be a valid ImageJ installation: %s', path)
+            _logger.error('Given directory does not appear to be a valid ImageJ2 installation: %s', path)
             init_failed = True
         else:
             _logger.info("Added " + str(num_jars + 1) + " JARs to the Java classpath.")
@@ -1339,7 +1347,7 @@ def _create_jvm(ij_dir_or_version_or_endpoint=None, mode=Mode.HEADLESS, add_lega
             init_failed = True
             return False
         else:
-            _logger.debug('ImageJ version given: %s', version)
+            _logger.debug('ImageJ2 version given: %s', version)
             sj.config.endpoints.append('net.imagej:imagej:' + version)
 
     if init_failed:
@@ -1351,7 +1359,7 @@ def _create_jvm(ij_dir_or_version_or_endpoint=None, mode=Mode.HEADLESS, add_lega
     if add_legacy:
         sj.config.endpoints.append('net.imagej:imagej-legacy:MANAGED')
 
-    # Restore any pre-existing endpoints, after ImageJ's
+    # Restore any pre-existing endpoints, after ImageJ2's
     sj.config.endpoints.extend(original_endpoints)
 
     try:
@@ -1370,7 +1378,7 @@ def _create_jvm(ij_dir_or_version_or_endpoint=None, mode=Mode.HEADLESS, add_lega
         if unmanaged_legacy:
             _logger.error("""
 ***Invalid Initialization: you may be using primary endpoint that lacks pom-scijava as a parent***
-   To keep all ImageJ components at compatible versions we recommend using a primary endpoint with a pom-scijava parent.
+   To keep all Java components at compatible versions we recommend using a primary endpoint with a pom-scijava parent.
    For example, by putting 'net.imagej:imagej' first in your list of endpoints.
    If you are sure you DO NOT want a primary endpoint with a pom-scijava parent, please re-initialize with 'add_legacy=False'.
 """)
@@ -1423,7 +1431,7 @@ def _set_ij_env(ij_dir):
     return len(jars)
 
 
-# Import ImageJ resources on demand.
+# Import Java resources on demand.
 @property
 @lru_cache
 def _Dataset():
