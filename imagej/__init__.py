@@ -1089,10 +1089,10 @@ class RAIOperators(object):
         ra = getattr(threadLocal, 'ra', None)
         if ra is None:
             with rai_lock:
-                ra = getattr(threadLocal, '_ra', None)
+                ra = getattr(threadLocal, 'ra', None)
                 if ra is None:
                     ra = self.randomAccess()
-                    threadLocal._ra = ra
+                    threadLocal.ra = ra
         return ra
 
 
