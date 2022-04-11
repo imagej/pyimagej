@@ -12,7 +12,7 @@
 #
 import os
 import sys
-from jpype import JLong
+
 sys.path.insert(0, os.path.abspath('..'))
 
 
