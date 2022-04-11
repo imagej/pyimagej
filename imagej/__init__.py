@@ -360,6 +360,7 @@ class ImageJPython:
         :return: Runs the specified macro with the given arguments.
 
         :example:
+
         .. highlight:: python
         .. code-block:: python
 
@@ -401,6 +402,7 @@ class ImageJPython:
         :return: Runs the specified plugin with the given arguments.
 
         :example:
+
         .. highlight:: python
         .. code-block:: python
 
@@ -428,6 +430,7 @@ class ImageJPython:
         :return: A Java map of output names and values, key: value pais.
 
         :example:
+
         .. highlight:: python
         .. code-block:: python
 
@@ -1177,7 +1180,8 @@ def init(ij_dir_or_version_or_endpoint=None, mode=Mode.HEADLESS, add_legacy=True
     :return: An instance of the net.imagej.ImageJ gateway
 
     :example:
-    .. hilight:: python
+
+    .. highlight:: python
     .. code-block:: python
 
         ij = imagej.init('sc.fiji:fiji', mode=imagej.Mode.GUI)
