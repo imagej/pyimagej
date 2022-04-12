@@ -16,3 +16,6 @@ dependencies:
   - scikit-image
   - scyjava
   - xarray
+
+  - pytest
+  - pytest-cov
