@@ -14,6 +14,42 @@ SciPy, scikit-image, [CellProfiler], [OpenCV], [ITK] and many more.
 
 Jump into the [documentation and tutorials](doc/README.md) to get started!
 
+## System Requirements
+
+### Hardware Requirements
+
+PyImageJ requires at minimum a standard computer with enough RAM and CPU performance to support the workflow operations defined by the user. While PyImageJ will run on a range of hardware, we recommend the following RAM and CPU specifications:
+
+- RAM: >= 2 GB (64 MB minimum)
+- CPU: >= 1 core
+
+Notably, PyImageJ can be installed and used on server infrastructure for large scale image processing.
+
+### OS Requirements
+
+PyImageJ has been tested on the following operating systems:
+
+- Linux (Ubuntu 20.04 LTS)
+- Windows
+- macOS
+
+### Software Requirements
+
+PyImageJ requires Python >= 3.6 and the following packages:
+
+| Package | Version |
+| :---: | :---: |
+| `jpype1`| >= 1.3.0 |
+| `jgo` | >= 1.0.3 |
+| `imglyb` | >= 2.0.1 |
+| `scyjava` | >= 1.5.1 |
+| `openjdk` | >= 8 |
+| `numpy` | --  |
+| `matplotlib` | -- |
+| `xarray` | -- |
+
+Please note that PyImageJ will not function properly without using the appropriate minimum package version specified in the table.
+
 ## Installation
 
 PyImageJ can be installed using conda. Here is how to create and activate
@@ -25,6 +61,8 @@ conda activate pyimagej
 ```
 
 Alternately, it is possible to install PyImageJ with pip.
+
+Installation time takes approximately 20 seconds. Initializing PyImageJ takes an additional ~30 seconds to ~2-3 minutes (depending on internet speed) as it caches the ImageJ2 Java libaries.
 
 For detailed installation instructions and requirements,
 see [Install.md](doc/Install.md).
@@ -60,6 +98,10 @@ ij.py.show(image, cmap='gray')
 ```
 
 For more, see the [documentation and tutorials](doc/README.md).
+
+## API Reference
+
+For a complete reference of the PyImageJ API please see the [PyImageJ Read the Docs](https://pyimagej.readthedocs.io/en/latest/) site.
 
 ## Getting Help
 
