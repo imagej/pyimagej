@@ -1085,7 +1085,7 @@ class RAIOperators(object):
         return _JObjectArray.fget()([sj.to_java(arg) for arg in args])
 
     @property
-    @lru_cache
+    @lru_cache(maxsize=None)
     def _op(self):
         # check if has getcontext() attribute
         op = None
@@ -1482,13 +1482,13 @@ def _set_ij_env(ij_dir):
 
 # Import Java resources on demand.
 @property
-@lru_cache
+@lru_cache(maxsize=None)
 def _Dataset():
     return sj.jimport("net.imagej.Dataset")
 
 
 @property
-@lru_cache
+@lru_cache(maxsize=None)
 def _ImagePlus():
     try:
         return sj.jimport("ij.ImagePlus")
@@ -1498,30 +1498,30 @@ def _ImagePlus():
 
 
 @property
-@lru_cache
+@lru_cache(maxsize=None)
 def _Img():
     return sj.jimport("net.imglib2.img.Img")
 
 
 @property
-@lru_cache
+@lru_cache(maxsize=None)
 def _ImgPlus():
     return sj.jimport("net.imagej.ImgPlus")
 
 
 @property
-@lru_cache
+@lru_cache(maxsize=None)
 def _ImgView():
     return sj.jimport("net.imglib2.img.ImgView")
 
 
 @property
-@lru_cache
+@lru_cache(maxsize=None)
 def _RandomAccessibleInterval():
     return sj.jimport("net.imglib2.RandomAccessibleInterval")
 
 
 @property
-@lru_cache
+@lru_cache(maxsize=None)
 def _JObjectArray():
     return JArray(JObject)
