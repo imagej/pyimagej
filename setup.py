@@ -9,7 +9,7 @@ with open(path.join(here, 'README.md')) as f:
         .replace('](issues', '](https://github.com/imagej/pyimagej/issues')
 
 config={}
-with open('config.py', 'r') as f:
+with open('src/imagej/config.py', 'r') as f:
     exec(f.read(), config)
 
 setup(
