@@ -128,6 +128,9 @@ Most development discussion takes place on the pyimagej
 You can also reach the developers at the
 [pyimagej gitter](https://gitter.im/imagej/pyimagej).
 
+For details on how to develop the PyImageJ codebase,
+see [Development.md](doc/Development.md).
+
 ------------------------------------------------------------------------------
 
 [ImageJ2]: https://imagej.net/software/imagej2

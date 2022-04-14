@@ -22,6 +22,7 @@ Reference guides exist detailing the following topics:
 * [Usage](Usage.md) - how to perform common operations with PyImageJ
 * [Headless](Headless.md), [Xvfb](Xvfb.md) - ways to use PyImageJ when there is no computer screen
 * [Troubleshooting](Troubleshooting.md) - common problems and their potential solutions
+* [Development](Development.md) - how to develop the PyImageJ codebase
 
 ## Real World Examples
 
