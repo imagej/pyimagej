@@ -1,4 +1,8 @@
 # include these directories
+
+# CTR FIXME: Change these rules to prevent the
+# kitchen sink from being packaged into the sdist.
+
 recursive-include doc *.*
 include *.py
 include tests *.py

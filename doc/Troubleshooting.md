@@ -86,6 +86,15 @@ and include either:
    * Adding `import logging` and `logging.basicConfig(level = logging.DEBUG)`
      to the top of your script
 
+CTR FIXME - Include the following hint for better debugging:
+```
+jgo.jgo._logger.addHandler(logging.StreamHandler(sys.stderr))
+jgo.jgo._logger.setLevel(logging.DEBUG)
+scyjava.start_jvm()
+```
+And clean up this "Common Errors" subsection in general to be
+more helpful and less scary.
+
 ### Could not transfer artifact
 
 If the debugging output includes notices such as:
