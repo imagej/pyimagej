@@ -19,12 +19,16 @@ Jump into the [documentation and tutorials](doc/README.md) to get started!
 
 ### Hardware Requirements
 
-PyImageJ requires at minimum a standard computer with enough RAM and CPU performance to support the workflow operations defined by the user. While PyImageJ will run on a range of hardware, we recommend the following RAM and CPU specifications:
+PyImageJ requires at minimum a standard computer with enough RAM and CPU
+performance to support the workflow operations defined by the user. While
+PyImageJ will run on a range of hardware, we recommend the following RAM
+and CPU specifications:
 
 - RAM: >= 2 GB (64 MB minimum)
 - CPU: >= 1 core
 
-Notably, PyImageJ can be installed and used on server infrastructure for large scale image processing.
+Notably, PyImageJ can be installed and used on server infrastructure for
+large scale image processing.
 
 ### OS Requirements
 
@@ -38,32 +42,35 @@ PyImageJ has been tested on the following operating systems:
 
 PyImageJ requires Python >= 3.6 and the following packages:
 
-| Package | Version |
-| :---: | :---: |
-| `jpype1`| >= 1.3.0 |
-| `jgo` | >= 1.0.3 |
-| `imglyb` | >= 2.0.1 |
-| `scyjava` | >= 1.5.1 |
-| `openjdk` | >= 8 |
-| `numpy` | --  |
-| `matplotlib` | -- |
-| `xarray` | -- |
+* [JPype]
+* [NumPy]
+* [imglyb]
+* [scyjava]
+* [xarray]
 
-Please note that PyImageJ will not function properly without using the appropriate minimum package version specified in the table.
+Please see [`setup.cfg`](setup.cfg) or [`environment.yml`](environment.yml)
+for the minimum version requirements of each package. PyImageJ will not
+function properly if dependency versions are too old.
+
+In addition, PyImageJ requires [OpenJDK] and [Maven] to be installed.
 
 ## Installation
 
-PyImageJ can be installed using conda. Here is how to create and activate
-a new conda environment with PyImageJ available:
+PyImageJ can be installed using [Conda]+[Mamba]. Here is how to create
+and activate a new conda environment with PyImageJ available:
 
 ```
-conda create -n pyimagej -c conda-forge pyimagej openjdk=8
+conda install mamba -n base -c conda-forge
+mamba create -n pyimagej -c conda-forge pyimagej openjdk=8
 conda activate pyimagej
 ```
 
-Alternately, it is possible to install PyImageJ with pip.
+Alternately, you can install PyImageJ with pip, but in this
+case you will need to install OpenJDK and Maven manually.
 
-Installation time takes approximately 20 seconds. Initializing PyImageJ takes an additional ~30 seconds to ~2-3 minutes (depending on internet speed) as it caches the ImageJ2 Java libaries.
+Installation time takes approximately 20 seconds. Initializing PyImageJ
+takes an additional ~30 seconds to ~2-3 minutes (depending on bandwidth)
+while it downloads and caches the needed Java libraries.
 
 For detailed installation instructions and requirements,
 see [Install.md](doc/Install.md).
@@ -128,3 +135,12 @@ You can also reach the developers at the
 [CellProfiler]: https://imagej.net/software/cellprofiler
 [OpenCV]: https://imagej.net/software/opencv
 [ITK]: https://imagej.net/software/itk
+[JPype]: https://jpype.readthedocs.io/
+[NumPy]: https://numpy.org/
+[imglyb]: https://github.com/imglib/imglyb
+[scyjava]: https://github.com/scijava/scyjava
+[xarray]: https://docs.xarray.dev/
+[OpenJDK]: https://en.wikipedia.org/wiki/OpenJDK
+[Maven]: https://maven.apache.org/
+[Conda]: https://conda.io/
+[Mamba]: https://mamba.readthedocs.io/
