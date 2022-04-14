@@ -99,12 +99,6 @@ jobs:
       - name: Install dev dependencies
         run: |
           mamba env update -f dev-environment.yml -n base
-      - name: Test ImageJ2 + original ImageJ
+      - name: Test PyImageJ
         run: |
-          python -m pytest test/ -p no:faulthandler
-      - name: Test ImageJ2 standalone
-        run: |
-          python -m pytest test/ -p no:faulthandler --legacy=false
-      - name: Test Fiji Is Just ImageJ(2)
-        run: |
-          python -m pytest test/ -p no:faulthandler --ij=sc.fiji:fiji
+          ./test.sh
