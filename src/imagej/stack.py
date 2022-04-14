@@ -1,7 +1,6 @@
 import scyjava as sj
 import imagej.dims as dims
 from typing import List, Tuple
-from jpype import JArray, JLong
 
 
 def rai_slice(rai, imin: Tuple, imax: Tuple, istep: Tuple):
@@ -15,6 +14,22 @@ def rai_slice(rai, imin: Tuple, imax: Tuple, istep: Tuple):
     :param imax: Tuple of maximum interval range values.
     :return: Sliced ImgLib2 RandomAccisbleInterval.
     """
+
+    # HACK: Avoid importing JLong at global scope.
+    # Otherwise, building the sphinx docs in doc/rtd fails with:
+    #
+    #   Warning, treated as error:
+    #   autodoc: failed to determine imagej.stack.JLong (<java class 'JLong'>) to be documented, the following exception was raised:
+    #   Java Virtual Machine is not running
+    #
+    # Which can be reproduced in a REPL like this:
+    #
+    #   >>> from jpype import JLong
+    #   >>> help(JLong)
+    #
+    # So while the import here is unfortunate, it avoids the issue.
+    from jpype import JArray, JLong
+
     Views = sj.jimport("net.imglib2.view.Views")
     shape = dims.get_shape(rai)
     imin_fix = JArray(JLong)(len(shape))
