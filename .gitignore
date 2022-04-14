@@ -6,7 +6,7 @@
 /bin/
 /build/
 /dist/
-/pyimagej.egg-info/
+/src/pyimagej.egg-info/
 MANIFEST
 .vscode/settings.json
 .gitignore
