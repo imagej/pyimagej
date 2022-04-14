@@ -109,7 +109,7 @@ For a complete reference of the PyImageJ API please see the [PyImageJ Read the D
 [The Scientific Community Image Forum](https://forum.image.sc/tag/pyimagej)
 is the best place to get general help on usage of PyImageJ, ImageJ2, and any
 other image processing tasks. Bugs can be reported to the PyImageJ GitHub
-[issue tracker](issues).
+[issue tracker](https://github.com/imagej/pyimagej/issues).
 
 ## Contributing
 

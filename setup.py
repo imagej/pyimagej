@@ -5,8 +5,7 @@ here = path.abspath(path.dirname(__file__))
 
 with open(path.join(here, 'README.md')) as f:
     readme = f.read()\
-        .replace('](doc', '](https://github.com/imagej/pyimagej/blob/master/doc')\
-        .replace('](issues', '](https://github.com/imagej/pyimagej/issues')
+        .replace('](doc', '](https://github.com/imagej/pyimagej/blob/master/doc')
 
 config={}
 with open('src/imagej/config.py', 'r') as f:
