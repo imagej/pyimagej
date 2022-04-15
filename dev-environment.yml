@@ -1,16 +1,16 @@
-# Use this file to construct an environment for working
-# with the PyImageJ tutorial notebooks in the doc folder:
+# Use this file to construct an environment
+# for developing PyImageJ from source.
 #
-#   mamba env create
-#   conda activate pyimagej
+#   mamba env create -f dev-environment.yml
+#   conda activate pyimagej-dev
 #
-# It includes the dependencies needed for using PyImageJ, and for
-# executing the Jupyter notebooks in the documentation, but not tools
+# In addition to the dependencies needed for using PyImageJ, and for
+# executing the Jupyter notebooks in the documentation, it includes tools
 # for developer-related actions like running automated tests (pytest),
 # linting the code (black), and generating the API documentation (sphinx).
-# If you want an environment including these tools, use dev-environment.yml.
+# If you want an environment without these tools, use environment.yml.
 
-name: pyimagej
+name: pyimagej-dev
 channels:
   - conda-forge
   - defaults
@@ -29,6 +29,13 @@ dependencies:
   - jupyter_contrib_nbextensions
   - notebook
   - scikit-image
+  # Developer tools
+  - black
+  - build
+  - pytest
+  - pytest-cov
+  - sphinx
+  - sphinx_rtd_theme
   # Project from source
   - pip
   - pip:

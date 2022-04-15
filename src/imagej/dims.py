@@ -5,20 +5,24 @@ import xarray as xr
 from jpype import JObject, JException
 from typing import List, Tuple
 
-def get_axes(rai: 'RandomAccessibleInterval') -> List['CalibratedAxis']:
+
+def get_axes(rai: "RandomAccessibleInterval") -> List["CalibratedAxis"]:
     """Get a List of 'CalibratedAxis'.
 
     Get a List of 'CalibratedAxis' from a RandomAccessibleInterval. Note that
-    Dataset and ImgPlus have axes. Other inervals may not have axes, such as 
+    Dataset and ImgPlus have axes. Other inervals may not have axes, such as
     a PlanarImg.
 
     :param rai: Input Dataset, ImgPlus or RandomAccessibleInterval.
     :return: A List of 'CalibratedAxis'.
     """
-    return [(JObject(rai.axis(idx), sj.jimport('net.imagej.axis.CalibratedAxis'))) for idx in range(rai.numDimensions())]
+    return [
+        (JObject(rai.axis(idx), sj.jimport("net.imagej.axis.CalibratedAxis")))
+        for idx in range(rai.numDimensions())
+    ]
 
 
-def get_axis_types(rai: 'RandomAccessibleInterval') -> List['AxisType']:
+def get_axis_types(rai: "RandomAccessibleInterval") -> List["AxisType"]:
     """Get a list of 'AxisType' from a RandomAccessibleInterval.
 
     Get a List of 'AxisType' from a RandomAccessibleInterval. Note that Dataset
@@ -29,19 +33,21 @@ def get_axis_types(rai: 'RandomAccessibleInterval') -> List['AxisType']:
     :return: A List of 'AxisType'.
     """
     if _has_axis(rai):
-        Axes = sj.jimport('net.imagej.axis.Axes')
+        Axes = sj.jimport("net.imagej.axis.Axes")
         rai_dims = get_dims(rai)
         for i in range(len(rai_dims)):
-            if rai_dims[i].lower() == 'c':
-                rai_dims[i] = 'Channel'
-            if rai_dims[i].lower() == 't':
-                rai_dims[i] = 'Time'
+            if rai_dims[i].lower() == "c":
+                rai_dims[i] = "Channel"
+            if rai_dims[i].lower() == "t":
+                rai_dims[i] = "Time"
         rai_axis_types = []
         for i in range(len(rai_dims)):
             rai_axis_types.append(Axes.get(rai_dims[i]))
         return rai_axis_types
     else:
-        raise AttributeError(f"Unsupported Java type: {type(rai)} has no axis attribute.")
+        raise AttributeError(
+            f"Unsupported Java type: {type(rai)} has no axis attribute."
+        )
 
 
 def get_dims(image) -> List[str]:
@@ -61,12 +67,12 @@ def get_dims(image) -> List[str]:
         return image.dims
     if _is_arraylike(image):
         return image.shape
-    if hasattr(image, 'axis'):
+    if hasattr(image, "axis"):
         axes = get_axes(image)
         return _get_axis_labels(axes)
-    if isinstance(image, sj.jimport('net.imglib2.RandomAccessibleInterval')):
+    if isinstance(image, sj.jimport("net.imglib2.RandomAccessibleInterval")):
         return list(image.dimensionsAsLongArray())
-    if isinstance(image, sj.jimport('ij.ImagePlus')):
+    if isinstance(image, sj.jimport("ij.ImagePlus")):
         shape = image.getDimensions()
         return [axis for axis in shape if axis > 1]
     raise TypeError(f"Unsupported image type: {image}\n No dimensions or shape found.")
@@ -83,21 +89,21 @@ def get_shape(image) -> List[int]:
     if _is_arraylike(image):
         return list(image.shape)
     if not sj.isjava(image):
-        raise TypeError('Unsupported type: ' + str(type(image)))
-    if isinstance(image, sj.jimport('net.imglib2.Dimensions')):
+        raise TypeError("Unsupported type: " + str(type(image)))
+    if isinstance(image, sj.jimport("net.imglib2.Dimensions")):
         return [image.dimension(d) for d in range(image.numDimensions())]
-    if isinstance(image, sj.jimport('ij.ImagePlus')):
+    if isinstance(image, sj.jimport("ij.ImagePlus")):
         shape = image.getDimensions()
         return [axis for axis in shape if axis > 1]
-    raise TypeError(f'Unsupported Java type: {str(sj.jclass(image).getName())}')
+    raise TypeError(f"Unsupported Java type: {str(sj.jclass(image).getName())}")
 
 
-def reorganize(rai: 'RandomAccessibleInterval', permute_order: List[int]) -> 'ImgPlus':
+def reorganize(rai: "RandomAccessibleInterval", permute_order: List[int]) -> "ImgPlus":
     """Reorganize the dimension order of a RandomAccessibleInterval.
 
-    Permute the dimension order of an input RandomAccessibleInterval using 
+    Permute the dimension order of an input RandomAccessibleInterval using
     a List of ints (i.e. permute_order) to determine the shape of the output ImgPlus.
-    
+
     :param rai: A RandomAccessibleInterval,
     :param permute_order: List of int in which to permute the RandomAccessibleInterval.
     :return: A permuted ImgPlus.
@@ -106,14 +112,16 @@ def reorganize(rai: 'RandomAccessibleInterval', permute_order: List[int]) -> 'Im
 
     # check for dimension count mismatch
     dim_num = rai.numDimensions()
-    
+
     if len(permute_order) != dim_num:
-        raise ValueError(f"Mismatched dimension count: {len(permute_order)} != {dim_num}")
+        raise ValueError(
+            f"Mismatched dimension count: {len(permute_order)} != {dim_num}"
+        )
 
     # get ImageJ resources
-    ImgPlus = sj.jimport('net.imagej.ImgPlus')
-    ImgView = sj.jimport('net.imglib2.img.ImgView')
-    Views = sj.jimport('net.imglib2.view.Views')
+    ImgPlus = sj.jimport("net.imagej.ImgPlus")
+    ImgView = sj.jimport("net.imglib2.img.ImgView")
+    Views = sj.jimport("net.imglib2.view.Views")
 
     # copy dimensional axes into
     axes = []
@@ -140,7 +148,9 @@ def reorganize(rai: 'RandomAccessibleInterval', permute_order: List[int]) -> 'Im
     return ImgPlus(ImgView.wrap(rai), img.getName(), axes)
 
 
-def prioritize_rai_axes_order(axis_types: List['AxisType'], ref_order: List['AxisType']) -> List[int]:
+def prioritize_rai_axes_order(
+    axis_types: List["AxisType"], ref_order: List["AxisType"]
+) -> List[int]:
     """Prioritize the axes order to match a reference order.
 
     The input List of 'AxisType' from the image to be permuted
@@ -159,7 +169,7 @@ def prioritize_rai_axes_order(axis_types: List['AxisType'], ref_order: List['Axi
 
     for i in range(len(axis_types)):
         if axis_types[i] not in ref_order:
-                permute_order.append(i)
+            permute_order.append(i)
 
     return permute_order
 
@@ -170,26 +180,30 @@ def _assign_axes(xarr: xr.DataArray):
     :param xarr: xarray that holds the units
     :return: A list of ImageJ Axis with the specified origin and scale
     """
-    Axes = sj.jimport('net.imagej.axis.Axes')
-    Double = sj.jimport('java.lang.Double')
+    Axes = sj.jimport("net.imagej.axis.Axes")
+    Double = sj.jimport("java.lang.Double")
 
-    axes = ['']*len(xarr.dims)
+    axes = [""] * len(xarr.dims)
 
     # try to get EnumeratedAxis, if not then default to LinearAxis in the loop
     try:
         EnumeratedAxis = _get_enumerated_axis()
-    except(JException, TypeError):
+    except (JException, TypeError):
         EnumeratedAxis = None
 
     for dim in xarr.dims:
-        axis_str = _convert_dim(dim, direction='java')
+        axis_str = _convert_dim(dim, direction="java")
         ax_type = Axes.get(axis_str)
         ax_num = _get_axis_num(xarr, dim)
         scale = _get_scale(xarr.coords[dim])
 
         if scale is None:
-            logging.warning(f"The {ax_type.label} axis is non-numeric and is translated to a linear index.")
-            doub_coords = [Double(np.double(x)) for x in np.arange(len(xarr.coords[dim]))]
+            logging.warning(
+                f"The {ax_type.label} axis is non-numeric and is translated to a linear index."
+            )
+            doub_coords = [
+                Double(np.double(x)) for x in np.arange(len(xarr.coords[dim]))
+            ]
         else:
             doub_coords = [Double(np.double(x)) for x in xarr.coords[dim]]
 
@@ -210,7 +224,7 @@ def _ends_with_channel_axis(xarr: xr.DataArray) -> bool:
     :param xarr: xarray.DataArray to check.
     :return: Boolean
     """
-    ends_with_axis = xarr.dims[len(xarr.dims)-1].lower() in ['c', 'ch','channel']
+    ends_with_axis = xarr.dims[len(xarr.dims) - 1].lower() in ["c", "ch", "channel"]
     return ends_with_axis
 
 
@@ -234,7 +248,9 @@ def _get_axis_num(xarr: xr.DataArray, axis):
         return len(xarr.dims) - py_axnum - 1
 
 
-def _get_axes_coords(axes: List['CalibratedAxis'], dims: List[str], shape: Tuple[int]) -> dict:
+def _get_axes_coords(
+    axes: List["CalibratedAxis"], dims: List[str], shape: Tuple[int]
+) -> dict:
     """
     Get xarray style coordinate list dictionary from a dataset
     :param axes: List of ImageJ axes
@@ -242,8 +258,12 @@ def _get_axes_coords(axes: List['CalibratedAxis'], dims: List[str], shape: Tuple
     :param shape: F-style, or reversed C-style, shape of axes numpy array.
     :return: Dictionary of coordinates for each axis.
     """
-    coords = {dims[idx]: [axes[idx].calibratedValue(position) for position in range(shape[idx])]
-                for idx in range(len(dims))}
+    coords = {
+        dims[idx]: [
+            axes[idx].calibratedValue(position) for position in range(shape[idx])
+        ]
+        for idx in range(len(dims))
+    }
     return coords
 
 
@@ -266,23 +286,23 @@ def _get_enumerated_axis():
     an older version of ImageJ without EnumeratedAxis, use
     _get_linear_axis() instead.
     """
-    return sj.jimport('net.imagej.axis.EnumeratedAxis')
+    return sj.jimport("net.imagej.axis.EnumeratedAxis")
 
 
-def _get_linear_axis(axis_type: 'AxisType', values):
+def _get_linear_axis(axis_type: "AxisType", values):
     """Get linear axis.
 
     This is used if no EnumeratedAxis is found. If EnumeratedAxis
     is available, use _get_enumerated_axis() instead.
     """
-    DefaultLinearAxis = sj.jimport('net.imagej.axis.DefaultLinearAxis')
+    DefaultLinearAxis = sj.jimport("net.imagej.axis.DefaultLinearAxis")
     origin = values[0]
     scale = values[1] - values[0]
     axis = DefaultLinearAxis(axis_type, scale, origin)
     return axis
 
 
-def _dataset_to_imgplus(rai: 'RandomAccessibleInterval') -> 'ImgPlus':
+def _dataset_to_imgplus(rai: "RandomAccessibleInterval") -> "ImgPlus":
     """Get an ImgPlus from a Dataset.
 
     Get an ImgPlus from a Dataset or just return the RandomAccessibleInterval
@@ -291,13 +311,13 @@ def _dataset_to_imgplus(rai: 'RandomAccessibleInterval') -> 'ImgPlus':
     :param rai: A RandomAccessibleInterval.
     :return: The ImgPlus from a Dataset.
     """
-    if isinstance(rai, sj.jimport('net.imagej.Dataset')):
+    if isinstance(rai, sj.jimport("net.imagej.Dataset")):
         return rai.getImgPlus()
     else:
         return rai
 
 
-def _get_axis_labels(axes: List['CalibratedAxis']) -> List[str]:
+def _get_axis_labels(axes: List["CalibratedAxis"]) -> List[str]:
     """Get the axes labels from a List of 'CalibratedAxis'.
 
     Extract the axis labels from a List of 'CalibratedAxis'.
@@ -308,7 +328,7 @@ def _get_axis_labels(axes: List['CalibratedAxis']) -> List[str]:
     return [str((axes[idx].type().getLabel())) for idx in range(len(axes))]
 
 
-def _python_rai_ref_order() -> List['AxisType']:
+def _python_rai_ref_order() -> List["AxisType"]:
     """Get the Java style numpy reference order.
 
     Get a List of 'AxisType' in the Python/scikitimage
@@ -316,7 +336,7 @@ def _python_rai_ref_order() -> List['AxisType']:
     reversed.
     :return: List of dimensions in numpy preferred order.
     """
-    Axes = sj.jimport('net.imagej.axis.Axes')
+    Axes = sj.jimport("net.imagej.axis.Axes")
 
     return [Axes.CHANNEL, Axes.X, Axes.Y, Axes.Z, Axes.TIME]
 
@@ -334,9 +354,9 @@ def _convert_dim(dim: str, direction: str) -> str:
         'java': Convert a single dimension from Python/NumPy to ImageJ convention.
     :return: A single converted dimension.
     """
-    if direction.lower() == 'python':
+    if direction.lower() == "python":
         return _to_pydim(dim)
-    elif direction.lower() == 'java':
+    elif direction.lower() == "java":
         return _to_ijdim(dim)
     else:
         return dim
@@ -369,43 +389,43 @@ def _convert_dims(dimensions: List[str], direction: str) -> List[str]:
         return dimensions
 
 
-def _has_axis(rai: 'RandomAccessibleInterval'):
-    """Check if a RandomAccessibleInterval has axes.
-    """
+def _has_axis(rai: "RandomAccessibleInterval"):
+    """Check if a RandomAccessibleInterval has axes."""
     if sj.isjava(rai):
-        return hasattr(rai, 'axis')
+        return hasattr(rai, "axis")
     else:
         False
 
 
 def _is_arraylike(arr):
-    """Check if object is an array.
-    """
-    return hasattr(arr, 'shape') and \
-        hasattr(arr, 'dtype') and \
-        hasattr(arr, '__array__') and \
-        hasattr(arr, 'ndim')
+    """Check if object is an array."""
+    return (
+        hasattr(arr, "shape")
+        and hasattr(arr, "dtype")
+        and hasattr(arr, "__array__")
+        and hasattr(arr, "ndim")
+    )
 
 
 def _is_xarraylike(xarr):
-    """Check if object is an xarray.
-    """
-    return hasattr(xarr, 'values') and \
-        hasattr(xarr, 'dims') and \
-        hasattr(xarr, 'coords') and \
-        _is_arraylike(xarr.values)
+    """Check if object is an xarray."""
+    return (
+        hasattr(xarr, "values")
+        and hasattr(xarr, "dims")
+        and hasattr(xarr, "coords")
+        and _is_arraylike(xarr.values)
+    )
 
 
 def _to_pydim(key: str) -> str:
-    """Convert ImageJ dimension convention to Python/NumPy.
-    """
+    """Convert ImageJ dimension convention to Python/NumPy."""
     pydims = {
-        "Time" : "t",
-        "slice" : "pln",
-        "Z" : "pln",
-        "Y" : "row",
-        "X" : "col",
-        "Channel" : "ch",
+        "Time": "t",
+        "slice": "pln",
+        "Z": "pln",
+        "Y": "row",
+        "X": "col",
+        "Channel": "ch",
     }
 
     if key in pydims:
@@ -415,17 +435,16 @@ def _to_pydim(key: str) -> str:
 
 
 def _to_ijdim(key: str) -> str:
-    """Convert Python/NumPy dimension convention to ImageJ.
-    """
+    """Convert Python/NumPy dimension convention to ImageJ."""
     ijdims = {
-        "col" : "X",
-        "x" : "X",
-        "row" : "Y",
-        "y" : "Y",
-        "ch" : "Channel",
-        "c" : "Channel",
-        "pln" : "Z",
-        "z" : "Z",
+        "col": "X",
+        "x": "X",
+        "row": "Y",
+        "y": "Y",
+        "ch": "Channel",
+        "c": "Channel",
+        "pln": "Z",
+        "z": "Z",
         "t": "Time",
     }
 

@@ -1,2 +1,32 @@
-include README.md
+# Metadata
 include LICENSE.txt
+include MANIFEST.in
+include README.md
+include conftest.py
+include pyproject.toml
+include setup.cfg
+include setup.py
+
+# Conda Environment Files
+include environment.yml
+include dev-environment.yml
+
+# Test script
+include test.sh
+
+# Directory inclusion
+graft src
+graft test
+
+# Directory exclusion
+prune doc
+
+# File inclusion
+include doc/*.md
+
+# File exclusion
+global-exclude __pycache__
+global-exclude *.py[doc]
+global-exclude *.ipynb
+
+exclude doc/**/README.md
