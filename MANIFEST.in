@@ -8,5 +8,8 @@ include *.py
 include environment.yml
 include dev-environment.yml
 
+# Test script
+include test.sh
+
 # While these things don't hurt
 global-exclude *.py[doc]
