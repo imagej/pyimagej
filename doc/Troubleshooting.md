@@ -70,6 +70,19 @@ architecture is not complete yet; see
 [this forum discussion](https://forum.image.sc/t/fiji-conda/59618/11)
 for details.
 
+# Debugging Tips
+
+## Inspecting Java dependency downloads
+
+You can see which Java dependencies are being installed by JGo by adding
+the following to your python code before scyjava (or ImageJ) has started:
+
+```python
+jgo.jgo._logger.addHandler(logging.StreamHandler(sys.stderr))
+jgo.jgo._logger.setLevel(logging.DEBUG)
+scyjava.start_jvm()  # or imagej.init()
+```
+
 # Common Errors
 
 ## Error in "mvn.CMD -B -f pom.xml" dependency:resolve: 1
@@ -85,15 +98,6 @@ and include either:
    * Deleting your `~/.jgo` directory
    * Adding `import logging` and `logging.basicConfig(level = logging.DEBUG)`
      to the top of your script
-
-CTR FIXME - Include the following hint for better debugging:
-```
-jgo.jgo._logger.addHandler(logging.StreamHandler(sys.stderr))
-jgo.jgo._logger.setLevel(logging.DEBUG)
-scyjava.start_jvm()
-```
-And clean up this "Common Errors" subsection in general to be
-more helpful and less scary.
 
 ### Could not transfer artifact
 
