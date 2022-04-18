@@ -1360,8 +1360,8 @@ def _create_jvm(
             init_failed = True
         else:
             _logger.info("Added " + str(num_jars + 1) + " JARs to the Java classpath.")
-            plugins_dir = str(Path(path, "plugins"))
-            jvm_options = "-Dplugins.dir=" + plugins_dir
+            plugins_dir = str(Path(path) / "plugins")
+            sj.config.add_option("-Dplugins.dir=" + plugins_dir)
 
             # All is well -- now adjust the CWD to the ImageJ2 app directory.
             # See https://github.com/imagej/pyimagej/issues/150.
