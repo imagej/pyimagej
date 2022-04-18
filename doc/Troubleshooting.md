@@ -191,6 +191,19 @@ See [Initialization.md](Initialization.md).
 You can increase the memory available to the JVM before starting it.
 See [Initialization.md](Initialization.md).
 
+## Python hangs when quitting
+
+It's probably because the JVM is not shutting down cleanly. JPype and scyjava
+try their best to shut down the JVM, and PyImageJ does its best to dispose all
+ImageJ2 resources when Python wants to shut down. However, in some scenarios
+there can still be problems; see
+[#153](https://github.com/imagej/pyimagej/issues/153).
+
+You can try calling `ij.dispose()` yourself before quitting Python. If that is
+not enough, you can even call `scyjava.jimport('java.lang.System').exit(0)`
+(Java exit) or `sys.exit(0)` (Python exit), either of which will immediately
+terminate both Java and Python.
+
 ## log4j:WARN 
 
 With ImageJ2 v2.3.0 and earlier, there is an obnoxious warning at startup:
