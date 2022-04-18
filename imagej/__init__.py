@@ -1269,7 +1269,7 @@ def _create_gateway():
                 del self._thread_to_context[thread]
         def write(self, s):
             if threading.currentThread() in self._thread_to_context:
-                self._thread_to_context[threading.currentThread()].getWriter().write(imagej.sj.to_java(s))
+                self._thread_to_context[threading.currentThread()].getWriter().write(sj.to_java(s))
             else:
                 self._std_default.write(s)
 
