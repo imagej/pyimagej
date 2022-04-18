@@ -1247,6 +1247,7 @@ def init(
 
 
 def imagej_main():
+    """Entry point for launching ImageJ from the command line via the `imagej` console entry point script."""
     args = []
     for i in range(1, len(sys.argv)):
         args.append(sys.argv[i])
