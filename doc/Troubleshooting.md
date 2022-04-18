@@ -171,6 +171,14 @@ imp = ij.WindowManager.getCurrentImage()
 ij.py.sync_image(imp)
 ```
 
+## The same macro gives different results when run multiple times
+
+This pernicious problem, covered by
+[issue #148](https://github.com/imagej/pyimagej/issues/148), has been observed
+and documented on [a forum thread](https://forum.image.sc/t/57744). No one has
+had time to fully investigate, determine how widespread the problem is, or fix
+it. Help wanted!
+
 ## Original ImageJ classes not found
 
 If you try to load an original ImageJ class (with package prefix `ij`),
