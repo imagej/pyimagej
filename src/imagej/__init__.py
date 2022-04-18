@@ -1350,8 +1350,6 @@ def _create_jvm(
         # Assume path to local ImageJ2 installation.
         add_legacy = False
         path = ij_dir_or_version_or_endpoint
-        # Adjust the CWD to the ImageJ2 app directory
-        os.chdir(path)
         _logger.debug("Local path to ImageJ2 installation given: %s", path)
         num_jars = _set_ij_env(path)
         if num_jars <= 0:
@@ -1364,6 +1362,10 @@ def _create_jvm(
             _logger.info("Added " + str(num_jars + 1) + " JARs to the Java classpath.")
             plugins_dir = str(Path(path, "plugins"))
             jvm_options = "-Dplugins.dir=" + plugins_dir
+
+            # All is well -- now adjust the CWD to the ImageJ2 app directory.
+            # See https://github.com/imagej/pyimagej/issues/150.
+            os.chdir(path)
 
     elif re.match("^(/|[A-Za-z]:)", ij_dir_or_version_or_endpoint):
         # Looks like a file path was intended, but it's not a folder.
