@@ -85,11 +85,12 @@ def checkup(output=print):
 
     mvn_executable = shutil.which("mvn")
     output(f"--> Maven executable = {mvn_executable or 'NOT FOUND!'}")
-    if not mvn_executable:
+    if mvn_executable:
+        output(f"$ mvn -v\n{_execute([mvn_executable, '-v'])}")
+        output("")
+    else:
         advice.append("Install maven using conda or your system package manager")
 
-    output(f"$ mvn -v\n{_execute(['mvn', '-v'])}")
-    output("")
 
     output("Checking Java:")
 
