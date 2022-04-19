@@ -45,7 +45,7 @@ def checkup(output=print):
         conda_prefix = os.environ["CONDA_PREFIX"]
         output(f"--> CONDA_PREFIX = {conda_prefix}")
         actual_exe = Path(
-            sys.executable[:-4]
+            sys.executable
             if sys.executable.lower().endswith(".exe")
             else sys.executable
         ).resolve()
