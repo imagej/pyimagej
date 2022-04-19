@@ -1,3 +1,14 @@
+Are you having trouble getting PyImageJ up and running?
+
+TL;DR: Try the PyImageJ doctor!
+```
+python -c "import imagej.doctor; imagej.doctor.checkup()"
+```
+
+See [The PyImageJ doctor](#the-pyimagej-doctor) below for details.
+
+------------------------------------------------------------------------------
+
 This document is divided into three main sections:
 
 1. [Known Limitations](#known-limitations)
@@ -82,16 +93,40 @@ for details.
 
 # Debugging Tips
 
+## The PyImageJ doctor
+
+PyImageJ comes equipped with a troubleshooter that you can run to check for
+issues with your Python environment:
+
+```python
+import imagej.doctor
+imagej.doctor.checkup()
+```
+
+It is completely standalone, so alternately, you can run the latest version
+of the doctor by downloading and running it explicitly:
+
+```shell
+curl -fsLO https://raw.githubusercontent.com/imagej/pyimagej/master/src/imagej/doctor.py
+python doctor.py
+```
+
+(If you don't have `curl`, use `wget` or download using a web browser.)
+
 ## Inspecting Java dependency downloads
 
 You can see which Java dependencies are being installed by JGo by adding
 the following to your python code before scyjava (or ImageJ) has started:
 
 ```python
-jgo.jgo._logger.addHandler(logging.StreamHandler(sys.stderr))
-jgo.jgo._logger.setLevel(logging.DEBUG)
+import imagej.doctor
+imagej.doctor.debug_to_stderr()
 scyjava.start_jvm()  # or imagej.init()
 ```
+
+Under the hood, this `debug_to_stderr()` call sets the log level to DEBUG
+for the relevant PyImageJ dependencies, and adds a logging handler that
+emits output to the standard error stream.
 
 ------------------------------------------------------------------------------
 
