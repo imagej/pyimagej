@@ -145,3 +145,6 @@ def debug_to_stderr(logger=None):
 
     logger.addHandler(logging.StreamHandler(sys.stderr))
     logger.setLevel(logging.DEBUG)
+
+if __name__ == "__main__":
+    checkup()
