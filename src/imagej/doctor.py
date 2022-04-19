@@ -48,15 +48,20 @@ def checkup(output=print):
             sys.executable[:-4]
             if sys.executable.lower().endswith(".exe")
             else sys.executable
-        )
-        expected_exe = Path(conda_prefix) / "bin" / "python"
-        if actual_exe.resolve() == expected_exe.resolve():
+        ).resolve()
+        expected_exes = [
+            (Path(conda_prefix) / "bin" / "python").resolve(),
+            (Path(conda_prefix) / "python.exe").resolve(),
+        ]
+        if actual_exe in expected_exes:
             output(f"--> Python executable matches Conda environment.")
         else:
             output(f"--> Python executable is NOT from that Conda environment!")
+            indent = "\n    * "
             advice.append(
-                "Are you sure you're using the correct Python executable? I expected this one:\n"
-                + f"        {expected_exe}"
+                "Are you sure you're using the correct Python executable? I expected one of these:"
+                + indent
+                + indent.join(map(str, expected_exes))
             )
     else:
         output("--> It looks like you are NOT running inside a Conda environment.")
