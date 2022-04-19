@@ -1,3 +1,11 @@
+This document is divided into three main sections:
+
+1. [Known Limitations](#known-limitations)
+2. [Debugging Tips](#debugging-tips)
+3. [Common Errors](#common-errors)
+
+------------------------------------------------------------------------------
+
 # Known Limitations
 
 For technical reasons, there are some aspects of ImageJ and ImageJ2 that cannot
@@ -70,6 +78,8 @@ architecture is not complete yet; see
 [this forum discussion](https://forum.image.sc/t/fiji-conda/59618/11)
 for details.
 
+------------------------------------------------------------------------------
+
 # Debugging Tips
 
 ## Inspecting Java dependency downloads
@@ -82,6 +92,8 @@ jgo.jgo._logger.addHandler(logging.StreamHandler(sys.stderr))
 jgo.jgo._logger.setLevel(logging.DEBUG)
 scyjava.start_jvm()  # or imagej.init()
 ```
+
+------------------------------------------------------------------------------
 
 # Common Errors
 
