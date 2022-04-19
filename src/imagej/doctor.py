@@ -44,7 +44,7 @@ def checkup(output=print):
     if "CONDA_PREFIX" in os.environ:
         conda_prefix = os.environ["CONDA_PREFIX"]
         output(f"--> CONDA_PREFIX = {conda_prefix}")
-        actual_exe = Path(sys.executable)
+        actual_exe = Path(sys.executable[:-4] if sys.executable.lower().endswith('.exe') else sys.executable)
         expected_exe = Path(conda_prefix) / "bin" / "python"
         if actual_exe.resolve() == expected_exe.resolve():
             output(f"--> Python executable matches Conda environment.")
@@ -105,6 +105,7 @@ def checkup(output=print):
     output("")
 
     # TODO: More checks still needed!
+    # - Does java executable match JAVA_HOME?
     # - Firewall configuration?
     # - Can mvn retrieve artifacts? (try mvn dependency:copy with suitable timeout?)
     # - Is Maven Central accessible? Is maven.scijava.org accessible?
