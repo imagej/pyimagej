@@ -96,7 +96,6 @@ def checkup(output=print):
     else:
         advice.append("Install maven using conda or your system package manager")
 
-
     output("Checking Java:")
 
     if "JAVA_HOME" in os.environ:
