@@ -248,18 +248,20 @@ And then `create` will contain the same object normally accessed via
 If you are stuck, please post a topic on the
 [Image.sc Forum](https://forum.image.sc/).
 
+
+## `pip install jpype1` fails on Windows
+
+There is a known issue installing with `pip` on Windows with Python 3.10.
+Please see
+[jpype-project/jpype#1009](https://github.com/jpype-project/jpype/issues/1009).
+
+Until this issue is resolved, we suggest those on Windows either:
+* Install with `conda` rather than `pip` (*preferred*).
+* Downgrade to Python 3.9.
+
 ------------------------------------------------------------------------------
 
 [ImageJ]: https://imagej.net/software/imagej
 [ImageJ Legacy Bridge]: https://imagej.net/libs/imagej-legacy
 [headless mode]: https://imagej.net/learn/headless
 [ROI Manager]: https://imagej.nih.gov/ij/docs/guide/146-30.html#fig:The-ROI-Manager
-
-## Using Python 3.10 on Windows
-
-There is a known issue installing with `pip` on Windows with Python 3.10.
-Please see https://github.com/jpype-project/jpype/issues/1009.
-
-Until this issue is resolved, we suggest those on Windows either:
-* Install with `conda` instead of with `pip` (*preferred*)
-* Downgrade to Python 3.9. Our build script does not experience this issue on 3.9.
