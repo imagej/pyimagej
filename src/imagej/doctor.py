@@ -44,11 +44,7 @@ def checkup(output=print):
     if "CONDA_PREFIX" in os.environ:
         conda_prefix = os.environ["CONDA_PREFIX"]
         output(f"--> CONDA_PREFIX = {conda_prefix}")
-        actual_exe = Path(
-            sys.executable
-            if sys.executable.lower().endswith(".exe")
-            else sys.executable
-        ).resolve()
+        actual_exe = Path(sys.executable).resolve()
         expected_exes = [
             (Path(conda_prefix) / "bin" / "python").resolve(),
             (Path(conda_prefix) / "python.exe").resolve(),
