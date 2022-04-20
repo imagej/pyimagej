@@ -113,18 +113,19 @@ python doctor.py
 
 (If you don't have `curl`, use `wget` or download using a web browser.)
 
-## Inspecting Java dependency downloads
+## Enabling debug logging
 
-You can see which Java dependencies are being installed by JGo by adding
-the following to your python code before scyjava (or ImageJ) has started:
+You can enable more verbose output about what is happening internally,
+such as which Java dependencies are being installed by jgo.
+
+Add the following to the very beginning of your Python code:
 
 ```python
 import imagej.doctor
 imagej.doctor.debug_to_stderr()
-scyjava.start_jvm()  # or imagej.init()
 ```
 
-Under the hood, this `debug_to_stderr()` call sets the log level to DEBUG
+Under the hood, this `debug_to_stderr()` call sets the log level to `DEBUG`
 for the relevant PyImageJ dependencies, and adds a logging handler that
 emits output to the standard error stream.
 
@@ -134,17 +135,32 @@ emits output to the standard error stream.
 
 ## Error in "mvn.CMD -B -f pom.xml" dependency:resolve: 1
 
-This indicates a problem running Maven on your system and will require more
-debugging effort. Please post
-[on the forum](https://forum.image.sc/tag/pyimagej)
-and include either:
+This indicates a problem running Maven on your system.
+Maven is needed to fetch Java libraries from the Internet.
 
-* The results of manually running the Maven command with an added `-X` flag:
-  `path\to\mvn.CMD -B -f -X path\to\pom.xml`
-* The results of re-running the same `imagej.init` call after:
-   * Deleting your `~/.jgo` directory
-   * Adding `import logging` and `logging.basicConfig(level = logging.DEBUG)`
-     to the top of your script
+Two common problems are:
+
+* [Could not transfer artifact](#could-not-transfer-artifact).
+  You might be behind a firewall.
+* [Unable to find valid certification path](#unable-to-find-valid-certification-path).
+  Your version of OpenJDK might be too old.
+
+Details on how to address these two scenarios are below.
+
+Or it might be something else, in which case it will require more debugging
+effort. Please post [on the forum](https://forum.image.sc/tag/pyimagej) and
+include the results of re-running the same `imagej.init` call after:
+
+1. Deleting your `~/.jgo` directory; and
+2. [Enabling debug logging](#enabling-debug-logging) by adding:
+   ```python
+   import imagej.doctor
+   imagej.doctor.debug_to_stderr(debug_maven=True)
+   ```
+   to the top of your script. You can try first without `debug_maven=True`,
+   but if you still don't get any useful hints in the output, add the
+   `debug_maven=True` so that `mvn` runs with the `-X` flag to provide us
+   with the copious amounts of output our bodies crave.
 
 ### Could not transfer artifact
 
@@ -158,39 +174,50 @@ This suggests you may be behind a firewall that is preventing Maven from
 downloading the necessary components. In this case you have a few options
 to try:
 
-1. Configure your proxy settings directly in your python code
-   (replacing `myproxy.domain` and port `8080` as appropriate)
+1. Tell Java to use your system proxy settings:
    ```
-   import scyjava
-   System = scyjava.jimport('java.lang.System')
-   mydomain = "myproxy.domain"
-   myport = "8080"
-   System.setProperty("http.proxyHost", mydomain)
-   System.setProperty("http.proxyPort", myport)
-   System.setProperty("https.proxyHost", mydomain)
-   System.setProperty("https.proxyPort", myport)
+   import os
+   os.environ["JAVA_TOOL_OPTIONS"] = "-Djava.net.useSystemProxies=true"
    ```
-2. Configure your proxy settings
-   [through Maven](https://www.baeldung.com/maven-behind-proxy) in the
-	 `<settings>..</settings>` block of your `$HOME\.m2\settings.xml` file
+
+2. Configure your proxy settings manually:
+   (replacing `example.com` and `8080` as appropriate)
+   ```
+   import os
+   myhost = "example.com"
+   myport = 8080
+   os.environ["JAVA_TOOL_OPTIONS"] = (
+       f"-Dhttp.proxyHost={myhost}"
+       + f" -Dhttp.proxyPort={myport}"
+       + f" -Dhttps.proxyHost={myhost}"
+       + f" -Dhttps.proxyPort={myport}"
+   )
+   ```
+
+3. Configure your proxy settings
+   [through Maven](https://www.baeldung.com/maven-behind-proxy) by editing the
+   `<settings>..</settings>` block of your `$HOME/.m2/settings.xml` file:
    ```
    <proxies>
      <proxy>
        <id>Your company proxy</id>
        <active>true</active>
        <protocol>https</protocol>
-       <host>proxy.mycompany.com</host>
+       <host>example.com</host>
        <port>8080</port>
      </proxy>
    </proxies>
    ```
-3. Initialize with a local `Fiji.app` installation. In this case you will also
-	 have to manually download the latest `.jar` files for
-	 [imglib2-unsafe](https://maven.scijava.org/#nexus-search;quick~imglib2-unsafe)
-	 and
-	 [imglib2-imglyb](https://maven.scijava.org/#nexus-search;quick~imglib2-imglyb)
-	 and place them in your local `Fiji.app/jars` directory, as these are
-	 required for PyImageJ but not part of the standard Fiji distribution.
+
+4. [Initialize with a local `Fiji.app` installation](Initialization.md#from-a-local-installation),
+   so that PyImageJ does not need to download anything else from the Internet.
+   In this case you will also have to manually download the latest `.jar` files
+   for
+   [imglib2-unsafe](https://maven.scijava.org/#nexus-search;quick~imglib2-unsafe)
+   and
+   [imglib2-imglyb](https://maven.scijava.org/#nexus-search;quick~imglib2-imglyb)
+   and place them in your local `Fiji.app/jars` directory, as these are
+   required for PyImageJ but not part of the standard Fiji distribution.
 
 ### Unable to find valid certification path
 
