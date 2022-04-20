@@ -148,6 +148,7 @@ def debug_to_stderr(logger=None, debug_maven=False):
             # debug logging via its -X command line flag.
             try:
                 import scyjava.config
+
                 scyjava.config.set_verbose(2)
             except ImportError:
                 logging.exception("Failed to enable scyjava verbose mode.")
