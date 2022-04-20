@@ -126,18 +126,31 @@ def checkup(output=print):
         output("Great job! All looks good.")
 
 
-def debug_to_stderr(logger=None):
+def debug_to_stderr(logger=None, debug_maven=False):
     """
     Enable debug logging to the standard error stream.
 
     :param logger: The logger for which debug logging should go to stderr,
                    or None to enable it for all known loggers across
                    PyImageJ's dependency stack (e.g.: jgo, imglyb, scyjava).
+    :param debug_maven: Enable Maven debug logging. It's very verbose,
+                        so this flag is False by default, but if jgo is having
+                        problems resolving the environment, such as failure to
+                        download needed JAR files, try setting this flag to
+                        True for more details on where things go wrong.
     """
     if logger is None:
         debug_to_stderr("jgo.jgo._logger")
         debug_to_stderr("scyjava._logger")
         debug_to_stderr("scyjava.config._logger")
+        if debug_maven:
+            # Tell scyjava to tell jgo to tell Maven to enable
+            # debug logging via its -X command line flag.
+            try:
+                import scyjava.config
+                scyjava.config.set_verbose(2)
+            except ImportError:
+                logging.exception("Failed to enable scyjava verbose mode.")
         return
 
     elif type(logger) == str:
