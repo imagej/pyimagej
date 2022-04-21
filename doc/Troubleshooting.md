@@ -1,6 +1,6 @@
 Are you having trouble getting PyImageJ up and running?
+Try the PyImageJ doctor!
 
-TL;DR: Try the PyImageJ doctor!
 ```
 python -c "import imagej.doctor; imagej.doctor.checkup()"
 ```
