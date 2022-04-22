@@ -1231,7 +1231,22 @@ def init(
         # Show the GUI and block.
         if macos:
             # NB: This will block the calling (main) thread forever!
-            setupGuiEnvironment(lambda: _create_gateway().ui().showUI())
+            try:
+                setupGuiEnvironment(lambda: _create_gateway().ui().showUI())
+            except ModuleNotFoundError as e:
+                if e.msg == "No module named 'PyObjCTools'":
+                    advice = (
+                        "PyObjC is required for GUI mode on macOS. Please install it.\n"
+                    )
+                    if "CONDA_PREFIX" in os.environ:
+                        advice += "E.g.: conda install -c conda-forge pyobjc-core pyobjc-framework-cocoa"
+                    else:
+                        advice += "E.g.: pip install pyobjc"
+                    raise RuntimeError(
+                        f"Failed to set up macOS GUI environment.\n{advice}"
+                    )
+                else:
+                    raise
         else:
             # Create and show the application.
             gateway = _create_gateway()
