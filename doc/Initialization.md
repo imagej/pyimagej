@@ -29,7 +29,7 @@ It will download and and cache ImageJ2, then spin up a gateway for you.
 The ImageJ2 gateway is initialized through a Java Virtual Machine (JVM).
 If you want to [configure the
 JVM](https://docs.oracle.com/javase/8/docs/technotes/tools/unix/java.html),
-it must be done _before_ calling initializing an ImageJ2 gateway. E.g.:
+it must be done _before_ initializing an ImageJ2 gateway. E.g.:
 
 ```python
 import imagej
