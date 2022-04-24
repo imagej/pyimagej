@@ -1,11 +1,11 @@
-# How to initialize ImageJ
+# How to initialize PyImageJ
 
 The PyImageJ plugin works by setting up a gateway interface into
-[ImageJ2](https://imagej.net/ImageJ2). This gateway interface is activated
-using the `imagej.init()` function and yields a wrapped ImageJ2 gateway, the
-`net.imagej.ImageJ` Java class. This interface has access to all of the Java
-based functions, and also has convenience functions for translating back and
-forth between python in `imagej.py`.
+[ImageJ2](https://imagej.net/software/imagej2). This gateway interface is
+activated using the `imagej.init()` function and yields a wrapped ImageJ2
+gateway, the `net.imagej.ImageJ` Java class. This interface has access to all
+of the Java-based functions, and also has convenience functions for translating
+back and forth between the Python and Java environments.
 
 Setting up this gateway consists of two steps. The first step is to set Java
 options. This step is optional, but must be done first because they cannot be
