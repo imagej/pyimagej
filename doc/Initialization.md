@@ -22,7 +22,7 @@ import imagej
 ij = imagej.init()
 ```
 
-It will download and and cache ImageJ2, then spin up a gateway for you.
+It will download and cache ImageJ2, then spin up a gateway for you.
 
 ### Configuring the JVM
 
