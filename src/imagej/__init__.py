@@ -253,7 +253,7 @@ class ImageJPython:
         equivalents.
 
         :param data: Java object to be converted into its respective Python counterpart.
-        :return: A Python object convrted from Java.
+        :return: A Python object converted from Java.
         """
         # todo: convert a dataset to xarray
         if not sj.isjava(data):
