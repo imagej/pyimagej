@@ -923,6 +923,30 @@ class GatewayAddons(object):
             )
 
 
+@JImplementationFor("net.imglib2.EuclideanSpace")
+class EuclideanSpaceAddons(object):
+    @property
+    def ndim(self):
+        """Get the number of dimensions.
+
+        :return: Number of dimensions.
+        :see: net.imglib2.EuclideanSpace#numDimensions()
+        """
+        return self.numDimensions()
+
+
+@JImplementationFor("net.imglib2.Interval")
+class IntervalAddons(object):
+    @property
+    def shape(self):
+        """Get the shape of the interval.
+
+        :return: Tuple of the interval shape.
+        :see: net.imglib2.Interval#dimension(int)
+        """
+        return tuple(self.dimension(d) for d in range(self.numDimensions()))
+
+
 @JImplementationFor("net.imglib2.RandomAccessibleInterval")
 class RAIOperators(object):
     """RandomAccessibleInterval operators.
@@ -986,22 +1010,6 @@ class RAIOperators(object):
         """
         Util = sj.jimport("net.imglib2.util.Util")
         return type(Util.getTypeFromInterval(self))
-
-    @property
-    def ndim(self):
-        """Get the number of RandomAccessibleInterval dimensions.
-
-        :return: Number of RandomAccessibleInterval dimensions.
-        """
-        return self.numDimensions()
-
-    @property
-    def shape(self):
-        """Get the shape of the RandomAccessibleInterval.
-
-        :return: Tuple of the RandomAccessibleInterval shape.
-        """
-        return tuple([self.dimension(i) for i in range(self.numDimensions())])
 
     def squeeze(self, axis=None):
         """Remove axes of length one from array.
