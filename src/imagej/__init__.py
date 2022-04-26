@@ -1164,7 +1164,7 @@ class TypedSpaceAddons(object):
         :see: net.imagej.space.TypedSpace#axis(int)
         """
         return tuple(
-            str(dataset.axis(d).type()) for d in range(dataset.numDimensions())
+            str(self.axis(d).type()) for d in range(self.numDimensions())
         )
 
 
