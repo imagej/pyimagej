@@ -10,7 +10,7 @@ def get_axes(rai: "RandomAccessibleInterval") -> List["CalibratedAxis"]:
     """Get a List of 'CalibratedAxis'.
 
     Get a List of 'CalibratedAxis' from a RandomAccessibleInterval. Note that
-    Dataset and ImgPlus have axes. Other inervals may not have axes, such as
+    Dataset and ImgPlus have axes. Other intervals may not have axes, such as
     a PlanarImg.
 
     :param rai: Input Dataset, ImgPlus or RandomAccessibleInterval.
