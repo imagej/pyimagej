@@ -303,8 +303,7 @@ def assert_permuted_rai_equal_to_source_rai(imgplus):
                                 imgplus_access.setPosition(b, ob)
                                 permuted_rai_access.setPosition(b, nb)
                                 sample_name = f"C: {c}, X: {x}, Y: {y}, Z: {z}, T: {t}, F: {f}, B: {b}"
-                                assert imgplus_access.get() == permuted_rai_access.get()
-                                # TODO: Raise error with sample_name if assert fails.
+                                assert imgplus_access.get() == permuted_rai_access.get(), sample_name
 
 
 class TestXarrayConversion(object):
