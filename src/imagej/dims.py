@@ -5,6 +5,8 @@ import xarray as xr
 from jpype import JObject, JException
 from typing import List, Tuple
 
+_logger = logging.getLogger(__name__)
+
 
 def get_axes(rai: "RandomAccessibleInterval") -> List["CalibratedAxis"]:
     """Get a List of 'CalibratedAxis'.
@@ -198,7 +200,7 @@ def _assign_axes(xarr: xr.DataArray):
         scale = _get_scale(xarr.coords[dim])
 
         if scale is None:
-            logging.warning(
+            _logger.warning(
                 f"The {ax_type.label} axis is non-numeric and is translated to a linear index."
             )
             doub_coords = [

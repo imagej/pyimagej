@@ -146,7 +146,7 @@ class ImageJPython:
         ij.py.dims() is deprecated.
         Import the 'dims' module and use dims.get_shape().
         """
-        logging.warning(
+        _logger.warning(
             "ij.py.dims() is deprecated. Import the 'dims' module and use dims.get_dims()."
         )
         if self._is_arraylike(image):
@@ -325,7 +325,7 @@ class ImageJPython:
             dtype_to_use = self.dtype(image)
         except TypeError:
             dtype_to_use = np.dtype("float64")
-        logging.warning(
+        _logger.warning(
             "ij.py.new_numpy_image() is deprecated. Use ij.py.initialize_numpy_image() instead."
         )
         return np.zeros(self.dims(image), dtype=dtype_to_use)
@@ -530,7 +530,7 @@ class ImageJPython:
         """
         This function is deprecated. Use sync_image instead.
         """
-        logging.warning(
+        _logger.warning(
             "The synchronize_ij1_to_ij2 function is deprecated. Use sync_image instead."
         )
 
@@ -590,7 +590,7 @@ class ImageJPython:
         ij.py.window_manager() is deprecated.
         Use ij.WindowManager instead.
         """
-        logging.warning(
+        _logger.warning(
             "ij.py.window_manager() is deprecated. Use ij.WindowManager instead."
         )
         return self._ij.WindowManager
@@ -862,7 +862,7 @@ class GatewayAddons(object):
                 LegacyService = sj.jimport("net.imagej.legacy.LegacyService")
                 self._legacy = self.get("net.imagej.legacy.LegacyService")
                 if self.ui().isHeadless():
-                    logging.warning(
+                    _logger.warning(
                         "Operating in headless mode - the original ImageJ will have limited functionality."
                     )
             except TypeError:
@@ -908,7 +908,7 @@ class GatewayAddons(object):
         property_name = f"_{class_name}"
         if not hasattr(self, property_name):
             if self.ui().isHeadless():
-                logging.warning(
+                _logger.warning(
                     f"Operating in headless mode - the {class_name} class will not be fully functional."
                 )
             setattr(self, property_name, sj.jimport(fqcn))
@@ -1298,7 +1298,7 @@ def init(
         ij = imagej.init('sc.fiji:fiji', mode=imagej.Mode.GUI)
     """
     if headless is not None:
-        logging.warning(
+        _logger.warning(
             "The headless flag of imagej.init is deprecated. Use the mode argument instead."
         )
         mode = Mode.HEADLESS if headless else Mode.INTERACTIVE
