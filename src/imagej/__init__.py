@@ -152,7 +152,7 @@ class ImageJPython:
             raise TypeError("Unsupported type: " + str(type(image)))
         if isinstance(image, sj.jimport("net.imglib2.Dimensions")):
             return list(image.dimensionsAsLongArray())
-        if _ImagePlus.fget() and isinstance(image, _ImagePlus.fget()):
+        if _ImagePlus() and isinstance(image, _ImagePlus()):
             dims = image.getDimensions()
             dims.reverse()
             dims = [dim for dim in dims if dim > 1]
@@ -221,18 +221,18 @@ class ImageJPython:
         if isinstance(image_or_type, sj.jimport("net.imglib2.IterableInterval")):
             ij2_type = image_or_type.firstElement()
             return self.dtype(ij2_type)
-        if isinstance(image_or_type, _RandomAccessibleInterval.fget()):
+        if isinstance(image_or_type, _RandomAccessibleInterval()):
             Util = sj.jimport("net.imglib2.util.Util")
             ij2_type = Util.getTypeFromInterval(image_or_type)
             return self.dtype(ij2_type)
 
         # -- Original ImageJ images --
-        if _ImagePlus.fget() and isinstance(image_or_type, _ImagePlus.fget()):
+        if _ImagePlus() and isinstance(image_or_type, _ImagePlus()):
             ij1_type = image_or_type.getType()
             ij1_types = {
-                _ImagePlus.fget().GRAY8: "uint8",
-                _ImagePlus.fget().GRAY16: "uint16",
-                _ImagePlus.fget().GRAY32: "float32",  # NB: ImageJ's 32-bit type is float32, not uint32.
+                _ImagePlus().GRAY8: "uint8",
+                _ImagePlus().GRAY16: "uint16",
+                _ImagePlus().GRAY32: "float32",  # NB: ImageJ's 32-bit type is float32, not uint32.
             }
             for t in ij1_types:
                 if ij1_type == t:
@@ -256,18 +256,18 @@ class ImageJPython:
         if not sj.isjava(data):
             return data
         try:
-            if _ImagePlus.fget() and isinstance(data, _ImagePlus.fget()):
+            if _ImagePlus() and isinstance(data, _ImagePlus()):
                 data = self._imageplus_to_imgplus(data)
-            if self._ij.convert().supports(data, _ImgPlus.fget()):
+            if self._ij.convert().supports(data, _ImgPlus()):
                 if dims._has_axis(data):
                     # HACK: Converter exists for ImagePlus -> Dataset, but not ImagePlus -> RAI.
-                    data = self._ij.convert().convert(data, _ImgPlus.fget())
+                    data = self._ij.convert().convert(data, _ImgPlus())
                     permuted_rai = self._permute_rai_to_python(data)
                     numpy_result = self.initialize_numpy_image(permuted_rai)
                     numpy_result = self.rai_to_numpy(permuted_rai, numpy_result)
                     return self._dataset_to_xarray(permuted_rai, numpy_result)
-            if self._ij.convert().supports(data, _RandomAccessibleInterval.fget()):
-                rai = self._ij.convert().convert(data, _RandomAccessibleInterval.fget())
+            if self._ij.convert().supports(data, _RandomAccessibleInterval()):
+                rai = self._ij.convert().convert(data, _RandomAccessibleInterval())
                 numpy_result = self.initialize_numpy_image(rai)
                 return self.rai_to_numpy(rai, numpy_result)
         except Exception as exc:
@@ -295,7 +295,7 @@ class ImageJPython:
         shape = dims.get_shape(image)
 
         # reverse shape if image is a RandomAccessibleInterval
-        if isinstance(image, _RandomAccessibleInterval.fget()):
+        if isinstance(image, _RandomAccessibleInterval()):
             shape.reverse()
 
         return np.zeros(shape, dtype=dtype_to_use)
@@ -311,7 +311,7 @@ class ImageJPython:
         :param args: The Python arguments to wrap into an Object[].
         :return: A Java Object[]
         """
-        return _JObjectArray.fget()([self.to_java(arg) for arg in args])
+        return _JObjectArray()([self.to_java(arg) for arg in args])
 
     def new_numpy_image(self, image):
         """
@@ -345,7 +345,7 @@ class ImageJPython:
         """
         # check imagej-common version for fast copy availability.
         ijc_slow_copy_version = "0.30.0"
-        ijc_active_version = sj.get_version(_Dataset.fget())
+        ijc_active_version = sj.get_version(_Dataset())
         fast_copy_available = sj.compare_version(
             ijc_slow_copy_version, ijc_active_version
         )
@@ -658,7 +658,7 @@ class ImageJPython:
         return argument
 
     def _format_value(self, value):
-        if isinstance(value, _ImagePlus.fget()):
+        if isinstance(value, _ImagePlus()):
             return str(value.getTitle())
         temp_value = str(value).replace("\\", "/")
         if temp_value.startswith("[") and temp_value.endswith("]"):
@@ -675,8 +675,8 @@ class ImageJPython:
         return axis.values[0]
 
     def _imageplus_to_imgplus(self, imp):
-        if _ImagePlus.fget() and isinstance(imp, _ImagePlus.fget()):
-            ds = self._ij.convert().convert(imp, _Dataset.fget())
+        if _ImagePlus() and isinstance(imp, _ImagePlus()):
+            ds = self._ij.convert().convert(imp, _Dataset())
             return ds.getImgPlus()
         raise ValueError("Input is not an ImagePlus")
 
@@ -720,18 +720,18 @@ class ImageJPython:
         # E.g., here is no way to directly go from Img to Dataset, instead you need to chain the
         # Img->ImgPlus->Dataset converters.
         try:
-            if self._ij.convert().supports(data, _Dataset.fget()):
-                return self._ij.convert().convert(data, _Dataset.fget())
-            if self._ij.convert().supports(data, _ImgPlus.fget()):
-                imgPlus = self._ij.convert().convert(data, _ImgPlus.fget())
+            if self._ij.convert().supports(data, _Dataset()):
+                return self._ij.convert().convert(data, _Dataset())
+            if self._ij.convert().supports(data, _ImgPlus()):
+                imgPlus = self._ij.convert().convert(data, _ImgPlus())
                 return self._ij.dataset().create(imgPlus)
-            if self._ij.convert().supports(data, _Img.fget()):  # no dim info
-                img = self._ij.convert().convert(data, _Img.fget())
-                return self._ij.dataset().create(_ImgPlus.fget()(img))
+            if self._ij.convert().supports(data, _Img()):  # no dim info
+                img = self._ij.convert().convert(data, _Img())
+                return self._ij.dataset().create(_ImgPlus()(img))
             if self._ij.convert().supports(
-                data, _RandomAccessibleInterval.fget()
+                data, _RandomAccessibleInterval()
             ):  # no dim info
-                rai = self._ij.convert().convert(data, _RandomAccessibleInterval.fget())
+                rai = self._ij.convert().convert(data, _RandomAccessibleInterval())
                 return self._ij.dataset().create(rai)
         except Exception as exc:
             _dump_exception(exc)
@@ -744,11 +744,11 @@ class ImageJPython:
         """
         # NB: This try checking is necessary because the set of ImageJ2 converters is not complete.
         try:
-            if self._ij.convert().supports(data, _Img.fget()):
-                return self._ij.convert().convert(data, _Img.fget())
-            if self._ij.convert().supports(data, _RandomAccessibleInterval.fget()):
-                rai = self._ij.convert().convert(data, _RandomAccessibleInterval.fget())
-                return _ImgView.fget().wrap(rai)
+            if self._ij.convert().supports(data, _Img()):
+                return self._ij.convert().convert(data, _Img())
+            if self._ij.convert().supports(data, _RandomAccessibleInterval()):
+                rai = self._ij.convert().convert(data, _RandomAccessibleInterval())
+                return _ImgView().wrap(rai)
         except Exception as exc:
             _dump_exception(exc)
             raise exc
@@ -1086,7 +1086,7 @@ class RAIOperators(object):
         return not hasSlice
 
     def _jargs(self, *args):
-        return _JObjectArray.fget()([sj.to_java(arg) for arg in args])
+        return _JObjectArray()([sj.to_java(arg) for arg in args])
 
     @property
     @lru_cache(maxsize=None)
@@ -1582,13 +1582,11 @@ def _set_ij_env(ij_dir):
 
 
 # Import Java resources on demand.
-@property
 @lru_cache(maxsize=None)
 def _Dataset():
     return sj.jimport("net.imagej.Dataset")
 
 
-@property
 @lru_cache(maxsize=None)
 def _ImagePlus():
     try:
@@ -1598,31 +1596,26 @@ def _ImagePlus():
         return None
 
 
-@property
 @lru_cache(maxsize=None)
 def _Img():
     return sj.jimport("net.imglib2.img.Img")
 
 
-@property
 @lru_cache(maxsize=None)
 def _ImgPlus():
     return sj.jimport("net.imagej.ImgPlus")
 
 
-@property
 @lru_cache(maxsize=None)
 def _ImgView():
     return sj.jimport("net.imglib2.img.ImgView")
 
 
-@property
 @lru_cache(maxsize=None)
 def _RandomAccessibleInterval():
     return sj.jimport("net.imglib2.RandomAccessibleInterval")
 
 
-@property
 @lru_cache(maxsize=None)
 def _JObjectArray():
     return JArray(JObject)
