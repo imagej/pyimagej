@@ -150,7 +150,7 @@ class ImageJPython:
             return image.shape
         if not sj.isjava(image):
             raise TypeError("Unsupported type: " + str(type(image)))
-        if sj.jclass("net.imglib2.Dimensions").isInstance(image):
+        if isinstance(image, sj.jimport("net.imglib2.Dimensions")):
             return list(image.dimensionsAsLongArray())
         if _ImagePlus.fget() and isinstance(image, _ImagePlus.fget()):
             dims = image.getDimensions()
@@ -182,7 +182,7 @@ class ImageJPython:
             raise TypeError("Unsupported type: " + str(type(image_or_type)))
 
         # -- ImgLib2 types --
-        if sj.jclass("net.imglib2.type.Type").isInstance(image_or_type):
+        if isinstance(image_or_type, sj.jimport("net.imglib2.type.Type")):
             ij2_types = {
                 #'net.imglib2.type.logic.BitType':                                'bool',
                 "net.imglib2.type.numeric.integer.ByteType": "int8",
@@ -213,15 +213,15 @@ class ImageJPython:
                 #'net.imglib2.type.numeric.complex.ComplexDoubleLongAccessType':  'cfloat64',
             }
             for c in ij2_types:
-                if sj.jclass(c).isInstance(image_or_type):
+                if isinstance(image_or_type, sj.jimport(c)):
                     return np.dtype(ij2_types[c])
             raise TypeError("Unsupported ImgLib2 type: {}".format(image_or_type))
 
         # -- ImgLib2 images --
-        if sj.jclass("net.imglib2.IterableInterval").isInstance(image_or_type):
+        if isinstance(image_or_type, sj.jimport("net.imglib2.IterableInterval")):
             ij2_type = image_or_type.firstElement()
             return self.dtype(ij2_type)
-        if _RandomAccessibleInterval.fget().class_.isInstance(image_or_type):
+        if isinstance(image_or_type, _RandomAccessibleInterval.fget()):
             Util = sj.jimport("net.imglib2.util.Util")
             ij2_type = Util.getTypeFromInterval(image_or_type)
             return self.dtype(ij2_type)
@@ -658,7 +658,7 @@ class ImageJPython:
         return argument
 
     def _format_value(self, value):
-        if sj.jclass("ij.ImagePlus").isInstance(value):
+        if isinstance(value, _ImagePlus.fget()):
             return str(value.getTitle())
         temp_value = str(value).replace("\\", "/")
         if temp_value.startswith("[") and temp_value.endswith("]"):
