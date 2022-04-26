@@ -751,7 +751,6 @@ class ImageJPython:
                 return self._ij.convert().convert(data, _Img.fget())
             if self._ij.convert().supports(data, _RandomAccessibleInterval.fget()):
                 rai = self._ij.convert().convert(data, _RandomAccessibleInterval.fget())
-                # TODO: can we check for support on this convertion before the conversion on 839?
                 return _ImgView.fget().wrap(rai)
         except Exception as exc:
             _dump_exception(exc)
