@@ -1162,9 +1162,7 @@ class TypedSpaceAddons(object):
         :return: Dimension labels of the space.
         :see: net.imagej.space.TypedSpace#axis(int)
         """
-        return tuple(
-            str(self.axis(d).type()) for d in range(self.numDimensions())
-        )
+        return tuple(str(axis.type()) for axis in self.dim_axes)
 
 
 @JImplementationFor("net.imagej.space.AnnotatedSpace")
