@@ -19,8 +19,8 @@ sys.path.insert(0, os.path.abspath('../../../src'))
 # -- Project information -----------------------------------------------------
 
 project = 'PyImageJ'
-copyright = '2022, Curtis Rueden, Michael Pinkert, Ed Evans, Yang Liu, Mark Hiner'
-author = 'Curtis Rueden, Michael Pinkert, Ed Evans, Yang Liu, Mark Hiner'
+copyright = '2022, Curtis Rueden, Ed Evans, Mark Hiner, Michael Pinkert, Gabe Selzer, Yang Liu, and others'
+author = 'Curtis Rueden, Ed Evans, Mark Hiner, Michael Pinkert, Gabe Selzer, Yang Liu, and others'
 
 
 # -- General configuration ---------------------------------------------------
