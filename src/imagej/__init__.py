@@ -1148,6 +1148,85 @@ class RAIOperators(object):
         return stack.rai_slice(self, tuple(imin), tuple(imax), tuple(istep))
 
 
+@JImplementationFor("net.imagej.space.TypedSpace")
+class TypedSpaceAddons(object):
+    """TypedSpace addons.
+
+    This class should not be initialized manually. Upon initialization
+    the TypedSpaceAddons class automatically extends the Java
+    net.imagej.space.TypedSpace via JPype's class customization mechanism:
+
+    https://jpype.readthedocs.io/en/latest/userguide.html#class-customizers
+    """
+
+    @property
+    def dims(self) -> Tuple[str]:
+        """Get the axis labels of the dimensional space.
+
+        :return: Dimension labels of the space.
+        :see: net.imagej.space.TypedSpace#axis(int)
+        """
+        return tuple(
+            str(dataset.axis(d).type()) for d in range(dataset.numDimensions())
+        )
+
+
+@JImplementationFor("net.imagej.space.AnnotatedSpace")
+class AnnotatedSpaceAddons(object):
+    """AnnotatedSpace addons.
+
+    This class should not be initialized manually. Upon initialization
+    the AnnotatedSpaceAddons class automatically extends the Java
+    net.imagej.space.AnnotatedSpace via JPype's class customization mechanism:
+
+    https://jpype.readthedocs.io/en/latest/userguide.html#class-customizers
+    """
+
+    @property
+    def dim_axes(self) -> Tuple["net.imagej.axis.Axis"]:
+        """Gets the axes of the dimensional space.
+
+        :return: tuple of net.imagej.axis.Axis objects describing the
+                 dimensional axes.
+        :see: net.imagej.space.AnnotatedSpace#axis(int)
+        """
+        return tuple(self.axis(d) for d in range(self.numDimensions()))
+
+
+@JImplementationFor("ij.ImagePlus")
+class ImagePlusAddons(object):
+    """ImagePlus addons.
+
+    This class should not be initialized manually. Upon initialization
+    the ImagePlusAddons class automatically extends the Java
+    ij.ImagePlus via JPype's class customization mechanism:
+
+    https://jpype.readthedocs.io/en/latest/userguide.html#class-customizers
+    """
+
+    @property
+    def dims(self) -> Tuple[str]:
+        """Get the dimensional axis labels of the image.
+
+        ImagePlus objects are always ordered XYZCT, although
+        this function squeezes out dimensions of length 1.
+
+        :return: Dimension labels of the image.
+        """
+        return tuple(
+            "XYCZT"[d] for d, length in enumerate(self.getDimensions()) if length > 1
+        )
+
+    @property
+    def shape(self):
+        """Get the shape of the image.
+
+        :return: Tuple of the image shape.
+        :see: ij.ImagePlus#getDimensions()
+        """
+        return tuple(length for length in self.getDimensions() if length > 1)
+
+
 def init(
     ij_dir_or_version_or_endpoint=None,
     mode=Mode.HEADLESS,
