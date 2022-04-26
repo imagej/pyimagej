@@ -177,7 +177,7 @@ def get_imgplus():
         imgplus = dataset.typedImg(UnsignedByteType())
 
         # fill the image with noise
-        rng = Random()
+        rng = Random(123456789)
         t = UnsignedByteType()
 
         for t in imgplus:
