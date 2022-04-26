@@ -27,12 +27,12 @@ def get_axis_types(rai: "RandomAccessibleInterval") -> List["AxisType"]:
     """
     imagej.dims.get_axis_types(image) is deprecated. Use this code instead:
 
-        axis_types = [image.axis(d).type() for d in range(image.numDimensions())]
+        axis_types = [axis.type() for axis in image.dim_axes]
     """
     _logger.warning(
         "imagej.dims.get_axis_types(image) is deprecated. Use this code instead:\n"
         + "\n"
-        + "    axis_types = [image.axis(d).type() for d in range(image.numDimensions())]"
+        + "    axis_types = [axis.type() for axis in image.dim_axes]"
     )
     if _has_axis(rai):
         Axes = sj.jimport("net.imagej.axis.Axes")

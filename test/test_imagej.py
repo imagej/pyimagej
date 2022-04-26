@@ -228,7 +228,7 @@ def assert_permuted_rai_equal_to_source_rai(imgplus):
     bar = Axes.get("bar")
 
     # permute the rai to python order
-    axis_types = [imgplus.axis(d).type() for d in range(imgplus.numDimensions())]
+    axis_types = [axis.type() for axis in imgplus.dim_axes]
     permute_order = dims.prioritize_rai_axes_order(
         axis_types, dims._python_rai_ref_order()
     )
