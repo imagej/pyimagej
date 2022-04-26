@@ -143,6 +143,8 @@ def debug_to_stderr(logger=None, debug_maven=False):
         debug_to_stderr("jgo.jgo._logger")
         debug_to_stderr("scyjava._logger")
         debug_to_stderr("scyjava.config._logger")
+        debug_to_stderr("imagej._logger")
+        debug_to_stderr("imagej.dims._logger")
         if debug_maven:
             # Tell scyjava to tell jgo to tell Maven to enable
             # debug logging via its -X command line flag.
