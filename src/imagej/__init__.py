@@ -292,7 +292,7 @@ class ImageJPython:
             dtype_to_use = np.dtype("float64")
 
         # get shape of image and invert
-        shape = dims.get_shape(image)
+        shape = list(image.shape)
 
         # reverse shape if image is a RandomAccessibleInterval
         if isinstance(image, _RandomAccessibleInterval()):
@@ -619,21 +619,21 @@ class ImageJPython:
         dataset.getProperties().putAll(self.to_java(attrs))
 
     def _dataset_to_xarray(
-        self, permuted_rai: "RandomAccessibleInterval", numpy_array: np.ndarray
+        self, rich_rai: "net.imglib2.RandomAccessibleInterval", numpy_array: np.ndarray
     ) -> xr.DataArray:
         """Wrap a numpy array with xarray and axes metadta from a RandomAccessibleInterval.
 
         Wraps a numpy array with the metadata from the source RandomAccessibleInterval
         metadata (i.e. axes).
 
-        :param permuted_rai: A RandomAccessibleInterval with axes (e.g. Dataset or ImgPlus).
+        :param rich_rai: A RandomAccessibleInterval with metadata (e.g. Dataset or ImgPlus).
         :param numpy_array: A np.ndarray to wrap with xarray.
         :return: xarray.DataArray with metadata/axes.
         """
         # get metadata
-        xr_axes = dims.get_axes(permuted_rai)
-        xr_dims = dims.get_dims(permuted_rai)
-        xr_attrs = sj.to_python(permuted_rai.getProperties())
+        xr_axes = list(rich_rai.dim_axes)
+        xr_dims = list(rich_rai.dims)
+        xr_attrs = sj.to_python(rich_rai.getProperties())
         # reverse axes and dims to match numpy_array
         xr_axes.reverse()
         xr_dims.reverse()
@@ -762,31 +762,31 @@ class ImageJPython:
         rai = imglyb.to_imglib(data)
         return self._java_to_img(rai)
 
-    def _permute_rai_to_python(self, rai: "RandomAccessibleInterval"):
+    def _permute_rai_to_python(self, rich_rai: "net.imglib2.RandomAccessibleInterval"):
         """Permute a RandomAccessibleInterval to the python reference order.
 
         Permute a RandomAccessibleInterval to the Python reference order of
         CXYZT (where dimensions exist). Note that this is reverse from the final array order of
         TZYXC.
 
-        :param rai: A RandomAccessibleInterval with axes.
+        :param rich_rai: A RandomAccessibleInterval with axis labels (e.g. Dataset or ImgPlus).
         :return: A permuted RandomAccessibleInterval.
         """
         # get input rai metadata if it exists
         try:
-            rai_metadata = rai.getProperties()
+            rai_metadata = rich_rai.getProperties()
         except AttributeError:
             rai_metadata = None
 
-        rai_axis_types = dims.get_axis_types(rai)
+        axis_types = [axis.type() for axis in rich_rai.dim_axes]
 
         # permute rai to specified order and transfer metadata
         permute_order = dims.prioritize_rai_axes_order(
-            rai_axis_types, dims._python_rai_ref_order()
+            axis_types, dims._python_rai_ref_order()
         )
-        permuted_rai = dims.reorganize(rai, permute_order)
+        permuted_rai = dims.reorganize(rich_rai, permute_order)
 
-        # add metadata to image if it exisits
+        # add metadata to image if it exists
         if rai_metadata != None:
             permuted_rai.getProperties().putAll(rai_metadata)
 
@@ -1054,12 +1054,11 @@ class RAIOperators(object):
     def _index(self, position):
         ra = self._ra
         # Can we store this as a shape property?
-        rai_shape = dims.get_shape(self)
-        if stack._index_within_range(position, rai_shape):
+        if stack._index_within_range(position, self.shape):
             for i in range(len(position)):
                 pos = position[i]
                 if pos < 0:
-                    pos += rai_shape[i]
+                    pos += self.shape[i]
                 ra.setPosition(pos, i)
             return ra.get()
 
