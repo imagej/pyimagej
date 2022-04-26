@@ -1,5 +1,4 @@
 import scyjava as sj
-import imagej.dims as dims
 from typing import List, Tuple
 
 
@@ -31,7 +30,7 @@ def rai_slice(rai, imin: Tuple, imax: Tuple, istep: Tuple):
     from jpype import JArray, JLong
 
     Views = sj.jimport("net.imglib2.view.Views")
-    shape = dims.get_shape(rai)
+    shape = rai.shape
     imin_fix = JArray(JLong)(len(shape))
     imax_fix = JArray(JLong)(len(shape))
     dim_itr = range(len(shape))
