@@ -143,12 +143,9 @@ class ImageJPython:
 
     def dims(self, image):
         """
-        ij.py.dims() is deprecated.
-        Import the 'dims' module and use dims.get_shape().
+        ij.py.dims(image) is deprecated. Use image.shape instead.
         """
-        _logger.warning(
-            "ij.py.dims() is deprecated. Import the 'dims' module and use dims.get_dims()."
-        )
+        _logger.warning("ij.py.dims(image) is deprecated. Use image.shape instead.")
         if self._is_arraylike(image):
             return image.shape
         if not sj.isjava(image):

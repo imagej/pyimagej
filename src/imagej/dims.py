@@ -8,16 +8,15 @@ from typing import List, Tuple
 _logger = logging.getLogger(__name__)
 
 
-def get_axes(rai: "RandomAccessibleInterval") -> List["CalibratedAxis"]:
-    """Get a List of 'CalibratedAxis'.
-
-    Get a List of 'CalibratedAxis' from a RandomAccessibleInterval. Note that
-    Dataset and ImgPlus have axes. Other intervals may not have axes, such as
-    a PlanarImg.
-
-    :param rai: Input Dataset, ImgPlus or RandomAccessibleInterval.
-    :return: A List of 'CalibratedAxis'.
+def get_axes(
+    rai: "net.imglib2.RandomAccessibleInterval",
+) -> List["net.imagej.axis.CalibratedAxis"]:
     """
+    imagej.dims.get_axes(image) is deprecated. Use image.dim_axes instead.
+    """
+    _logger.warning(
+        "imagej.dims.get_axes(image) is deprecated. Use image.dim_axes instead."
+    )
     return [
         (JObject(rai.axis(idx), sj.jimport("net.imagej.axis.CalibratedAxis")))
         for idx in range(rai.numDimensions())
@@ -25,15 +24,16 @@ def get_axes(rai: "RandomAccessibleInterval") -> List["CalibratedAxis"]:
 
 
 def get_axis_types(rai: "RandomAccessibleInterval") -> List["AxisType"]:
-    """Get a list of 'AxisType' from a RandomAccessibleInterval.
-
-    Get a List of 'AxisType' from a RandomAccessibleInterval. Note that Dataset
-    and ImgPlus have axes. Other intervals may not have axes, such as
-    a PlanarImg.
-
-    :param rai: A RandomAccessibleInterval with axes.
-    :return: A List of 'AxisType'.
     """
+    imagej.dims.get_axis_types(image) is deprecated. Use this code instead:
+
+        axis_types = [image.axis(d).type() for d in image.numDimensions()]
+    """
+    _logger.warning(
+        "imagej.dims.get_axis_types(image) is deprecated. Use this code instead:\n"
+        + "\n"
+        + "    axis_types = [image.axis(d).type() for d in image.numDimensions()]"
+    )
     if _has_axis(rai):
         Axes = sj.jimport("net.imagej.axis.Axes")
         rai_dims = get_dims(rai)
@@ -53,18 +53,12 @@ def get_axis_types(rai: "RandomAccessibleInterval") -> List["AxisType"]:
 
 
 def get_dims(image) -> List[str]:
-    """Get the dimensions of an image.
-
-    Get the dimensions (e.g. TZYXC) of an image. If no dimension
-    labels are found, the shape of the image is returned.
-
-    :param image:
-        An numpy or xarray.DataArray
-        OR An ImgLib2 image ('net.imglib2.Interval').
-        OR An ImageJ2 Dataset ('net.imagej.Dataset').
-        OR An ImageJ ImagePlus ('ij.ImagePlus').
-    :return: List of dimensions.
     """
+    imagej.dims.get_dims(image) is deprecated. Use image.shape and image.dims instead.
+    """
+    _logger.warning(
+        "imagej.dims.get_dims(image) is deprecated. Use image.shape and image.dims instead."
+    )
     if _is_xarraylike(image):
         return image.dims
     if _is_arraylike(image):
@@ -81,13 +75,12 @@ def get_dims(image) -> List[str]:
 
 
 def get_shape(image) -> List[int]:
-    """Get the shape of an image.
-
-    Get the shape of an image.
-
-    :param image: An image (e.g. xarray, numpy, ImagePlus)
-    :return: Shape of the image.
     """
+    imagej.dims.get_shape(image) is deprecated. Use image.shape instead.
+    """
+    _logger.warning(
+        "imagej.dims.get_shape(image) is deprecated. Use image.shape instead."
+    )
     if _is_arraylike(image):
         return list(image.shape)
     if not sj.isjava(image):
