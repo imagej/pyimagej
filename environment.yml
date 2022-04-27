@@ -23,6 +23,7 @@ dependencies:
   - openjdk=8
   - scyjava
   - xarray
+  - labeling >= 0.1.12
   # Optional dependencies
   - matplotlib-base
   # Notebook dependencies

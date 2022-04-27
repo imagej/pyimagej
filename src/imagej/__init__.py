@@ -46,6 +46,7 @@ import subprocess
 import threading
 
 from enum import Enum
+from labeling import Labeling
 from pathlib import Path
 from typing import List, Tuple
 from functools import lru_cache
@@ -99,6 +100,7 @@ class ImageJPython:
 
     def __init__(self, ij):
         self._ij = ij
+        sj.when_jvm_starts(self._add_converters)
 
     def active_dataset(self) -> "Dataset":
         """Get the active Dataset image.
@@ -253,26 +255,6 @@ class ImageJPython:
         :return: A Python object converted from Java.
         """
         # todo: convert a dataset to xarray
-        if not sj.isjava(data):
-            return data
-        try:
-            if _ImagePlus() and isinstance(data, _ImagePlus()):
-                data = self._imageplus_to_imgplus(data)
-            if self._ij.convert().supports(data, _ImgPlus()):
-                if dims._has_axis(data):
-                    # HACK: Converter exists for ImagePlus -> Dataset, but not ImagePlus -> RAI.
-                    data = self._ij.convert().convert(data, _ImgPlus())
-                    permuted_rai = self._permute_rai_to_python(data)
-                    numpy_result = self.initialize_numpy_image(permuted_rai)
-                    numpy_result = self.rai_to_numpy(permuted_rai, numpy_result)
-                    return self._dataset_to_xarray(permuted_rai, numpy_result)
-            if self._ij.convert().supports(data, _RandomAccessibleInterval()):
-                rai = self._ij.convert().convert(data, _RandomAccessibleInterval())
-                numpy_result = self.initialize_numpy_image(rai)
-                return self.rai_to_numpy(rai, numpy_result)
-        except Exception as exc:
-            _dump_exception(exc)
-            raise exc
         return sj.to_python(data)
 
     def initialize_numpy_image(self, image) -> np.ndarray:
@@ -483,6 +465,70 @@ class ImageJPython:
             _dump_exception(exc)
             raise exc
 
+    def _delete_labeling_files(self, filepath):
+        """
+        Removes any Labeling data left over at filepath
+        :param filepath: the filepath where Labeling (might have) saved data
+        """
+        pth_json = filepath + ".lbl.json"
+        pth_tif = filepath + ".tif"
+        if os.path.exists(pth_tif):
+            os.remove(pth_tif)
+        if os.path.exists(pth_json):
+            os.remove(pth_json)
+
+    def _imglabeling_to_labeling(self, data):
+        """
+        Converts an ImgLabeling to an equivalent Python Labeling
+        :param data: the data
+        :return: a Labeling
+        """
+        LabelingIOService = sj.jimport("io.scif.labeling.LabelingIOService")
+        labels = self._ij.context().getService(LabelingIOService)
+
+        # Save the image on the java side
+        tmp_pth = os.getcwd() + "/tmp"
+        tmp_pth_json = tmp_pth + ".lbl.json"
+        tmp_pth_tif = tmp_pth + ".tif"
+        try:
+            self._delete_labeling_files(tmp_pth)
+            data = self._ij.convert().convert(data, _ImgLabeling())
+            labels.save(
+                data, tmp_pth_tif
+            )  # TODO: improve, likely utilizing the data's name
+        except JException:
+            print("Failed to save the data")
+
+        # Load the labeling on the python side
+        labeling = Labeling.from_file(tmp_pth_json)
+        self._delete_labeling_files(tmp_pth)
+        return labeling
+
+    def _labeling_to_imglabeling(self, data):
+        """
+        Converts a python Labeling to an equivalent ImgLabeling
+        :param data: the data
+        :return: an ImgLabeling
+        """
+        LabelingIOService = sj.jimport("io.scif.labeling.LabelingIOService")
+        labels = self._ij.context().getService(LabelingIOService)
+
+        # Save the image on the python side
+        tmp_pth = "./tmp"
+        self._delete_labeling_files(tmp_pth)
+        data.save_result(tmp_pth)
+
+        # Load the labeling on the python side
+        try:
+            tmp_pth_json = tmp_pth + ".lbl.json"
+            labeling = labels.load(tmp_pth_json, JObject, JObject)
+        except JException as exc:
+            self._delete_labeling_files(tmp_pth)
+            raise exc
+        self._delete_labeling_files(tmp_pth)
+
+        return labeling
+
     def show(self, image, cmap=None):
         """Display a Java or Python 2D image.
 
@@ -522,6 +568,79 @@ class ImageJPython:
         stack = imp.getStack()
         pixels = imp.getProcessor().getPixels()
         stack.setPixels(pixels, imp.getCurrentSlice())
+
+    def _imagej_java_converters(self) -> List[sj.Converter]:
+        """Gets all Python --> ImgLib2 Converters"""
+        return [
+            sj.Converter(
+                predicate=lambda obj: isinstance(obj, Labeling),
+                converter=self._labeling_to_imglabeling,
+                priority=sj.Priority.HIGH + 1,
+            ),
+            sj.Converter(
+                predicate=self._is_memoryarraylike,
+                converter=self.to_img,
+                priority=sj.Priority.HIGH,
+            ),
+            sj.Converter(
+                predicate=self._is_xarraylike,
+                converter=self.to_dataset,
+                priority=sj.Priority.HIGH + 1,
+            ),
+        ]
+
+    def _can_convert_rai(self, obj) -> bool:
+        """Return false unless conversion to RAI is possible."""
+        try:
+            return self._ij.convert().supports(obj, _RandomAccessibleInterval())
+        except Exception:
+            return False
+
+    def _convert_rai(self, data):
+        rai = self._ij.convert().convert(data, _RandomAccessibleInterval())
+        numpy_result = self.initialize_numpy_image(rai)
+        return self.rai_to_numpy(rai, numpy_result)
+
+    def _can_convert_imgPlus(self, obj) -> bool:
+        """Return false unless conversion to RAI is possible."""
+        try:
+            can_convert = self._ij.convert().supports(obj, _ImgPlus())
+            has_axis = dims._has_axis(obj)
+            return can_convert and has_axis
+        except Exception:
+            return False
+
+    def _imagej_py_converters(self) -> List[sj.Converter]:
+        """Gets all ImgLib2 --> Python Converters"""
+        return [
+            sj.Converter(
+                predicate=lambda obj: isinstance(obj, _ImgLabeling()),
+                converter=self._imglabeling_to_labeling,
+                priority=sj.Priority.HIGH,
+            ),
+            sj.Converter(
+                predicate=lambda obj: _ImagePlus() and isinstance(obj, _ImagePlus()),
+                converter=lambda obj: self.from_java(self._imageplus_to_imgplus(obj)),
+                priority=sj.Priority.HIGH + 2,
+            ),
+            sj.Converter(
+                predicate=self._can_convert_imgPlus,
+                converter=lambda obj: self._permute_dataset_to_python(
+                    self._ij.convert().convert(obj, _ImgPlus())
+                ),
+                priority=sj.Priority.HIGH,
+            ),
+            sj.Converter(
+                predicate=self._can_convert_rai,
+                converter=self._convert_rai,
+                priority=sj.Priority.HIGH - 2,
+            ),
+        ]
+
+    def _add_converters(self):
+        """Add all known converters to ScyJava's conversion mechanism."""
+        [sj.add_java_converter(c) for c in self._imagej_java_converters()]
+        [sj.add_py_converter(c) for c in self._imagej_py_converters()]
 
     def synchronize_ij1_to_ij2(self, imp: "ImagePlus"):
         """
@@ -576,10 +695,6 @@ class ImageJPython:
         :param data: Python object to be converted into its respective Java counterpart.
         :return: A Java object convrted from Python.
         """
-        if self._is_memoryarraylike(data):
-            return self.to_img(data)
-        if self._is_xarraylike(data):
-            return self.to_dataset(data)
         return sj.to_java(data)
 
     def window_manager(self):
@@ -762,7 +877,23 @@ class ImageJPython:
         rai = imglyb.to_imglib(data)
         return self._java_to_img(rai)
 
-    def _permute_rai_to_python(self, rich_rai: "net.imglib2.RandomAccessibleInterval"):
+    def _permute_dataset_to_python(self, rai):
+        """Wrap a numpy array with xarray and axes metadata from a RandomAccessibleInterval.
+
+        Wraps a numpy array with the metadata from the source RandomAccessibleInterval
+        metadata (i.e. axes). Also permutes the dimension of the rai to conform to
+        numpy's standards
+
+        :param permuted_rai: A RandomAccessibleInterval with axes (e.g. Dataset or ImgPlus).
+        :return: xarray.DataArray with metadata/axes.
+        """
+        data = self._ij.convert().convert(rai, _ImgPlus())
+        permuted_rai = self._permute_rai_to_python(data)
+        numpy_result = self.initialize_numpy_image(permuted_rai)
+        numpy_result = self.rai_to_numpy(permuted_rai, numpy_result)
+        return self._dataset_to_xarray(permuted_rai, numpy_result)
+
+    def _permute_rai_to_python(self, rich_rai: "RandomAccessibleInterval"):
         """Permute a RandomAccessibleInterval to the python reference order.
 
         Permute a RandomAccessibleInterval to the Python reference order of
@@ -1501,6 +1632,9 @@ def _create_jvm(
     if add_legacy:
         sj.config.endpoints.append("net.imagej:imagej-legacy:MANAGED")
 
+    # Add additional ImageJ endpoints specific to PyImageJ
+    sj.config.endpoints.append("io.scif:scifio-labeling:0.3.1")
+
     # Restore any pre-existing endpoints, after ImageJ2's
     sj.config.endpoints.extend(original_endpoints)
 
@@ -1596,6 +1730,11 @@ def _ImagePlus():
 @lru_cache(maxsize=None)
 def _Img():
     return sj.jimport("net.imglib2.img.Img")
+
+
+@lru_cache(maxsize=None)
+def _ImgLabeling():
+    return sj.jimport("net.imglib2.roi.labeling.ImgLabeling")
 
 
 @lru_cache(maxsize=None)

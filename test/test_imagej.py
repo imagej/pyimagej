@@ -1,10 +1,8 @@
 import argparse
 import random
 import sys
-import unittest
 
 import pytest
-import imagej
 import imagej.dims as dims
 import scyjava as sj
 import numpy as np
