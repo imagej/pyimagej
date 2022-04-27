@@ -70,6 +70,7 @@ try:
     debug = os.environ["DEBUG"]
     if debug:
         _logger.setLevel(logging.DEBUG)
+        dims._logger.setLevel(logging.DEBUG)
 except KeyError as e:
     pass
 
