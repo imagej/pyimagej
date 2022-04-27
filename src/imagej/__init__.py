@@ -310,7 +310,7 @@ class ImageJPython:
         return np.zeros(self.dims(image), dtype=dtype_to_use)
 
     def rai_to_numpy(
-        self, rai: "RandomAccessibleInterval", numpy_array: np.ndarray
+        self, rai: "net.imglib2.RandomAccessibleInterval", numpy_array: np.ndarray
     ) -> np.ndarray:
         """Copy a RandomAccessibleInterval into a numpy array.
 
@@ -321,10 +321,15 @@ class ImageJPython:
         and [c, x, y, z, t]). Use _permute_rai_to_python() on the RandomAccessibleInterval
         to reorganize the dimensions.
 
-        :param rai: A RandomAccessibleInterval ('net.imglib2.RandomAccessibleInterval').
+        :param rai: A net.imglib2.RandomAccessibleInterval.
         :param numpy_array: A NumPy array with the same shape as the input RandomAccessibleInterval.
         :return: NumPy array with the input RandomAccessibleInterval data.
         """
+        if not isinstance(rai, _RandomAccessibleInterval()):
+            raise TypeError("rai is not a RAI")
+        if not self._is_arraylike(numpy_array):
+            raise TypeError("numpy_array is not arraylike")
+
         # check imagej-common version for fast copy availability.
         ijc_slow_copy_version = "0.30.0"
         ijc_active_version = sj.get_version(_Dataset())
@@ -693,7 +698,7 @@ class ImageJPython:
         equivalents. For numpy arrays, the Java image points to the Python array.
 
         :param data: Python object to be converted into its respective Java counterpart.
-        :return: A Java object convrted from Python.
+        :return: A Java object converted from Python.
         """
         return sj.to_java(data)
 
@@ -745,6 +750,13 @@ class ImageJPython:
         :param numpy_array: A np.ndarray to wrap with xarray.
         :return: xarray.DataArray with metadata/axes.
         """
+        if not isinstance(rich_rai, _RandomAccessibleInterval()):
+            raise TypeError("rich_rai is not a RAI")
+        if not hasattr(rich_rai, "dim_axes"):
+            raise TypeError("rich_rai is not a rich RAI")
+        if not self._is_arraylike(numpy_array):
+            raise TypeError("numpy_array is not arraylike")
+
         # get metadata
         xr_axes = list(rich_rai.dim_axes)
         xr_dims = list(rich_rai.dims)
@@ -790,10 +802,11 @@ class ImageJPython:
         return axis.values[0]
 
     def _imageplus_to_imgplus(self, imp):
-        if _ImagePlus() and isinstance(imp, _ImagePlus()):
-            ds = self._ij.convert().convert(imp, _Dataset())
-            return ds.getImgPlus()
-        raise ValueError("Input is not an ImagePlus")
+        if not _ImagePlus() or not isinstance(imp, _ImagePlus()):
+            raise ValueError("Input is not an ImagePlus")
+
+        ds = self._ij.convert().convert(imp, _Dataset())
+        return ds.getImgPlus()
 
     def _invert_except_last_element(self, lst):
         """
@@ -829,10 +842,14 @@ class ImageJPython:
 
     def _java_to_dataset(self, data):
         """
-        Converts the data into an ImageJ2 Dataset
+        Convert the data into an ImageJ2 Dataset.
         """
+        assert sj.isjava(data)
+        if isinstance(data, _Dataset()):
+            return data
+
         # NB: This try checking is necessary because the set of ImageJ2 converters is not complete.
-        # E.g., here is no way to directly go from Img to Dataset, instead you need to chain the
+        # E.g., there is no way to directly go from Img to Dataset, instead you need to chain the
         # Img->ImgPlus->Dataset converters.
         try:
             if self._ij.convert().supports(data, _Dataset()):
@@ -840,12 +857,10 @@ class ImageJPython:
             if self._ij.convert().supports(data, _ImgPlus()):
                 imgPlus = self._ij.convert().convert(data, _ImgPlus())
                 return self._ij.dataset().create(imgPlus)
-            if self._ij.convert().supports(data, _Img()):  # no dim info
+            if self._ij.convert().supports(data, _Img()):
                 img = self._ij.convert().convert(data, _Img())
                 return self._ij.dataset().create(_ImgPlus()(img))
-            if self._ij.convert().supports(
-                data, _RandomAccessibleInterval()
-            ):  # no dim info
+            if self._ij.convert().supports(data, _RandomAccessibleInterval()):
                 rai = self._ij.convert().convert(data, _RandomAccessibleInterval())
                 return self._ij.dataset().create(rai)
         except Exception as exc:
@@ -855,8 +870,12 @@ class ImageJPython:
 
     def _java_to_img(self, data):
         """
-        Converts the data into an ImgLib2 Img
+        Convert the data into an ImgLib2 Img.
         """
+        assert sj.isjava(data)
+        if isinstance(data, _Img()):
+            return data
+
         # NB: This try checking is necessary because the set of ImageJ2 converters is not complete.
         try:
             if self._ij.convert().supports(data, _Img()):
@@ -870,10 +889,12 @@ class ImageJPython:
         raise TypeError("Cannot convert to img: " + str(type(data)))
 
     def _numpy_to_dataset(self, data):
+        assert self._is_arraylike(data)
         rai = imglyb.to_imglib(data)
         return self._java_to_dataset(rai)
 
     def _numpy_to_img(self, data):
+        assert self._is_arraylike(data)
         rai = imglyb.to_imglib(data)
         return self._java_to_img(rai)
 
@@ -929,6 +950,7 @@ class ImageJPython:
         :param xarr: Pass an xarray dataarray and turn into a dataset.
         :return: The dataset
         """
+        assert self._is_xarraylike(xarr)
         if dims._ends_with_channel_axis(xarr):
             vals = np.moveaxis(xarr.values, -1, 0)
             dataset = self._numpy_to_dataset(vals)
@@ -946,6 +968,7 @@ class ImageJPython:
         :param xarr: Pass an xarray dataarray and turn into a img.
         :return: The img
         """
+        assert self._is_xarraylike(xarr)
         if dims._ends_with_channel_axis(xarr):
             vals = np.moveaxis(xarr.values, -1, 0)
             return self._numpy_to_img(vals)
