@@ -532,12 +532,12 @@ class ImageJPython:
         )
 
     def to_dataset(self, data):
-        """Converts the data into an ImageJ2 Dataset
+        """Convert the data into an ImageJ2 Dataset.
 
-        Converts a Python image object (e.g 'xarray.DataArray') into a 'net.imagej.Dataset' Java
-        object.
+        Converts a Python image (e.g. xarray or numpy array) or Java image (e.g.
+        RandomAccessibleInterval or Img) into a 'net.imagej.Dataset' Java object.
 
-        :param data: Python image object to be converted to Dataset.
+        :param data: Image object to be converted to Dataset.
         :return: A 'net.imagej.Dataset'.
         """
         if self._is_xarraylike(data):
@@ -550,13 +550,13 @@ class ImageJPython:
         raise TypeError(f"Type not supported: {type(data)}")
 
     def to_img(self, data):
-        """Converts the data into an ImgLib2 Img
+        """Convert the data into an ImgLib2 Img.
 
-        Converts a Python image object (e.g 'xarray.DataArray') into a 'net.imglib2.Img' Java
-        object.
+        Converts a Python image (e.g. xarray or numpy array) or Java image (e.g.
+        RandomAccessibleInterval) into a 'net.imglib2.img.Img' Java object.
 
-        :param data: Python image object to be converted to Dataset.
-        :return: A 'net.imglib2.Img'.
+        :param data: Image object to be converted to Img.
+        :return: A 'net.imglib2.img.Img'.
         """
         if self._is_xarraylike(data):
             return self._xarray_to_img(data)
