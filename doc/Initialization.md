@@ -43,28 +43,28 @@ See "With more memory available to Java" below for further details.
 
 PyImageJ can be initialized to call:
 * different versions of ImageJ2 or component libraries;
-* with or without legacy support for the original ImageJ;
+* with or without support for the original ImageJ;
 * with or without a graphical user interface (GUI); and
 * with additional plugins such as Fiji plugins.
 
 All initialization methods except for "local installation" will automatically
 include the imagej-legacy endpoint unless the `add_legacy=False` flag is given.
 
-| Requirement                                            | Code                                                                               | Reproducible? |
-|:-------------------------------------------------------|:----------------------------------------------------------------------------------:|:-------------:|
-| Newest available version of ImageJ2                    | `ij = imagej.init()`                                                               | NO            |
-| Newest available version of ImageJ2 (no legacy support)| `ij = imagej.init(add_legacy=False)`                                               | NO            |
-| Specific version of ImageJ2                            | `ij = imagej.init('2.3.0')`                                                        | YES           |
-| Specific version of ImageJ2 (no legacy support)        | `ij = imagej.init('2.3.0', add_legacy=False)`                                      | YES           |
-| With a GUI (newest version, blocking)                  | `ij = imagej.init(mode='gui')`                                                     | NO            |
-| With a GUI (specific version, blocking)                | `ij = imagej.init('net.imagej:imagej:2.3.0', mode='gui')`                          | YES           |
-| With a GUI (newest version, interactive)               | `ij = imagej.init(mode='interactive')`                                             | NO            |
-| With a GUI (specific version, interactive)             | `ij = imagej.init('net.imagej:imagej:2.3.0', mode='interactive')`                  | YES           |
-| With Fiji plugins (newest version)                     | `ij = imagej.init('sc.fiji:fiji')`                                                 | NO            |
-| With Fiji plugins (specific version)                   | `ij = imagej.init('sc.fiji:fiji:2.3.1')`                                           | YES           |
-| With a specific plugin (newest version)                | `ij = imagej.init(['net.imagej:imagej', 'net.preibisch:BigStitcher'])`             | NO            |
-| With a specific plugin (specific version)              | `ij = imagej.init(['net.imagej:imagej:2.3.0', 'net.preibisch:BigStitcher:0.4.1'])` | YES           |
-| From a local installation                              | `ij = imagej.init('/Applications/Fiji.app')`                                       | DEPENDS       |
+| Requirement                                              | Code                                                                               | Reproducible? |
+|:---------------------------------------------------------|:----------------------------------------------------------------------------------:|:-------------:|
+| Newest available version of ImageJ2                      | `ij = imagej.init()`                                                               | NO            |
+| Newest available version of ImageJ2 (no original ImageJ) | `ij = imagej.init(add_legacy=False)`                                               | NO            |
+| Specific version of ImageJ2                              | `ij = imagej.init('2.3.0')`                                                        | YES           |
+| Specific version of ImageJ2 (no original ImageJ)         | `ij = imagej.init('2.3.0', add_legacy=False)`                                      | YES           |
+| With a GUI (newest version, blocking)                    | `ij = imagej.init(mode='gui')`                                                     | NO            |
+| With a GUI (specific version, blocking)                  | `ij = imagej.init('net.imagej:imagej:2.3.0', mode='gui')`                          | YES           |
+| With a GUI (newest version, interactive)                 | `ij = imagej.init(mode='interactive')`                                             | NO            |
+| With a GUI (specific version, interactive)               | `ij = imagej.init('net.imagej:imagej:2.3.0', mode='interactive')`                  | YES           |
+| With Fiji plugins (newest version)                       | `ij = imagej.init('sc.fiji:fiji')`                                                 | NO            |
+| With Fiji plugins (specific version)                     | `ij = imagej.init('sc.fiji:fiji:2.3.1')`                                           | YES           |
+| With a specific plugin (newest version)                  | `ij = imagej.init(['net.imagej:imagej', 'net.preibisch:BigStitcher'])`             | NO            |
+| With a specific plugin (specific version)                | `ij = imagej.init(['net.imagej:imagej:2.3.0', 'net.preibisch:BigStitcher:0.4.1'])` | YES           |
+| From a local installation                                | `ij = imagej.init('/Applications/Fiji.app')`                                       | DEPENDS       |
 
 #### Newest available version
 
