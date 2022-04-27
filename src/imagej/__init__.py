@@ -102,7 +102,7 @@ class ImageJPython:
         self._ij = ij
         sj.when_jvm_starts(self._add_converters)
 
-    def active_dataset(self) -> "Dataset":
+    def active_dataset(self) -> "net.imagej.Dataset":
         """Get the active Dataset image.
 
         Get the active image as a Dataset from the Dataset service.
@@ -111,7 +111,7 @@ class ImageJPython:
         """
         return self._ij.imageDisplay().getActiveDataset()
 
-    def active_image_plus(self, sync=True) -> "ImagePlus":
+    def active_image_plus(self, sync=True) -> "ij.ImagePlus":
         """Get the active ImagePlus image.
 
         Get the active image as an ImagePlus, optionally synchronizing from ImageJ to ImageJ2.
@@ -554,7 +554,7 @@ class ImageJPython:
         pyplot.imshow(self.from_java(image), interpolation="nearest", cmap=cmap)
         pyplot.show()
 
-    def sync_image(self, imp: "ImagePlus"):
+    def sync_image(self, imp: "ij.ImagePlus"):
         """Synchronize data between ImageJ and ImageJ2.
 
         Synchronize between a Dataset or ImageDisplay linked to an
@@ -647,7 +647,7 @@ class ImageJPython:
         [sj.add_java_converter(c) for c in self._imagej_java_converters()]
         [sj.add_py_converter(c) for c in self._imagej_py_converters()]
 
-    def synchronize_ij1_to_ij2(self, imp: "ImagePlus"):
+    def synchronize_ij1_to_ij2(self, imp: "ij.ImagePlus"):
         """
         This function is deprecated. Use sync_image instead.
         """
@@ -743,7 +743,7 @@ class ImageJPython:
         macro = macro + """\");"""
         return macro
 
-    def _assign_dataset_metadata(self, dataset: "Dataset", attrs):
+    def _assign_dataset_metadata(self, dataset: "net.imagej.Dataset", attrs):
         """
         :param dataset: ImageJ2 Dataset
         :param attrs: Dictionary containing metadata
@@ -926,7 +926,7 @@ class ImageJPython:
         numpy_result = self.rai_to_numpy(permuted_rai, numpy_result)
         return self._dataset_to_xarray(permuted_rai, numpy_result)
 
-    def _permute_rai_to_python(self, rich_rai: "RandomAccessibleInterval"):
+    def _permute_rai_to_python(self, rich_rai: "net.imglib2.RandomAccessibleInterval"):
         """Permute a RandomAccessibleInterval to the python reference order.
 
         Permute a RandomAccessibleInterval to the Python reference order of
