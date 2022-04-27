@@ -691,6 +691,18 @@ class ImageJPython:
 
         raise TypeError(f"Type not supported: {type(data)}")
 
+    def to_imageplus(self, data):
+        """Convert the data into an ImageJ ImagePlus.
+
+        Converts a Python image (e.g. xarray or numpy array) or Java image (e.g.
+        RandomAccessibleInterval or Dataset) into an 'ij.ImagePlus' Java object.
+
+        :param data: Image object to be converted to ImagePlus.
+        :return: An 'ij.ImagePlus'.
+        """
+        self._ij._check_legacy_active("Conversion to ImagePlus is not supported.")
+        return self._ij.convert().convert(self.to_dataset(data), _ImagePlus())
+
     def to_java(self, data):
         """Convert supported Python data into Java equivalents.
 
