@@ -163,10 +163,12 @@ class ImageJPython:
         raise TypeError("Unsupported Java type: " + str(sj.jclass(image).getName()))
 
     def dtype(self, image_or_type):
-        """Get the dtype of the input image.
+        """Get the dtype of the input image as a numpy.dtype object.
 
-        Return the dtype of an input NumPy array, ImgLib2 image
-        or an Image ImagePlus.
+        Note: for Java-based images, this is different than the image's dtype
+        property, because ImgLib2-based images report their dtype as a subclass
+        of net.imglib2.type.Type, and ImagePlus images report their dtype as a
+        string representation of the ImagePlus type constants.
 
         :param image_or_type:
             | A NumPy array.
@@ -595,6 +597,7 @@ class ImageJPython:
     def _assemble_plugin_macro(self, plugin: str, args=None, ij1_style=True):
         """
         Assemble an ImageJ macro string given a plugin to run and optional arguments in a dict
+
         :param plugin: The string call for the function to run
         :param args: A dict of macro arguments in key/value pairs
         :param ij1_style: True to use implicit booleans in original ImageJ style, or False for explicit booleans in ImageJ2 style
@@ -1175,9 +1178,10 @@ class RAIOperators(object):
 
     @property
     def dtype(self):
-        """Get the dtype of a RandomAccessibleInterval.
+        """Get the dtype of a RandomAccessibleInterval,
+        a subclass of net.imglib2.type.Type.
 
-        :return: dtype of a RandomAccessibleInterval.
+        :return: dtype of the RandomAccessibleInterval.
         """
         Util = sj.jimport("net.imglib2.util.Util")
         return type(Util.getTypeFromInterval(self))
@@ -1385,6 +1389,21 @@ class ImagePlusAddons(object):
         return tuple(
             "XYCZT"[d] for d, length in enumerate(self.getDimensions()) if length > 1
         )
+
+    @property
+    def dtype(self):
+        """Get the dtype of an ImagePlus.
+
+        It will be 'GRAY8', 'GRAY16', 'GRAY32', 'COLOR_256', or 'COLOR_RGB',
+        corresponding to the ImagePlus constants with those names,
+        as returned by the getType() function.
+
+        :return: dtype string of the ImagePlus.
+        """
+        for imp_type in ("GRAY8", "GRAY16", "GRAY32", "COLOR_256", "COLOR_RGB"):
+            if self.getType() == getattr(_ImagePlus(), imp_type):
+                return imp_type
+        return "OTHER"
 
     @property
     def shape(self):
