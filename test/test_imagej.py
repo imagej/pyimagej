@@ -124,10 +124,10 @@ def get_xarr():
                 np.random.rand(5, 4, 6, 12, 3),
                 dims=["t", "pln", "row", "col", "ch"],
                 coords={
-                    "col": list(range(0, 12)),
-                    "row": list(np.arange(0, 12, 2)),
+                    "col": list(range(12)),
+                    "row": list(range(0, 12, 2)),
                     "ch": [0, 1, 2],
-                    "pln": list(np.arange(10, 50, 10)),
+                    "pln": list(range(10, 50, 10)),
                     "t": list(np.arange(0, 0.05, 0.01)),
                 },
                 attrs={"Hello": "World"},
@@ -137,10 +137,10 @@ def get_xarr():
                 np.ndarray([5, 4, 3, 6, 12], order="F"),
                 dims=["t", "pln", "ch", "row", "col"],
                 coords={
-                    "col": range(0, 12),
-                    "row": np.arange(0, 12, 2),
-                    "pln": np.arange(10, 50, 10),
-                    "t": np.arange(0, 0.05, 0.01),
+                    "col": list(range(12)),
+                    "row": list(range(0, 12, 2)),
+                    "pln": list(range(10, 50, 10)),
+                    "t": list(np.arange(0, 0.05, 0.01)),
                 },
                 attrs={"Hello": "World"},
             )
