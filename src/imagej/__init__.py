@@ -522,6 +522,7 @@ class ImageJPython:
         _logger.warning(
             "The synchronize_ij1_to_ij2 function is deprecated. Use sync_image instead."
         )
+        self.sync_image(imp)
 
     def to_dataset(self, data):
         """Convert the data into an ImageJ2 Dataset.
