@@ -286,7 +286,7 @@ class ImageJPython:
         return np.zeros(shape, dtype=dtype_to_use)
 
     def jargs(self, *args):
-        """Converts Python arguments into a Java Object[]
+        """Convert Python arguments into a Java Object[]
 
         Converts Python arguments into a Java Object[] (i.e.: array of Java
         objects). This is particularly useful in combination with ImageJ2's
@@ -737,7 +737,7 @@ class ImageJPython:
         [sj.add_py_converter(c) for c in self._imagej_py_converters()]
 
     def _imagej_java_converters(self) -> List[sj.Converter]:
-        """Gets all Python --> ImgLib2 Converters"""
+        """Get all Python-to-ImgLib2 Converters"""
         return [
             sj.Converter(
                 predicate=lambda obj: isinstance(obj, Labeling),
@@ -757,7 +757,7 @@ class ImageJPython:
         ]
 
     def _imagej_py_converters(self) -> List[sj.Converter]:
-        """Gets all ImgLib2 --> Python Converters"""
+        """Get all ImgLib2-to-Python Converters"""
         return [
             sj.Converter(
                 predicate=lambda obj: isinstance(obj, _ImgLabeling()),
@@ -1353,7 +1353,7 @@ class AnnotatedSpaceAddons(object):
 
     @property
     def dim_axes(self) -> Tuple["net.imagej.axis.Axis"]:
-        """Gets the axes of the dimensional space.
+        """Get the axes of the dimensional space.
 
         :return: tuple of net.imagej.axis.Axis objects describing the
                  dimensional axes.
