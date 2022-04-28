@@ -167,8 +167,8 @@ class ImageJPython:
 
         Note: for Java-based images, this is different than the image's dtype
         property, because ImgLib2-based images report their dtype as a subclass
-        of net.imglib2.type.Type, and ImagePlus images report their dtype as a
-        string representation of the ImagePlus type constants.
+        of net.imglib2.type.Type, and ImagePlus images do not yet implement
+        the dtype function (see https://github.com/imagej/pyimagej/issues/194).
 
         :param image_or_type:
             | A NumPy array.
@@ -1389,21 +1389,6 @@ class ImagePlusAddons(object):
         return tuple(
             "XYCZT"[d] for d, length in enumerate(self.getDimensions()) if length > 1
         )
-
-    @property
-    def dtype(self):
-        """Get the dtype of an ImagePlus.
-
-        It will be 'GRAY8', 'GRAY16', 'GRAY32', 'COLOR_256', or 'COLOR_RGB',
-        corresponding to the ImagePlus constants with those names,
-        as returned by the getType() function.
-
-        :return: dtype string of the ImagePlus.
-        """
-        for imp_type in ("GRAY8", "GRAY16", "GRAY32", "COLOR_256", "COLOR_RGB"):
-            if self.getType() == getattr(_ImagePlus(), imp_type):
-                return imp_type
-        return "OTHER"
 
     @property
     def shape(self):
