@@ -113,6 +113,16 @@ class ImageJPython:
         return self._ij.imageDisplay().getActiveDataset()
 
     def active_image_plus(self, sync=True) -> "ij.ImagePlus":
+        """
+        ij.py.active_image_plus() is deprecated.
+        Use ij.py.active_imageplus() instead.
+        """
+        _logger.warning(
+            "ij.py.active_image_plus() is deprecated. Use ij.py.active_imageplus() instead."
+        )
+        return self.active_imageplus(sync)
+
+    def active_imageplus(self, sync=True) -> "ij.ImagePlus":
         """Get the active ImagePlus image.
 
         Get the active image as an ImagePlus, optionally synchronizing from ImageJ to ImageJ2.
@@ -138,7 +148,7 @@ class ImageJPython:
         # todo: make the behavior use pure ImageJ2 if legacy is not active
 
         if ij.legacy and ij.legacy.isActive():
-            imp = self.active_image_plus(sync=sync)
+            imp = self.active_imageplus(sync=sync)
             return self.from_java(imp)
         else:
             dataset = self.active_dataset()

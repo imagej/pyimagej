@@ -351,7 +351,7 @@ def arr():
 
 
 class TestSynchronization(object):
-    def test_get_image_plus_synchronizes_from_imagej_to_imagej2(self, ij_fixture, arr):
+    def test_get_imageplus_synchronizes_from_imagej_to_imagej2(self, ij_fixture, arr):
         if not ij_fixture.legacy:
             pytest.skip("No original ImageJ. Skipping test.")
         if ij_fixture.ui().isHeadless():
@@ -362,7 +362,7 @@ class TestSynchronization(object):
         ij_fixture.ui().show(ds)
         macro = """run("Add...", "value=5");"""
         ij_fixture.py.run_macro(macro)
-        imp = ij_fixture.py.active_image_plus()
+        imp = ij_fixture.py.active_imageplus()
 
         assert arr[0, 0] == original + 5
 
@@ -375,7 +375,7 @@ class TestSynchronization(object):
         original = arr[0, 0]
         ds = ij_fixture.py.to_dataset(arr)
         ij_fixture.ui().show(ds)
-        imp = ij_fixture.py.active_image_plus()
+        imp = ij_fixture.py.active_imageplus()
         imp.getProcessor().add(5)
         ij_fixture.py.sync_image(imp)
 
@@ -399,7 +399,7 @@ class TestSynchronization(object):
         with pytest.raises(AttributeError):
             ij_fixture.py.sync_image(None)
         with pytest.raises(ImportError):
-            ij_fixture.py.active_image_plus()
+            ij_fixture.py.active_imageplus()
 
 
 @pytest.fixture(scope="module")
