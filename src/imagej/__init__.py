@@ -387,7 +387,7 @@ class ImageJPython:
             macro_result = ij.py.run_macro(macro, args)
             print(macro_result.getOutput('output'))
         """
-        ij._check_legacy_active("Use of original ImageJ macros is not possible.")
+        self._ij._check_legacy_active("Use of original ImageJ macros is not possible.")
 
         try:
             if args is None:
