@@ -417,7 +417,7 @@ class ImageJPython:
             _dump_exception(exc)
             raise exc
 
-    def run_plugin(self, plugin: str, args=[], ij1_style=True, imp=None):
+    def run_plugin(self, plugin: str, args={}, ij1_style=True, imp=None):
         """Run an ImageJ 1.x plugin.
 
         Run an ImageJ 1.x plugin by specifying the plugin name as a string,
@@ -441,7 +441,14 @@ class ImageJPython:
             }
             ij.py.run_plugin(plugin, args)
         """
-        self._ij.IJ.run(imp, plugin, self.argstring(args, ij1_style))
+        argline = self.argstring(args, ij1_style)
+        if imp is None:
+            # NB: Avoid ambiguous overload between:
+            # - IJ.run(ij.ImagePlus, String, String)
+            # - IJ.run(ij.macro.Interpreter, String, String)
+            self._ij.IJ.run(plugin, argline)
+        else:
+            self._ij.IJ.run(imp, plugin, argline)
 
     def run_script(self, language: str, script: str, args=None):
         """Run an ImageJ2 script.
