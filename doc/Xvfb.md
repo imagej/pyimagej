@@ -53,7 +53,7 @@ The script should print the results pandas dataframe (the data from ImageJ's `Re
 log4j:WARN No appenders could be found for logger (org.bushe.swing.event.EventService).
 log4j:WARN Please initialize the log4j system properly.
 log4j:WARN See http://logging.apache.org/log4j/1.2/faq.html#noconfig for more info.
-ImageJ version: 2.3.0/1.53f
+ImageJ2 version: 2.5.0/1.53r
 Output: 
          Area         Mean     Min     Max
 0    1.267500  3477.416667  2219.0  5312.0

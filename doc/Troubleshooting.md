@@ -76,7 +76,7 @@ and is therefore not available, due to this OS-specific limitation.
 PyImageJ uses some functions of ImageJ2 and supporting libraries that are not
 available in older versions of ImageJ2. While it may be possible to initialize
 an ImageJ2 gateway with an older version of ImageJ2, certain functionality may
-not behave as intended, so we advise to use version 2.3.0 or later if possible.
+not behave as intended, so we advise to use version 2.5.0 or later if possible.
 
 ## Starting Python from inside ImageJ
 

@@ -90,9 +90,9 @@ you chose this route over conda above.
 
 Here's one way to test that it works:
 ```
-python -c 'import imagej; ij = imagej.init("2.3.0"); print(ij.getVersion()); ij.dispose()'
+python -c 'import imagej; ij = imagej.init("2.5.0"); print(ij.getVersion()); ij.dispose()'
 ```
-Should print `2.3.0` on the console.
+Should print `2.5.0` on the console.
 
 ## Dynamic installation from inside a notebook
 
