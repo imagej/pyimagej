@@ -1275,7 +1275,7 @@ class RAIOperators(object):
         return not hasSlice
 
     def _jargs(self, *args):
-        return _JObjectArray()([sj.to_java(arg) for arg in args])
+        return _JObjectArray()(list(map(sj.to_java, args)))
 
     @property
     @lru_cache(maxsize=None)
