@@ -232,7 +232,7 @@ class ImageJPython:
             for c in ij2_types:
                 if isinstance(image_or_type, sj.jimport(c)):
                     return np.dtype(ij2_types[c])
-            raise TypeError("Unsupported ImgLib2 type: {}".format(image_or_type))
+            raise TypeError(f"Unsupported ImgLib2 type: {image_or_type}")
 
         # -- ImgLib2 images --
         if isinstance(image_or_type, sj.jimport("net.imglib2.IterableInterval")):
@@ -254,7 +254,7 @@ class ImageJPython:
             for t in ij1_types:
                 if ij1_type == t:
                     return np.dtype(ij1_types[t])
-            raise TypeError("Unsupported original ImageJ type: {}".format(ij1_type))
+            raise TypeError(f"Unsupported original ImageJ type: {ij1_type}")
 
         raise TypeError(
             "Unsupported Java type: " + str(sj.jclass(image_or_type).getName())
@@ -634,18 +634,18 @@ class ImageJPython:
 
     def _format_argument(self, key, value, ij1_style):
         if value is True:
-            argument = "{}".format(key)
+            argument = str(key)
             if not ij1_style:
-                argument = argument + "=true"
+                argument += "=true"
         elif value is False:
             argument = None
             if not ij1_style:
-                argument = "{0}=false".format(key)
+                argument = f"{key}=false"
         elif value is None:
             raise NotImplementedError("Conversion for None is not yet implemented")
         else:
             val_str = self._format_value(value)
-            argument = "{0}={1}".format(key, val_str)
+            argument = f"{key}={val_str}"
         return argument
 
     def _format_value(self, value):
@@ -1569,7 +1569,7 @@ def _create_gateway():
             elif source == "STDERR":
                 sys.stderr.write(output)
             else:
-                sys.stderr.write("[{}] {}".format(source, output))
+                sys.stderr.write(f"[{source}] {output}")
 
     ij.py._outputMapper = JavaOutputListener()
     ij.console().addOutputListener(ij.py._outputMapper)
