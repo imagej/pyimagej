@@ -89,6 +89,17 @@ class TestImageJ(object):
             result.append(itr.next().get())
         assert result == correct_result
 
+    def test_run_plugin(self, ij_fixture):
+        if not ij_fixture.legacy:
+            pytest.skip("No original ImageJ. Skipping test.")
+
+        noise = ij_fixture.IJ.createImage("Tile1", "8-bit random", 10, 10, 1)
+        before = [noise.getPixel(x, y)[0] for x in range(10) for y in range(10)]
+        ij_fixture.py.run_plugin("Gaussian Blur...", args={"sigma": 3}, imp=noise)
+        after = [noise.getPixel(x, y)[0] for x in range(10) for y in range(10)]
+        print(f"before = {before}")
+        print(f"after = {after}")
+
     def test_plugins_load_using_pairwise_stitching(self, ij_fixture):
         try:
             sj.jimport("plugin.Stitching_Pairwise")
@@ -100,18 +111,13 @@ class TestImageJ(object):
         if ij_fixture.ui().isHeadless():
             pytest.skip("No GUI. Skipping test.")
 
-        macro = """
-        newImage("Tile1", "8-bit random", 512, 512, 1);
-        newImage("Tile2", "8-bit random", 512, 512, 1);
-        """
-        plugin = "Pairwise stitching"
-        args = {"first_image": "Tile1", "second_image": "Tile2"}
-
-        ij_fixture.script().run("macro.ijm", macro, True).get()
-        ij_fixture.py.run_plugin(plugin, args)
+        tile1 = ij_fixture.IJ.createImage("Tile1", "8-bit random", 512, 512, 1)
+        tile2 = ij_fixture.IJ.createImage("Tile2", "8-bit random", 512, 512, 1)
+        args = {"first_image": tile1.getTitle(), "second_image": tile2.getTitle()}
+        ij_fixture.py.run_plugin("Pairwise stitching", args)
         result_name = ij_fixture.WindowManager.getCurrentImage().getTitle()
 
-        ij_fixture.script().run("macro.ijm", 'run("Close All");', True).get()
+        ij_fixture.IJ.run("Close All", "")
 
         assert result_name == "Tile1<->Tile2"
 

@@ -154,6 +154,21 @@ class ImageJPython:
             dataset = self.active_dataset()
             return self.from_java(dataset)
 
+    def argstring(self, args, ij1_style=True):
+        """
+        Assemble an ImageJ (1.x) argument string from arguments in a dict.
+
+        :param args: A dict of arguments in key/value pairs
+        :param ij1_style: True to use implicit booleans in original ImageJ style, or False for explicit booleans in ImageJ2 style
+        :return: A string version of the arguments
+        """
+        formatted_args = []
+        for key, value in args.items():
+            arg = self._format_argument(key, value, ij1_style)
+            if arg is not None:
+                formatted_args.append(arg)
+        return " ".join(formatted_args)
+
     def dims(self, image):
         """
         ij.py.dims(image) is deprecated. Use image.shape instead.
@@ -402,10 +417,10 @@ class ImageJPython:
             _dump_exception(exc)
             raise exc
 
-    def run_plugin(self, plugin: str, args=None, ij1_style=True):
-        """Run an ImageJ plugin.
+    def run_plugin(self, plugin: str, args=[], ij1_style=True, imp=None):
+        """Run an ImageJ 1.x plugin.
 
-        Run an ImageJ plugin by specifiying the plugin name as a string,
+        Run an ImageJ 1.x plugin by specifying the plugin name as a string,
         and the plugin arguments as a dictionary. For the few plugins that
         use the ImageJ2 style macros (i.e. explicit booleans in the recorder),
         set the option variable ij1_style=False.
@@ -413,7 +428,6 @@ class ImageJPython:
         :param plugin: The string name for the plugin command.
         :param args: A dictionary of plugin arguments in key: value pairs.
         :param ij1_style: Boolean to set which implicit boolean style to use (ImageJ or ImageJ2).
-        :return: Runs the specified plugin with the given arguments.
 
         :example:
 
@@ -427,8 +441,7 @@ class ImageJPython:
             }
             ij.py.run_plugin(plugin, args)
         """
-        macro = self._assemble_plugin_macro(plugin, args=args, ij1_style=ij1_style)
-        return self.run_macro(macro)
+        self._ij.IJ.run(imp, plugin, self.argstring(args, ij1_style))
 
     def run_script(self, language: str, script: str, args=None):
         """Run an ImageJ2 script.
@@ -604,26 +617,6 @@ class ImageJPython:
         return self._ij.WindowManager
 
     # -- Helper functions --
-
-    def _assemble_plugin_macro(self, plugin: str, args=None, ij1_style=True):
-        """
-        Assemble an ImageJ macro string given a plugin to run and optional arguments in a dict
-
-        :param plugin: The string call for the function to run
-        :param args: A dict of macro arguments in key/value pairs
-        :param ij1_style: True to use implicit booleans in original ImageJ style, or False for explicit booleans in ImageJ2 style
-        :return: A string version of the macro run
-        """
-        if args is None:
-            macro = 'run("{}");'.format(plugin)
-            return macro
-        macro = """run("{0}", \"""".format(plugin)
-        for key, value in args.items():
-            argument = self._format_argument(key, value, ij1_style)
-            if argument is not None:
-                macro = macro + " {}".format(argument)
-        macro = macro + """\");"""
-        return macro
 
     def _assign_dataset_metadata(self, dataset: "net.imagej.Dataset", attrs):
         """
