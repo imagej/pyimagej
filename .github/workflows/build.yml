@@ -11,7 +11,8 @@ on:
       - master
 
 jobs:
-  build-cross-platform:
+  build-pip:
+    name: pip - ${{matrix.os}} - ${{matrix.python-version}}
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
@@ -80,25 +81,33 @@ jobs:
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v2
 
-  conda-test:
-    name: Test Conda dev environment
-    runs-on: ubuntu-latest
+  build-conda:
+    name: conda - ${{matrix.os}} - ${{matrix.python-version}}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+        python-version: ["3.6", "3.10"]
+
+    defaults:
+      # Steps that rely on the activated environment must be run with this shell setup.
+      # See https://github.com/marketplace/actions/setup-miniconda#important
+      run:
+        shell: bash -l {0}
     steps:
       - uses: actions/checkout@v2
       - uses: conda-incubator/setup-miniconda@v2
         with:
+          # Create env with dev packages
           auto-update-conda: true
-          python-version: ${{ matrix.python-version }}
-      - name: Add conda to system path
-        run: |
-          # $CONDA is an environment variable pointing to the root of the miniconda directory
-          echo $CONDA/bin >> $GITHUB_PATH
-      - name: Install mamba
-        run: |
-          conda install -c conda-forge mamba
-      - name: Install dev dependencies
-        run: |
-          mamba env update -f dev-environment.yml -n base
+          python-version: ${{matrix.python-version}}
+          environment-file: dev-environment.yml
+          # Activate napari-imagej-dev environment
+          activate-environment: napari-imagej-dev
+          auto-activate-base: false
+          # Use mamba for faster setup
+          use-mamba: true
+          mamba-version: "*"
       - name: Test PyImageJ
         run: |
           ./test.sh
