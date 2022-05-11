@@ -93,12 +93,23 @@ class TestImageJ(object):
         if not ij_fixture.legacy:
             pytest.skip("No original ImageJ. Skipping test.")
 
-        noise = ij_fixture.IJ.createImage("Tile1", "8-bit random", 10, 10, 1)
-        before = [noise.getPixel(x, y)[0] for x in range(10) for y in range(10)]
-        ij_fixture.py.run_plugin("Gaussian Blur...", args={"sigma": 3}, imp=noise)
-        after = [noise.getPixel(x, y)[0] for x in range(10) for y in range(10)]
-        print(f"before = {before}")
-        print(f"after = {after}")
+        ramp = ij_fixture.IJ.createImage("Tile1", "8-bit ramp", 10, 10, 1)
+        ij_fixture.py.run_plugin("Gaussian Blur...", args={"sigma": 3}, imp=ramp)
+        values = [ramp.getPixel(x, y)[0] for x in range(10) for y in range(10)]
+        # fmt: off
+        assert values == [
+             30,  30,  30,  30,  30,  30,  30,  30,  30,  30,
+             45,  45,  45,  45,  45,  45,  45,  45,  45,  45,
+             62,  62,  62,  62,  62,  62,  62,  62,  62,  62,
+             82,  82,  82,  82,  82,  82,  82,  82,  82,  82,
+            104, 104, 104, 104, 104, 104, 104, 104, 104, 104,
+            126, 126, 126, 126, 126, 126, 126, 126, 126, 126,
+            148, 148, 148, 148, 148, 148, 148, 148, 148, 148,
+            168, 168, 168, 168, 168, 168, 168, 168, 168, 168,
+            185, 185, 185, 185, 185, 185, 185, 185, 185, 185,
+            200, 200, 200, 200, 200, 200, 200, 200, 200, 200
+        ]
+        # fmt: on
 
     def test_plugins_load_using_pairwise_stitching(self, ij_fixture):
         try:
