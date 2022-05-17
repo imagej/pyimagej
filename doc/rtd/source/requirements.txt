@@ -1,5 +1,7 @@
 imglyb
+labeling
 scyjava
 numpy
 xarray
 sphinx_rtd_theme
+../../../
