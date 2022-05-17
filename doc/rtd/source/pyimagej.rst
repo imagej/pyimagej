@@ -43,6 +43,26 @@ GatewayAddons
 .. autoclass:: GatewayAddons
    :members:
 
+EuclideanSpaceAddons
+--------------------
+.. autoclass:: EuclideanSpaceAddons
+    :members:
+
+IntervalAddons
+--------------
+.. autoclass:: IntervalAddons
+    :members:
+
+TypedSpaceAddons
+----------------
+.. autoclass:: TypedSpaceAddons
+    :members:
+
+ImagePlusAddons
+---------------
+.. autoclass:: ImagePlusAddons
+    :members:
+
 ImageJPython
 ------------
 .. autoclass:: ImageJPython
