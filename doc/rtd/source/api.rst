@@ -2,7 +2,7 @@ API Reference
 =============
 
 .. toctree::
-   :maxdepth: 4
+   :maxdepth: 3
 
    pyimagej
    submodules

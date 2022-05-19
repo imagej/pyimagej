@@ -14,9 +14,12 @@ other tools available from the Python software ecosystem, including NumPy, SciPy
 scikit-image, CellProfiler, OpenCV, ITK and many more.
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 3
    :caption: Contents:
 
+   install
+   development
+   troubleshooting
    api
 
 Indices and tables
