@@ -33,11 +33,11 @@ import imagej
 ij = imagej.init(mode='interactive')
 ```
 
-## Examples
+## Example
 
-Below we have two examples on how to run PyImageJ headlessly (1) using `imagej.init(mode='interactive')` and (2) using Xvfb.
+Below we have an example on how to run PyImageJ headlessly using `imagej.init(mode='interactive')` and Xvfb.
 
-### **(2) headless xvfb example**
+### **Headless Xvfb example**
 
 In addition to Xvfb, you will also need to have scikit-image installed in your environment to run the `doc/examples/blob_detection_xvfb.py` example. The `blob_detection_xvfb.py` script is the headless version of the `doc/examples/blob_detection_interactive.py` example (please run `blob_detection_interactive.py` to view the scikit-image blob detection output). 
 
