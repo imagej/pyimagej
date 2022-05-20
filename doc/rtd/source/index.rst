@@ -19,6 +19,7 @@ scikit-image, CellProfiler, OpenCV, ITK and many more.
 
    install
    initialization
+   headless
    development
    troubleshooting
    api
