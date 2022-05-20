@@ -18,6 +18,7 @@ scikit-image, CellProfiler, OpenCV, ITK and many more.
    :caption: Contents:
 
    install
+   initialization
    development
    troubleshooting
    api
