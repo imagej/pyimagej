@@ -54,6 +54,6 @@ For more about PyImageJ initialization, see the
 ## Troubleshooting
 
 See the
-[Known Limitations section of the Troubleshooting guide](Troubleshooting#known-limitations)
+[Known Limitations section of the Troubleshooting guide](Troubleshooting.md#known-limitations)
 for some further details about what does and does not work headless, and
 things to try when having difficulty with ImageJ's behavior in headless mode.
