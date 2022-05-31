@@ -20,6 +20,7 @@ scikit-image, CellProfiler, OpenCV, ITK and many more.
    Install
    Initialization
    Headless
+   Xvfb
    Development
    Troubleshooting
    api
