@@ -43,7 +43,7 @@ templates_path = ['_templates']
 exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store', 'README.md', 'examples/README.md', 'cellprofiler/README.md']
 
 # -- MyST configuration ------------------------------------------------------
-myst_heading_anchors = 3
+myst_heading_anchors = 4
 
 # -- Options for HTML output -------------------------------------------------
 
