@@ -13,7 +13,7 @@
 import os
 import sys
 
-sys.path.insert(0, os.path.abspath('../../../src/imagej/'))
+sys.path.insert(0, os.path.abspath('../src/imagej/'))
 
 
 # -- Project information -----------------------------------------------------
@@ -30,7 +30,8 @@ author = 'Curtis Rueden, Ed Evans, Mark Hiner, Michael Pinkert, Gabe Selzer, Yan
 # ones.
 extensions = [
     'sphinx.ext.autodoc',
-    'sphinx.ext.viewcode'
+    'sphinx.ext.viewcode',
+    'myst_parser'
 ]
 
 # Add any paths that contain templates here, relative to this directory.
