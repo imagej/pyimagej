@@ -1,0 +1,9 @@
+pyimagej
+imglyb
+scyjava
+labeling
+numpy
+xarray
+sphinx_rtd_theme
+myst-parser
+myst-nb
