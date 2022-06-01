@@ -19,7 +19,6 @@ Reference guides exist detailing the following topics:
 
 * [Installation](Install.md) - how to install PyImageJ to your system
 * [Initialization](Initialization.md) - how to start PyImageJ from your Python program
-* [Usage](Usage.md) - how to perform common operations with PyImageJ
 * [Headless](Headless.md), [Xvfb](Xvfb.md) - ways to use PyImageJ when there is no computer screen
 * [Troubleshooting](Troubleshooting.md) - common problems and their potential solutions
 * [Development](Development.md) - how to develop the PyImageJ codebase
