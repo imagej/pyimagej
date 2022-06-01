@@ -1,3 +1,4 @@
+# Troubleshooting
 Are you having trouble getting PyImageJ up and running?
 Try the PyImageJ doctor!
 
@@ -17,12 +18,12 @@ This document is divided into three main sections:
 
 ------------------------------------------------------------------------------
 
-# Known Limitations
+## Known Limitations
 
 For technical reasons, there are some aspects of ImageJ and ImageJ2 that cannot
 fully work from a Python script:
 
-## The original ImageJ API is limited in headless mode
+### The original ImageJ API is limited in headless mode
 
 Normally, the original [ImageJ] does not work headless at all. But thanks
 to the [ImageJ Legacy Bridge], most aspects of the original ImageJ work
@@ -33,7 +34,7 @@ That said, there are a couple of major areas of functionality in the original
 ImageJ that do not work headless, and therefore do not work headless via
 PyImageJ.
 
-### ROI Manager
+#### ROI Manager
 
 ImageJ's [ROI Manager] allows you to work with multiple regions of interest
 (ROIs) simultaneously. The `ij.plugin.frame.RoiManager` class is the API for
@@ -44,7 +45,7 @@ used headless.
 If you need to work with multiple `ij.gui.Roi` objects, one option that works
 headless is to group them using an `ij.gui.Overlay`.
 
-### WindowManager
+#### WindowManager
 
 ImageJ's `ij.WindowManager` class consists of static functions for working with
 Java AWT windows, including ImageJ's `ij.gui.ImageWindow`. Each ImageJ image is
@@ -62,7 +63,7 @@ while **running in `GUI` or `INTERACTIVE` mode (i.e. not `HEADLESS`)**, you
 might need to call `ij.py.sync_image(imp)`, where `imp` is the `ij.ImagePlus`
 you want to register or update.
 
-## Non-blocking INTERACTIVE mode on macOS
+### Non-blocking INTERACTIVE mode on macOS
 
 On macOS, the Cocoa event loop needs to be started from the main thread before
 any Java-AWT-specific functions can work. And doing so blocks the main thread.
@@ -71,14 +72,14 @@ For this reason, PyImageJ includes two graphical modes, `GUI` and
 `INTERACTIVE` returning immediately... but `INTERACTIVE` cannot work on macOS
 and is therefore not available, due to this OS-specific limitation.
 
-## Old versions of ImageJ2
+### Old versions of ImageJ2
 
 PyImageJ uses some functions of ImageJ2 and supporting libraries that are not
 available in older versions of ImageJ2. While it may be possible to initialize
 an ImageJ2 gateway with an older version of ImageJ2, certain functionality may
 not behave as intended, so we advise to use version 2.5.0 or later if possible.
 
-## Starting Python from inside ImageJ
+### Starting Python from inside ImageJ
 
 At the time of this writing, in order to use PyImageJ, you must start Python
 first, and initialize ImageJ2 from there.
@@ -91,9 +92,9 @@ for details.
 
 ------------------------------------------------------------------------------
 
-# Debugging Tips
+## Debugging Tips
 
-## The PyImageJ doctor
+### The PyImageJ doctor
 
 PyImageJ comes equipped with a troubleshooter that you can run to check for
 issues with your Python environment:
@@ -113,7 +114,7 @@ python doctor.py
 
 (If you don't have `curl`, use `wget` or download using a web browser.)
 
-## Enabling debug logging
+### Enabling debug logging
 
 You can enable more verbose output about what is happening internally,
 such as which Java dependencies are being installed by jgo.
@@ -131,9 +132,9 @@ emits output to the standard error stream.
 
 ------------------------------------------------------------------------------
 
-# Common Errors
+## Common Errors
 
-## Error in "mvn.CMD -B -f pom.xml" dependency:resolve: 1
+### Error in "mvn.CMD -B -f pom.xml" dependency:resolve: 1
 
 This indicates a problem running Maven on your system.
 Maven is needed to fetch Java libraries from the Internet.
@@ -162,7 +163,7 @@ include the results of re-running the same `imagej.init` call after:
    `debug_maven=True` so that `mvn` runs with the `-X` flag to provide us
    with the copious amounts of output our bodies crave.
 
-### Could not transfer artifact
+#### Could not transfer artifact
 
 If the debugging output includes notices such as:
 
@@ -219,7 +220,7 @@ to try:
    and place them in your local `Fiji.app/jars` directory, as these are
    required for PyImageJ but not part of the standard Fiji distribution.
 
-### Unable to find valid certification path
+#### Unable to find valid certification path
 
 If the debugging output includes notices such as:
 
@@ -235,7 +236,7 @@ installed from the default conda channel (i.e. `conda install openjdk`). Try
 using an openjdk from the
 [conda-forge channel](https://anaconda.org/conda-forge/openjdk) instead.
 
-## I ran a plugin and see an updated image, but the numpy array and dataset are unchanged
+### I ran a plugin and see an updated image, but the numpy array and dataset are unchanged
 
 This bug can occur in certain circumstances when using original ImageJ plugins
 which update a corresponding `ImagePlus`. It can be worked around by calling:
@@ -245,7 +246,7 @@ imp = ij.WindowManager.getCurrentImage()
 ij.py.sync_image(imp)
 ```
 
-## The same macro gives different results when run multiple times
+### The same macro gives different results when run multiple times
 
 This pernicious problem, covered by
 [issue #148](https://github.com/imagej/pyimagej/issues/148), has been observed
@@ -253,19 +254,19 @@ and documented on [a forum thread](https://forum.image.sc/t/57744). No one has
 had time to fully investigate, determine how widespread the problem is, or fix
 it. Help wanted!
 
-## Original ImageJ classes not found
+### Original ImageJ classes not found
 
 If you try to load an original ImageJ class (with package prefix `ij`),
 and get a `JavaException: Class not found` error, this is because
 the environment was initialized without the original ImageJ included.
 See [Initialization.md](Initialization.md).
 
-## Not enough memory
+### Not enough memory
 
 You can increase the memory available to the JVM before starting it.
 See [Initialization.md](Initialization.md).
 
-## Python hangs when quitting
+### Python hangs when quitting
 
 It's probably because the JVM is not shutting down cleanly. JPype and scyjava
 try their best to shut down the JVM, and PyImageJ does its best to dispose all
@@ -278,7 +279,7 @@ not enough, you can even call `scyjava.jimport('java.lang.System').exit(0)`
 (Java exit) or `sys.exit(0)` (Python exit), either of which will immediately
 terminate both Java and Python.
 
-## log4j:WARN 
+### log4j:WARN
 
 With ImageJ2 v2.3.0 and earlier, there is an obnoxious warning at startup:
 
@@ -290,7 +291,7 @@ log4j:WARN See http://logging.apache.org/log4j/1.2/faq.html#noconfig for more in
 
 This can safely be ignored, and will be fixed in the next release of ImageJ2.
 
-## TypeError: No matching overloads
+### TypeError: No matching overloads
 
 Java has method overloading, whereas Python does not. The JPype library is very
 smart about figuring which Java method you intend to call based on the argument
@@ -323,7 +324,7 @@ If you are stuck, please post a topic on the
 [Image.sc Forum](https://forum.image.sc/).
 
 
-## `pip install jpype1` fails on Windows
+### `pip install jpype1` fails on Windows
 
 There is a known issue installing with `pip` on Windows with Python 3.10.
 Please see
@@ -332,8 +333,6 @@ Please see
 Until this issue is resolved, we suggest those on Windows either:
 * Install with `conda` rather than `pip` (*preferred*).
 * Downgrade to Python 3.9.
-
-------------------------------------------------------------------------------
 
 [ImageJ]: https://imagej.net/software/imagej
 [ImageJ Legacy Bridge]: https://imagej.net/libs/imagej-legacy

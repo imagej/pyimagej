@@ -66,7 +66,7 @@ include the imagej-legacy endpoint unless the `add_legacy=False` flag is given.
 | With a specific plugin (specific version)                | `ij = imagej.init(['net.imagej:imagej:2.5.0', 'net.preibisch:BigStitcher:0.4.1'])` | YES           |
 | From a local installation                                | `ij = imagej.init('/Applications/Fiji.app')`                                       | DEPENDS       |
 
-#### Newest available version
+### Newest available version
 
 If you want to launch the newest available release version of ImageJ2:
 
@@ -78,7 +78,7 @@ ij = imagej.init()
 This invocation will automatically download and cache the newest release of
 [net.imagej:imagej](https://maven.scijava.org/#nexus-search;gav~net.imagej~imagej~~~).
 
-#### Explicitly specified version
+### Explicitly specified version
 
 You can specify a particular version, to facilitate reproducibility:
 
@@ -88,11 +88,11 @@ ij = imagej.init('2.5.0')
 ij.getVersion()
 ```
 
-#### With graphical capabilities
+### With graphical capabilities
 
 There are two ways to show the graphical user interface.
 
-##### GUI mode
+#### GUI mode
 
 ```python
 import imagej
@@ -106,7 +106,7 @@ _**Note:** For this mode to work on macOS, you will need to install
 [PyObjC](https://pyobjc.readthedocs.io/), specifically the `pyobjc-core` and
 `pyobjc-framework-cocoa` packages from conda-forge, or `pyobjc` from PyPI._
 
-##### Interactive mode
+#### Interactive mode
 
 ```python
 import imagej
@@ -121,7 +121,7 @@ performed via GUI interactions.
 _**Note:** This mode does not work on macOS,
 due to a limitation in the macOS threading model._
 
-#### Support for the original ImageJ
+### Support for the original ImageJ
 
 By default, the ImageJ2 gateway includes the
 [legacy layer](https://imagej.net/libs/imagej-legacy) for backwards
@@ -139,7 +139,7 @@ ij = imagej.init(add_legacy=False)
 _**Note:** With legacy support enabled in a graphical mode,
 the JVM and Python will both terminate when ImageJ closes!_
 
-#### Including Fiji plugins
+### Including Fiji plugins
 
 By default, the ImageJ2 gateway will include base ImageJ2+ImageJ functionality
 only, without additional plugins such as those that ship with the
@@ -159,7 +159,7 @@ import imagej
 ij = imagej.init('sc.fiji:fiji:2.5.0')
 ```
 
-#### From a local installation
+### From a local installation
 
 If you have a local installation of ImageJ2, such as [Fiji](https://fiji.sc/),
 you can wrap an ImageJ2 gateway around it:
@@ -171,7 +171,7 @@ ij = imagej.init('/Applications/Fiji.app')
 
 Replace `/Applications/Fiji.app` with the path to your installation.
 
-#### With more memory available to Java
+### With more memory available to Java
 
 Java's virtual machine (the JVM) has a "max heap" value limiting how much
 memory it can use. You can increase the value as follows:
@@ -189,7 +189,7 @@ rule of thumb is to give Java no more than 80% of your physical RAM.
 You can also pass
 [other JVM arguments](https://docs.oracle.com/javase/8/docs/technotes/tools/unix/java.html).
 
-#### With a specific plugin
+### With a specific plugin
 
 For plugins available via Maven, you can specify them in the `init` call. E.g.:
 
@@ -205,7 +205,7 @@ import imagej
 ij =imagej.init(['net.imagej:imagej:2.5.0', 'net.preibisch:BigStitcher:0.4.1'])
 ```
 
-#### Plugins without Maven endpoints
+### Plugins without Maven endpoints
 
 For plugins that are published to a Maven repository, it is preferred to
 simply add them to the endpoint, rather than using the below approaches.

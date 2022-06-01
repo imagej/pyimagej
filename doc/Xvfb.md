@@ -33,13 +33,9 @@ import imagej
 ij = imagej.init(mode='interactive')
 ```
 
-## Example
+## **Headless Xvfb example**
 
-Below we have an example on how to run PyImageJ headlessly using `imagej.init(mode='interactive')` and Xvfb.
-
-### **Headless Xvfb example**
-
-In addition to Xvfb, you will also need to have scikit-image installed in your environment to run the `doc/examples/blob_detection_xvfb.py` example. The `blob_detection_xvfb.py` script is the headless version of the `doc/examples/blob_detection_interactive.py` example (please run `blob_detection_interactive.py` to view the scikit-image blob detection output). 
+Here we have an example on how to run PyImageJ headlessly using `imagej.init(mode='interactive')` and Xvfb. In addition to Xvfb, you will also need to have scikit-image installed in your environment to run the `doc/examples/blob_detection_xvfb.py` example. The `blob_detection_xvfb.py` script is the headless version of the `doc/examples/blob_detection_interactive.py` example (please run `blob_detection_interactive.py` to view the scikit-image blob detection output).
 
 The headless example opens the `test_image.tif` sample image, detects the blobs via scikit-image's Laplacian of Gaussian algorithm, adds the blob detections to the ImageJ `RoiManager`, measures the ROIs and returns a panda's dataframe of the measurement results. To run the example, run the following command to create the virtual frame buffer and run PyImageJ:
 
