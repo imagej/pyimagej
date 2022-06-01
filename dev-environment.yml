@@ -1,6 +1,9 @@
 # Use this file to construct an environment
 # for developing PyImageJ from source.
 #
+#   conda config --add channels conda-forge
+#   conda config --set channel_priority strict
+#   conda install -n base mamba
 #   mamba env create -f dev-environment.yml
 #   conda activate pyimagej-dev
 #
