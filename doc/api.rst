@@ -32,58 +32,64 @@ Here is an example of opening an image using ImageJ2 and displaying it:
     # Display the image (backed by matplotlib).
     ij.py.show(image, cmap='gray')
 
+Initialization
+--------------
+.. currentmodule:: imagej
 .. autofunction:: imagej.init
 
-Classes
---------
-
-Core
-^^^^
-
-GatewayAddons
-~~~~~~~~~~~~~
-.. currentmodule:: imagej
-.. autoclass:: GatewayAddons
-   :members:
-
-EuclideanSpaceAddons
-~~~~~~~~~~~~~~~~~~~~
-.. autoclass:: EuclideanSpaceAddons
-    :members:
-
-IntervalAddons
-~~~~~~~~~~~~~~
-.. autoclass:: IntervalAddons
-    :members:
-
-TypedSpaceAddons
-~~~~~~~~~~~~~~~~
-.. autoclass:: TypedSpaceAddons
-    :members:
-
-ImagePlusAddons
-~~~~~~~~~~~~~~~
-.. autoclass:: ImagePlusAddons
-    :members:
-
-ImageJPython
-~~~~~~~~~~~~
-.. autoclass:: ImageJPython
-    :members:
-
-Mode
-~~~~
 .. autoclass:: Mode
     :members:
     :undoc-members:
 
-RAIOperators
-~~~~~~~~~~~~
+Convenience methods
+-------------------
+.. currentmodule:: imagej
+.. autoclass:: ImageJPython
+    :members:
+
+RandomAccessibleInterval (RAI) operators
+----------------------------------------
+.. currentmodule:: imagej
 .. autoclass:: RAIOperators
     :members:
 
-Submodules
-^^^^^^^^^^
+ImageJ2 gateway addons
+----------------------
+.. currentmodule:: imagej
+.. autoclass:: GatewayAddons
+   :members:
+
+ImagePlus addons
+----------------
+.. autoclass:: ImagePlusAddons
+    :members:
+
+Interval addons
+---------------
+.. currentmodule:: imagej
+.. autoclass:: IntervalAddons
+    :members:
+
+Euclidean space addons
+----------------------
+.. currentmodule:: imagej
+.. autoclass:: EuclideanSpaceAddons
+    :members:
+
+Typed space addons
+------------------
+.. currentmodule::  imagej
+.. autoclass:: TypedSpaceAddons
+    :members:
+
+Annotated space addons
+----------------------
+.. currentmodule:: imagej
+.. autoclass:: AnnotatedSpaceAddons
+    :members:
+
+PyImageJ submodules
+-------------------
 
 imagej.dims
 ~~~~~~~~~~~
