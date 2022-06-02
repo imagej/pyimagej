@@ -31,7 +31,7 @@ author = 'Curtis Rueden, Ed Evans, Mark Hiner, Michael Pinkert, Gabe Selzer, Yan
 extensions = [
     'sphinx.ext.autodoc',
     'sphinx.ext.viewcode',
-    'myst_parser'
+    'myst_nb',
 ]
 
 # Add any paths that contain templates here, relative to this directory.

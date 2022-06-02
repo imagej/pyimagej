@@ -19,6 +19,7 @@ scikit-image, CellProfiler, OpenCV, ITK and many more.
 
    Install
    Initialization
+   notebooks
    Headless
    Xvfb
    Development
