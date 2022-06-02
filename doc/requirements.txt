@@ -1,9 +1,5 @@
 pyimagej
-imglyb
-scyjava
-labeling
-numpy
-xarray
+scikit-image
 sphinx_rtd_theme
-myst-parser
 myst-nb
+ipywidgets
