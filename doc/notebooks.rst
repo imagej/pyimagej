@@ -1,5 +1,5 @@
-Notebooks
-=========
+Tutorial notebooks
+==================
 
 .. toctree::
     :maxdepth: 3
