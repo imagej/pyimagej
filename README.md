@@ -13,7 +13,7 @@ SciPy, scikit-image, [CellProfiler], [OpenCV], [ITK] and many more.
 
 ## Quick Start
 
-Jump into the [documentation and tutorials](doc/README.md) to get started!
+Jump into the [documentation and tutorials](https://pyimagej.readthedocs.io/) to get started!
 
 ## System Requirements
 
