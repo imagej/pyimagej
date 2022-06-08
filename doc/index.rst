@@ -21,7 +21,6 @@ scikit-image, CellProfiler, OpenCV, ITK and many more.
    Initialization
    notebooks
    Headless
-   Xvfb
    Development
    Troubleshooting
    api
