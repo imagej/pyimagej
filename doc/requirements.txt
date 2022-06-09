@@ -1,0 +1,5 @@
+pyimagej
+scikit-image
+sphinx_rtd_theme
+myst-nb
+ipywidgets

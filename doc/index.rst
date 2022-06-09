@@ -17,11 +17,12 @@ scikit-image, CellProfiler, OpenCV, ITK and many more.
    :maxdepth: 3
    :caption: Contents:
 
-   install
-   initialization
-   headless
-   development
-   troubleshooting
+   Install
+   Initialization
+   notebooks
+   Headless
+   Development
+   Troubleshooting
    api
 
 Indices and tables

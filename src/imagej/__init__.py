@@ -162,12 +162,15 @@ class ImageJPython:
         :param ij1_style: True to use implicit booleans in original ImageJ style, or False for explicit booleans in ImageJ2 style
         :return: A string version of the arguments
         """
-        formatted_args = []
-        for key, value in args.items():
-            arg = self._format_argument(key, value, ij1_style)
-            if arg is not None:
-                formatted_args.append(arg)
-        return " ".join(formatted_args)
+        if isinstance(args, str):
+            return args
+        else:
+            formatted_args = []
+            for key, value in args.items():
+                arg = self._format_argument(key, value, ij1_style)
+                if arg is not None:
+                    formatted_args.append(arg)
+            return " ".join(formatted_args)
 
     def dims(self, image):
         """

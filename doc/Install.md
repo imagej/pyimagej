@@ -94,9 +94,7 @@ python -c 'import imagej; ij = imagej.init("2.5.0"); print(ij.getVersion()); ij.
 ```
 Should print `2.5.0` on the console.
 
-## Dynamic installation from inside a notebook
-
-### Dynamic installation within Jupyter
+## Dynamic installation within Jupyter
 
 It is possible to dynamically install PyImageJ from within a Jupyter notebook.
 
@@ -115,7 +113,7 @@ PyImageJ-enabled notebook is run. See [this itkwidgets example
 notebook](https://github.com/InsightSoftwareConsortium/itkwidgets/blob/v0.24.2/examples/ImageJImgLib2.ipynb)
 for an example.
 
-### Dynamic installation within Google Colab
+## Dynamic installation within Google Colab
 
 It is possible to dynamically install PyImageJ on
 [Google Colab](https://colab.research.google.com/).

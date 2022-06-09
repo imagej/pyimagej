@@ -1,7 +1,0 @@
-imglyb
-labeling
-scyjava
-numpy
-xarray
-pyimagej
-sphinx_rtd_theme

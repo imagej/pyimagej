@@ -13,7 +13,7 @@
 import os
 import sys
 
-sys.path.insert(0, os.path.abspath('../../../src/imagej/'))
+sys.path.insert(0, os.path.abspath('../src/imagej/'))
 
 
 # -- Project information -----------------------------------------------------
@@ -30,7 +30,8 @@ author = 'Curtis Rueden, Ed Evans, Mark Hiner, Michael Pinkert, Gabe Selzer, Yan
 # ones.
 extensions = [
     'sphinx.ext.autodoc',
-    'sphinx.ext.viewcode'
+    'sphinx.ext.viewcode',
+    'myst_nb',
 ]
 
 # Add any paths that contain templates here, relative to this directory.
@@ -39,8 +40,10 @@ templates_path = ['_templates']
 # List of patterns, relative to source directory, that match files and
 # directories to ignore when looking for source files.
 # This pattern also affects html_static_path and html_extra_path.
-exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store']
+exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store', 'README.md', 'examples/README.md', 'cellprofiler/README.md']
 
+# -- MyST configuration ------------------------------------------------------
+myst_heading_anchors = 4
 
 # -- Options for HTML output -------------------------------------------------
 
