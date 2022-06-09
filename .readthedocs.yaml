@@ -7,7 +7,7 @@ version: 2
 
 # Build documentation in the docs/ directory with Sphinx
 sphinx:
-   configuration: doc/rtd/source/conf.py
+   configuration: doc/conf.py
 
 # If using Sphinx, optionally build your docs in additional formats such as PDF
 # formats:
@@ -17,4 +17,4 @@ sphinx:
 python:
    version: 3.8
    install:
-   - requirements: doc/rtd/source/requirements.txt
+   - requirements: doc/requirements.txt
