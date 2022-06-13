@@ -20,6 +20,7 @@ scikit-image, CellProfiler, OpenCV, ITK and many more.
    Install
    Initialization
    notebooks
+   use_cases
    Headless
    Development
    Troubleshooting
