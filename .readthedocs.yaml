@@ -19,4 +19,4 @@ sphinx:
 
 # Optionally declare the Python requirements required to build your docs
 python:
-   version: 3.10
+   version: 3.8
