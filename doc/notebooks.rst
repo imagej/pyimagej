@@ -13,5 +13,4 @@ Tutorial notebooks
     7 Running Macros, Scripts and Plugins <7-Running-Macros-Scripts-and-Plugins>
     8 Discover and run ImageJ commands <8-Discover-and-run-ImageJ-commands>
     9 Working with Large Images <9-Working-with-Large-Images>
-    Segmentation <Segmentation>
     10 Troubleshooting <10-Troubleshooting>
