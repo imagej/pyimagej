@@ -7,7 +7,7 @@ version: 2
 
 # Configure conda support
 conda:
-   environment: environment.yml
+   environment: dev-environment.yml
 
 # Build documentation in the docs/ directory with Sphinx
 sphinx:
