@@ -1,11 +1,12 @@
+# Use mambaforge with this file:
+#
+#   https://github.com/conda-forge/miniforge#mambaforge
+#
 # Use this file to construct an environment for working
 # with the PyImageJ tutorial notebooks in the doc folder:
 #
-#   conda config --add channels conda-forge
-#   conda config --set channel_priority strict
-#   conda install -n base mamba
 #   mamba env create
-#   conda activate pyimagej
+#   mamba activate pyimagej
 #
 # It includes the dependencies needed for using PyImageJ, and for
 # executing the Jupyter notebooks in the documentation, but not tools

@@ -1,11 +1,12 @@
+# Use mambaforge with this file:
+#
+#   https://github.com/conda-forge/miniforge#mambaforge
+#
 # Use this file to construct an environment
 # for developing PyImageJ from source.
 #
-#   conda config --add channels conda-forge
-#   conda config --set channel_priority strict
-#   conda install -n base mamba
 #   mamba env create -f dev-environment.yml
-#   conda activate pyimagej-dev
+#   mamba activate pyimagej-dev
 #
 # In addition to the dependencies needed for using PyImageJ, and for
 # executing the Jupyter notebooks in the documentation, it includes tools
