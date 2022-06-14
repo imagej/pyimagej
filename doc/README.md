@@ -36,5 +36,8 @@ Here are links to some examples and use cases:
 * [PoreSpy](https://github.com/PMEAL/porespy), a collection of image analysis
   tools used to extract information from 3D images of porous materials,
   uses some ImageJ filters via PyImageJ.
+* [Examples](https://github.com/uw-loci/automatic-histology-registration-pyimagej) 
+  of using image stitching plugin and SIFT-based image registration algorithm via PyImageJ
+  with deep learning for multimodal image registration.
 
 To add your usage of PyImageJ to this list, please submit a pull request!
