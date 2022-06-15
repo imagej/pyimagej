@@ -31,6 +31,7 @@ author = 'Curtis Rueden, Ed Evans, Mark Hiner, Michael Pinkert, Gabe Selzer, Yan
 extensions = [
     'sphinx.ext.autodoc',
     'sphinx.ext.viewcode',
+    'sphinx_search.extension',
     'myst_nb',
 ]
 
@@ -42,8 +43,9 @@ templates_path = ['_templates']
 # This pattern also affects html_static_path and html_extra_path.
 exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store', 'README.md', 'examples/README.md', 'cellprofiler/README.md']
 
-# -- MyST configuration ------------------------------------------------------
+# -- MyST-Parser/MyST-NB configuration ------------------------------------------------------
 myst_heading_anchors = 4
+nb_execution_mode = 'off'
 
 # -- Options for HTML output -------------------------------------------------
 
