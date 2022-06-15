@@ -1,5 +1,4 @@
-pyimagej
-scikit-image
+-e .
 sphinx_rtd_theme
 myst-nb
-ipywidgets
+readthedocs-sphinx-search
