@@ -5,6 +5,7 @@ Tutorial notebooks
     :maxdepth: 3
 
     1 Starting PyImageJ <1-Starting-PyImageJ>
+    Working with Java classes <Working-with-Java-classes-and-Python>
     2 Opening and Displaying Images <2-Opening-and-Displaying-Images>
     3 Sending Data to Java <3-Sending-Data-to-Java>
     4 Retrieving Data from Java <4-Retrieving-Data-from-Java>
