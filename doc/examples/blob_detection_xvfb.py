@@ -43,6 +43,7 @@ def process(image, detections: np.ndarray, add_to_roi_manager=True, multimeasure
         roi = OvalRoi(x - r, y - r, d, d)
         imp.setRoi(roi)
         ov.add(roi)
+
         if add_to_roi_manager:
             rm.addRoi(roi)
     
