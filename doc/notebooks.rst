@@ -1,8 +1,11 @@
 Tutorial notebooks
 ==================
 
+To learn PyImageJ, follow this numbered sequence of tutorial notebooks. If you want to run
+these Jupyter notebooks you can get them from the PyImageJ repository `here`_.
+
 .. toctree::
-    :maxdepth: 3
+    :maxdepth: 2
 
     1 Starting PyImageJ <1-Starting-PyImageJ>
     Working with Java classes <Working-with-Java-classes-and-Python>
@@ -15,3 +18,5 @@ Tutorial notebooks
     8 Discover and run ImageJ commands <8-Discover-and-run-ImageJ-commands>
     9 Working with Large Images <9-Working-with-Large-Images>
     10 Troubleshooting <10-Troubleshooting>
+
+.. _here: https://github.com/imagej/pyimagej/tree/master/doc
