@@ -19,7 +19,7 @@ conda activate pyimagej-dev
 ./test.sh
 ```
 
-## Building API documentation
+## Building the reference documentation
 
 ```
 cd doc/
