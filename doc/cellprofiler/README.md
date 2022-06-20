@@ -1,3 +1,5 @@
+# CellProfiler and PyImageJ - _RunImageJScript_
+
 One initial goal in the development of PyImageJ was to improve integration of
 ImageJ with [CellProfiler](https://cellprofiler.org/), a Python-based
 open-source tool for creating modular image analysis pipelines.
@@ -50,28 +52,26 @@ workflows on the BBBC030 data set. CellProfiler 4.1 introduced the
 RunImageJMacro module which relies upon writing images to disk in order to
 exchange data with ImageJ.
 
-A) Runtime of a pipeline using either an internal CellProfiler module (Smooth)
+**A**. Runtime of a pipeline using either an internal CellProfiler module (Smooth)
 vs rolling ball background subtraction in ImageJ via RunImageJMacro or
 RunImageJScript. Comparing execution time indicates that RunImageJScript is
 more than 3x faster than RunImageJMacro and has comparable performance to
 pipelines that do not use an ImageJ plugin.
 
-B) Accuracy of three segmentation approaches on BBBC030 in CellProfiler. At all
+**B**. Accuracy of three segmentation approaches on BBBC030 in CellProfiler. At all
 Intersection-over-Union (IoU) thresholds, using RunImageJScript to call
 ImageJ’s Trainable Weka Segmentation equals or outperforms CellProfiler-only
 approaches. Solid lines are performance on all cells; dashed lines are
 performance on non-edge-touching cells, which CellProfiler did not try to
 segment.
 
-C) Across all cells, RunImageJScript misses the fewest cells at IoU 0.7, as
+**C**. Across all cells, RunImageJScript misses the fewest cells at IoU 0.7, as
 well as better balancing errors in splitting and merging.
 
-D) Outlines of segmented classified cells. Cells outlined in teal are
+**D**. Outlines of segmented classified cells. Cells outlined in teal are
 classified as touching at least one other cell, while cells outlined in orange
 are classified as isolated. High performance at this task requires minimizing
 incorrect merges and splits.
-
-------------------------------------------------------------------------------
 
 [1]: https://doi.org/10.4308/hjb.20.4.151
 [2]: https://doi.org/10.1002/cpz1.89
