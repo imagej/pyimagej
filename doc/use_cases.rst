@@ -12,8 +12,9 @@ These examples are available in the `PyImageJ repository`_.
     CellProfiler <cellprofiler/README>
     Puncta Segmentation <Puncta-Segmentation>
 
-More use cases
---------------
+------------------------------------------------------------------------
+
+.. rubric:: More use cases
 
 Here are additional links to some other examples using PyImageJ
 in other projects.
