@@ -59,6 +59,7 @@ from jpype import (
     JOverride,
     setupGuiEnvironment,
 )
+from scyjava.config import find_jars
 
 from .config import __author__, __version__
 
@@ -1739,24 +1740,6 @@ def _dump_exception(exc):
             _logger.debug(jtrace)
 
 
-def _search_for_jars(target_dir, subfolder=""):
-    """
-    Search and recursively add .jar files to a list.
-
-    :param target_dir: Base path to search.
-    :param subfolder: Optional sub-directory to start the search.
-    :return: A list of jar files.
-    """
-    jars = []
-    for root, dirs, files in os.walk(target_dir + subfolder):
-        for f in files:
-            if f.endswith(".jar"):
-                path = root + "/" + f
-                jars.append(path)
-                _logger.debug("Added %s", path)
-    return jars
-
-
 def _set_ij_env(ij_dir):
     """
     Create a list of required jars and add to the java classpath.
@@ -1766,9 +1749,9 @@ def _set_ij_env(ij_dir):
     """
     jars = []
     # search jars directory
-    jars.extend(_search_for_jars(ij_dir, "/jars"))
+    jars.extend(find_jars(ij_dir + "/jars"))
     # search plugins directory
-    jars.extend(_search_for_jars(ij_dir, "/plugins"))
+    jars.extend(find_jars(ij_dir + "/plugins"))
     # add to classpath
     sj.config.add_classpath(os.pathsep.join(jars))
     return len(jars)
