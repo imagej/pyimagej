@@ -6,6 +6,7 @@
 /bin/
 /build/
 /dist/
+/src/*/_version.py
 /src/pyimagej.egg-info/
 MANIFEST
 .vscode/settings.json
