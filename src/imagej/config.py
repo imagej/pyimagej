@@ -1,4 +1,4 @@
-__author__ = "Curtis Rueden, Ed Evans, Mark Hiner, Michael Pinkert, Gabe Selzer, Yang Liu, and others"
+__author__ = "ImageJ2 developers"
 
 __major__ = 1
 __minor__ = 2
