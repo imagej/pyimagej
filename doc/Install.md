@@ -1,57 +1,39 @@
 # Installation
 
 There are two supported ways to install PyImageJ: via
-[conda](https://conda.io/) or via
+[conda](https://conda.io/)/[mamba](https://mamba.readthedocs.io/) or via
 [pip](https://packaging.python.org/guides/tool-recommendations/).
 Although both tools are great
 [for different reasons](https://www.anaconda.com/blog/understanding-conda-and-pip),
-if you have no strong preference then we suggest using conda because it will
+if you have no strong preference then we suggest using mamba because it will
 manage PyImageJ's non-Python dependencies
 [OpenJDK](https://en.wikipedia.org/wiki/OpenJDK) (a.k.a. Java) and
 [Maven](https://maven.apache.org/). If you use pip, you will need to install
 those two things separately.
 
-## Installing via conda
+## Installing via conda/mamba
 
-1. Install [Conda](https://conda.io/):
-    * On Windows, install Conda using [Chocolatey](https://chocolatey.org): `choco install miniconda3`
-    * On macOS, install Conda using [Homebrew](https://brew.sh): `brew cask install miniconda`
-    * On Linux, install Conda using its [RPM or Debian package](https://www.anaconda.com/rpm-and-debian-repositories-for-miniconda/), or [with the Miniconda install script](https://docs.conda.io/projects/conda/en/latest/user-guide/install/linux.html).
+Note: We strongly recommend using
+[Mamba](https://mamba.readthedocs.io/en/latest/user_guide/mamba.html) rather
+than plain Conda, because Conda is unfortunately terribly slow at configuring
+environments.
 
-2. Configure your shell for use with conda:
-   ```
-   conda init bash
-   ```
-   Where `bash` is the shell you use.
-   Then start a new shell instance.
+1. [Install Mambaforge](https://github.com/conda-forge/miniforge#mambaforge).
 
-3. [Activate the conda-forge channel](https://conda-forge.org/docs/user/introduction.html#how-can-i-install-packages-from-conda-forge):
-   ```
-   conda config --add channels conda-forge
-   conda config --set channel_priority strict
-   ```
-
-4. Install [Mamba](https://mamba.readthedocs.io/):
-   ```
-   conda install mamba -n base
-   ```
-   This step is optional, but highly recommended because Mamba is
-   incredibly much faster than Conda at manipulating environments.
-
-5. Install PyImageJ into a new conda environment:
+2. Install PyImageJ into a new environment:
    ```
    mamba create -n pyimagej pyimagej openjdk=8
    ```
 
    This command will install PyImageJ with OpenJDK 8. If you would rather use
    OpenJDK 11, you can write `openjdk=11` instead, or even just leave off the
-   `openjdk` part altogether to get the latest version of OpenJDK. PyImageJ has
-   been tested most thoroughly with Java 8, but it is also known to work with
-   Java 11, and likely later Java versions as well.
+   `openjdk` part altogether to get the latest version of OpenJDK. PyImageJ
+   has been tested most thoroughly with OpenJDK 8, but it is also known to
+   work with OpenJDK 11, and likely later OpenJDK versions as well.
 
-6. Whenever you want to use PyImageJ, activate its environment:
+3. Whenever you want to use PyImageJ, activate its environment:
    ```
-   conda activate pyimagej
+   mamba activate pyimagej
    ```
 
 ## Installing via pip
@@ -59,13 +41,13 @@ those two things separately.
 If installing via pip, we recommend using a
 [virtualenv](https://virtualenv.pypa.io/) to avoid cluttering up or mangling
 your system-wide or user-wide Python environment. Alternately, you can use
-conda just for its virtual environment feature (`conda create -n pyimagej
-python=3.8; conda activate pyimagej`) and then simply `pip install` everything
+mamba just for its virtual environment feature (`mamba create -n pyimagej
+python=3.8; mamba activate pyimagej`) and then simply `pip install` everything
 into that active environment.
 
 There are several ways to install things via pip, but we will not enumerate
 them all here; these instructions will assume you know what you are doing if
-you chose this route over conda above.
+you chose this route over conda/mamba above.
 
 1. Install [Python 3](https://python.org/). As of this writing, PyImageJ has
    been tested with Python 3.6, 3.7, 3.8, 3.9, and 3.10.
@@ -101,7 +83,7 @@ It is possible to dynamically install PyImageJ from within a Jupyter notebook.
 For your first cell, write:
 ```
 import sys, os
-!conda install --yes --prefix {sys.prefix} -c conda-forge pyimagej openjdk=8
+!mamba install --yes --prefix {sys.prefix} pyimagej openjdk=8
 os.environ['JAVA_HOME'] = os.sep.join(sys.executable.split(os.sep)[:-2] + ['jre'])
 ```
 
