@@ -26,7 +26,9 @@ cd doc/
 make html
 ```
 
-Results are generated to `doc/_build/html`. Production documentation is available online at [https://pyimagej.readthedocs.io/](https://pyimagej.readthedocs.io/).
+Results are generated to `doc/_build/html`.
+Production documentation is available online at
+[https://pyimagej.readthedocs.io/](https://pyimagej.readthedocs.io/).
 
 ## Formatting the code
 
