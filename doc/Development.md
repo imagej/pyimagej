@@ -7,10 +7,12 @@ Python, you do not need to follow any of these instructions.
 
 ## Configuring a conda environment for development
 
+Install [Mambaforge](https://github.com/conda-forge/miniforge#mambaforge).
+Then:
+
 ```
-conda install mamba -n base
 mamba env create -f dev-environment.yml
-conda activate pyimagej-dev
+mamba activate pyimagej-dev
 ```
 
 ## Running the automated tests
