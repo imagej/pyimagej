@@ -42,17 +42,15 @@ def detections_to_imagej(dataset, detections: np.ndarray, add_to_roi_manager=Fal
     Optionally add the ROIs to the RoiManager.
     """
     # get ImageJ resources
-    ImagePlus = sj.jimport('ij.ImagePlus')
     OvalRoi = sj.jimport('ij.gui.OvalRoi')
     Overlay = sj.jimport('ij.gui.Overlay')
     ov = Overlay()
 
     # convert Dataset to ImagePlus
-    imp = ij.convert().convert(dataset, ImagePlus)
+    imp = ij.py.to_imageplus(dataset)
 
     if add_to_roi_manager:
-        RoiManager = sj.jimport('ij.plugin.frame.RoiManager')()
-        rm = RoiManager.getRoiManager()
+        rm = ij.RoiManager.getRoiManager()
 
     for i in range(len(detections)):
         values = detections[i].tolist()
@@ -103,20 +101,6 @@ def detections_to_napari(image_array: xr.DataArray, detections: np.ndarray):
     napari.run()
 
 
-def detections_to_bdv(image, detections:np.ndarray):
-    """
-    Display image and ROIs in BigDataViewer.
-    """
-    # get useful classes
-    BdvFunctions = sj.jimport('bdv.util.BdvFunctions')
-    BdvOptions = sj.jimport('bdv.util.BdvOptions')
-
-    # show image
-    BdvFunctions.show(image, 'test', BdvOptions.options().is2D())
-
-    # TODO: Add detections to bdv ROI
-
-
 if __name__ == "__main__":
     # initialize imagej
     ij = imagej.init(mode='interactive')
@@ -130,4 +114,3 @@ if __name__ == "__main__":
     detections_to_imagej(img, detected_blobs, True)
     detections_to_napari(img_xr, detected_blobs)
     detections_to_pyplot(img_xr, detected_blobs)
-    #detections_to_bdv(img, detected_blobs)
