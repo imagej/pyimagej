@@ -783,6 +783,25 @@ class ImageJPython:
         realType = sj.jimport(realType_str)
         return realType(jtype_raw)
 
+    def _from_realType(self, realType):
+        # First, convert the realType to a Java primitive
+        jtype_raw = realType.get()
+        # Then, convert to the python primitive
+        converted = self.from_java(jtype_raw)
+        value = realType.getClass().getName()
+        for k, v in self.ctype_map.items():
+            if v == value:
+                return k(converted)
+        raise ValueError(f"Cannot convert RealType {value}")
+
+
+    def _is_supported_realType(self, obj):
+        if not isinstance(obj, sj.jimport("net.imglib2.type.numeric.RealType")):
+            return False
+        type_str = obj.getClass().getName()
+        return type_str in self.ctype_map.values()
+
+
     # -- Helper functions - type conversion --
 
     def _add_converters(self):
@@ -839,6 +858,11 @@ class ImageJPython:
                 predicate=self._can_convert_rai,
                 converter=self._convert_rai,
                 priority=sj.Priority.HIGH - 2,
+            ),
+            sj.Converter(
+                predicate=self._is_supported_realType,
+                converter=self._from_realType,
+                priority=sj.Priority.HIGH + 1,
             ),
         ]
 
