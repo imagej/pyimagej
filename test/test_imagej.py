@@ -1,14 +1,15 @@
 import argparse
+import ctypes
 import random
 import sys
 
-import pytest
-import imagej.dims as dims
-import scyjava as sj
 import numpy as np
+import pytest
+import scyjava as sj
 import xarray as xr
+from jpype import JArray, JException, JInt, JLong, JObject
 
-from jpype import JObject, JException, JArray, JInt, JLong
+import imagej.dims as dims
 
 
 class TestImageJ(object):
@@ -610,3 +611,27 @@ class TestRAIArraylike(object):
             for j in range(3):
                 for k in range(2):
                     assert transpose[i, j, k] == img[k, j, i]
+
+
+parameters = [
+    (ctypes.c_bool, "net.imglib2.type.logic.BoolType", True),
+    (ctypes.c_byte, "net.imglib2.type.numeric.integer.ByteType", 4),
+    (ctypes.c_ubyte, "net.imglib2.type.numeric.integer.UnsignedByteType", 4),
+    (ctypes.c_short, "net.imglib2.type.numeric.integer.ShortType", 4),
+    (ctypes.c_ushort, "net.imglib2.type.numeric.integer.UnsignedShortType", 4),
+    (ctypes.c_int, "net.imglib2.type.numeric.integer.IntType", 4),
+    (ctypes.c_uint, "net.imglib2.type.numeric.integer.UnsignedIntType", 4),
+    (ctypes.c_long, "net.imglib2.type.numeric.integer.LongType", 4),
+    (ctypes.c_ulong, "net.imglib2.type.numeric.integer.UnsignedLongType", 4),
+    (ctypes.c_float, "net.imglib2.type.numeric.real.FloatType", 4.5),
+    (ctypes.c_double, "net.imglib2.type.numeric.real.DoubleType", 4.5),
+]
+
+
+@pytest.mark.parametrize(argnames="ctype,jtype_str,value", argvalues=parameters)
+def test_ndarray_converts_to_img(ij_fixture, ctype, jtype_str, value):
+    py_type = ctype(value)
+    converted = ij_fixture.py.to_java(py_type)
+    jtype = sj.jimport(jtype_str)
+    assert isinstance(converted, jtype)
+    assert converted.get() == value
