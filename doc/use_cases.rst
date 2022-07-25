@@ -10,6 +10,7 @@ These examples are available in the `PyImageJ repository`_.
     Blob detection (interactive) <examples/blob_interactive.rst>
     Blob detection (headless) <examples/blob_xvfb.rst>
     CellProfiler <cellprofiler/README>
+    Classic Segmentation <Classic-Segmentation>
     Puncta Segmentation <Puncta-Segmentation>
 
 ------------------------------------------------------------------------
