@@ -364,19 +364,39 @@ class ImageJPython:
         if not self._is_arraylike(numpy_array):
             raise TypeError("numpy_array is not arraylike")
 
-        # check imagej-common version for fast copy availability.
-        ijc_slow_copy_version = "0.30.0"
-        ijc_active_version = sj.get_version(_Dataset())
-        fast_copy_available = sj.compare_version(
-            ijc_slow_copy_version, ijc_active_version
-        )
+        # Check imglib2 version for fast copy availability.
+        imglib2_version = sj.get_version(_RandomAccessibleInterval())
+        # TODO: After scyjava 1.6.0 is released, use:
+        # sj.is_version_at_least(imglib2_version, "5.9.0")
+        min_imglib2_version = "5.9.0"
+        if (
+            sj.compare_version(min_imglib2_version, imglib2_version)
+            or imglib2_version == min_imglib2_version
+        ):
+            # ImgLib2 is new enough to use net.imglib2.util.ImgUtil.copy.
+            ImgUtil = sj.jimport("net.imglib2.util.ImgUtil")
+            ImgUtil.copy(rai, self.to_java(numpy_array))
+            return numpy_array
 
-        if fast_copy_available:
+        # Check imagej-common version for fast copy availability.
+        imagej_common_version = sj.get_version(_Dataset())
+        # TODO: After scyjava 1.6.0 is released, use:
+        # sj.is_version_at_least(imagej_common_version, "0.30.0")
+        min_imagej_common_version = "0.30.0"
+        if (
+            sj.compare_version(min_imagej_common_version, imagej_common_version)
+            or imagej_common_version == min_imagej_common_version
+        ):
+            # ImageJ Common is new enough to use (deprecated) net.imagej.util.Images.copy.
             Images = sj.jimport("net.imagej.util.Images")
             Images.copy(rai, self.to_java(numpy_array))
-        else:
-            self._ij.op().run("copy.rai", self.to_java(numpy_array), rai)
+            return numpy_array
 
+        # Fall back to copying with ImageJ Ops's copy.rai op. In theory, Ops
+        # should always be faster. But in practice, the copy.rai operation is
+        # slower than the hardecoded ones above. If we were to fix Ops to be
+        # fast always, we could eliminate the above special casing.
+        self._ij.op().run("copy.rai", self.to_java(numpy_array), rai)
         return numpy_array
 
     def run_macro(self, macro: str, args=None):
