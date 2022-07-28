@@ -1518,7 +1518,9 @@ def init(
         raise EnvironmentError("Sorry, the interactive mode is not available on macOS.")
 
     if not sj.jvm_started():
-        with util.Loader("Building environment...", "Building environment...Done!", style="build"):
+        with util.Loader(
+            "Building environment...", "Building environment...Done!", style="build"
+        ):
             success = _create_jvm(ij_dir_or_version_or_endpoint, mode, add_legacy)
         if not success:
             raise RuntimeError("Failed to create a JVM with the requested environment.")
@@ -1554,7 +1556,9 @@ def init(
             return None
     else:
         # HEADLESS or INTERACTIVE mode: create the gateway and return it.
-        with util.Loader("Initializing PyImageJ...", "Initializing PyImageJ...Done!", style="rotate"):
+        with util.Loader(
+            "Initializing PyImageJ...", "Initializing PyImageJ...Done!", style="rotate"
+        ):
             return _create_gateway()
 
 
