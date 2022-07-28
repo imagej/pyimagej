@@ -20,9 +20,11 @@ class Loader:
 
         self._thread = Thread(target=self._animate, daemon=True)
         if style == "rotate":
-            self.steps = ["⣠", "⣄", "⡤", "⢤"]
+            self.steps = ["⠚", "⠓", "⠋", "⠙"]
         if style == "build":        
-            self.steps = ["⡀", "⠄", "⠂", "⠁", "⢁","⠡", "⠑", "⠉", "⡉", "⠍","⠋", "⢋", "⠫", "⠛" ]
+            self.steps = ["⡀", "⠄", "⠂", "⠁", "⢁", "⠡", "⠑", "⠉", "⡉", "⠍","⠋", "⢋", "⠫", "⠛"]
+        if style == "destroy":
+            self.steps = ["⠛", "⠫", "⢋", "⠋", "⠍", "⡉", "⠉", "⠑", "⠡", "⢁", "⠁","⠂", "⠄", "⡀"]
         self.done = False
 
     def start(self):
