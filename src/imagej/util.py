@@ -19,47 +19,57 @@ class Loader:
         self.timeout = timeout
 
         self._thread = Thread(target=self._animate, daemon=True)
-        if style == "rotate":
-            self.steps = ["⠚", "⠓", "⠋", "⠙"]
-        if style == "build":
-            self.steps = [
-                "⡀",
-                "⠄",
-                "⠂",
-                "⠁",
-                "⢁",
-                "⠡",
-                "⠑",
-                "⠉",
-                "⡉",
-                "⠍",
-                "⠋",
-                "⢋",
-                "⠫",
-                "⠛",
-            ]
-        if style == "destroy":
-            self.steps = [
-                "⠛",
-                "⠫",
-                "⢋",
-                "⠋",
-                "⠍",
-                "⡉",
-                "⠉",
-                "⠑",
-                "⠡",
-                "⢁",
-                "⠁",
-                "⠂",
-                "⠄",
-                "⡀",
-            ]
+        self.steps = self._get_animation(style)
         self.done = False
 
     def start(self):
         self._thread.start()
         return self
+
+    def _get_animation(self, style: str) -> List[str]:
+        """Return specified animation."""
+
+        animation_styles = {
+            "rotate": ["⠚", "⠓", "⠋", "⠙"],
+            "build": [
+                "⡀",
+                "⠄",
+                "⠂",
+                "⠁",
+                "⢁",
+                "⠡",
+                "⠑",
+                "⠉",
+                "⡉",
+                "⠍",
+                "⠋",
+                "⢋",
+                "⠫",
+                "⠛",
+            ],
+            "destroy": [
+                "⠛",
+                "⠫",
+                "⢋",
+                "⠋",
+                "⠍",
+                "⡉",
+                "⠉",
+                "⠑",
+                "⠡",
+                "⢁",
+                "⠁",
+                "⠂",
+                "⠄",
+                "⡀",
+            ],
+            "shuffle": ["⠛", "⠞", "⡜", "⡴", "⣤", "⢦", "⢣", "⠳"],
+        }
+
+        if style in animation_styles:
+            return animation_styles[style]
+        else:
+            raise KeyError(f"{style} is not available.")
 
     def _animate(self):
         for c in cycle(self.steps):
