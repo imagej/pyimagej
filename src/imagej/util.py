@@ -4,8 +4,11 @@ from threading import Thread
 from time import sleep
 from typing import List
 
+
 class Loader:
-    def __init__(self, start_msg="Loading...", end_msg="Done!", timeout=0.1, style="rotate"):
+    def __init__(
+        self, start_msg="Loading...", end_msg="Done!", timeout=0.1, style="rotate"
+    ):
         """Loading animation wrapper.
 
         A wrapper for functions that provides three different loading animations.
