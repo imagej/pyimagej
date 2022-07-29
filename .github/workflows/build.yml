@@ -1,0 +1,104 @@
+name: build
+
+on:
+  push:
+    branches:
+      - master
+    tags:
+      - "*-[0-9]+.*"
+  pull_request:
+    branches:
+      - master
+
+jobs:
+  build-cross-platform:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+        python-version: ["3.6", "3.10"]
+        # Breaks due to https://github.com/jpype-project/jpype/issues/1009
+        # Should be included once the fix is released
+        exclude:
+          - os: windows-latest
+            python-version: "3.10"
+        include:
+          - os: windows-latest
+            python-version: "3.9"
+
+    steps:
+    - uses: actions/checkout@v2
+
+    - uses: actions/setup-python@v3
+      with:
+        python-version: ${{matrix.python-version}}
+
+    - uses: actions/setup-java@v3
+      with:
+        java-version: '8'
+        distribution: 'zulu'
+
+    - name: Install PyImageJ
+      run: |
+        python -m pip install --upgrade pip
+        python -m pip install -e '.[dev]'
+
+    - name: Test PyImageJ
+      run: |
+        ./test.sh
+      
+
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: psf/black@stable
+        with:
+          src: "./src ./test" # we should skip the doc folder
+
+  coverage:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: conda-incubator/setup-miniconda@v2
+        with:
+          auto-update-conda: true
+          python-version: ${{ matrix.python-version }}
+      - name: Add conda to system path
+        run: |
+          # $CONDA is an environment variable pointing to the root of the miniconda directory
+          echo $CONDA/bin >> $GITHUB_PATH
+      - name: Install mamba
+        run: |
+          conda install -c conda-forge mamba
+      - name: Install dev dependencies
+        run: |
+          mamba env update -f dev-environment.yml -n base
+      - name: Generate code coverage report
+        run: |
+          python -m pytest test/ -p no:faulthandler --cov-report=xml --cov=.
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v2
+
+  conda-test:
+    name: Test Conda dev environment
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: conda-incubator/setup-miniconda@v2
+        with:
+          auto-update-conda: true
+          python-version: ${{ matrix.python-version }}
+      - name: Add conda to system path
+        run: |
+          # $CONDA is an environment variable pointing to the root of the miniconda directory
+          echo $CONDA/bin >> $GITHUB_PATH
+      - name: Install mamba
+        run: |
+          conda install -c conda-forge mamba
+      - name: Install dev dependencies
+        run: |
+          mamba env update -f dev-environment.yml -n base
+      - name: Test PyImageJ
+        run: |
+          ./test.sh

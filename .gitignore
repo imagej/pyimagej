@@ -6,9 +6,11 @@
 /bin/
 /build/
 /dist/
-/pyimagej.egg-info/
+/src/*/_version.py
+/src/pyimagej.egg-info/
 MANIFEST
 .vscode/settings.json
+.vscode/launch.json
 .gitignore
 
 # Jupyter #

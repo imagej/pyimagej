@@ -1,7 +1,9 @@
 # PyImageJ: Python wrapper for ImageJ2
 
 [![Image.sc Forum](https://img.shields.io/badge/dynamic/json.svg?label=forum&url=https%3A%2F%2Fforum.image.sc%2Ftags%2Fpyimagej.json&query=%24.topic_list.tags.0.topic_count&colorB=brightgreen&suffix=%20topics&logo=data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAA4AAAAOCAYAAAAfSC3RAAABPklEQVR42m3SyyqFURTA8Y2BER0TDyExZ+aSPIKUlPIITFzKeQWXwhBlQrmFgUzMMFLKZeguBu5y+//17dP3nc5vuPdee6299gohUYYaDGOyyACq4JmQVoFujOMR77hNfOAGM+hBOQqB9TjHD36xhAa04RCuuXeKOvwHVWIKL9jCK2bRiV284QgL8MwEjAneeo9VNOEaBhzALGtoRy02cIcWhE34jj5YxgW+E5Z4iTPkMYpPLCNY3hdOYEfNbKYdmNngZ1jyEzw7h7AIb3fRTQ95OAZ6yQpGYHMMtOTgouktYwxuXsHgWLLl+4x++Kx1FJrjLTagA77bTPvYgw1rRqY56e+w7GNYsqX6JfPwi7aR+Y5SA+BXtKIRfkfJAYgj14tpOF6+I46c4/cAM3UhM3JxyKsxiOIhH0IO6SH/A1Kb1WBeUjbkAAAAAElFTkSuQmCC)](https://forum.image.sc/tag/pyimagej)
-[![Build Status](https://github.com/imagej/pyimagej/actions/workflows/python-test-conda.yml/badge.svg?branch=master)](https://github.com/imagej/pyimagej/actions/workflows/python-test-conda.yml)
+[![Build Status](https://github.com/imagej/pyimagej/actions/workflows/build.yml/badge.svg?branch=master)](https://github.com/imagej/pyimagej/actions/workflows/build.yml)
+[![codecov](https://codecov.io/gh/imagej/pyimagej/branch/master/graph/badge.svg?token=9z6AYgHINK)](https://codecov.io/gh/imagej/pyimagej)
+[![Binder](https://mybinder.org/badge.svg)](https://mybinder.org/v2/gh/imagej/pyimagej/master)
 
 PyImageJ provides a set of wrapper functions for integration between [ImageJ2]
 and Python. It also supports the original [ImageJ] API and data structures.
@@ -12,19 +14,64 @@ SciPy, scikit-image, [CellProfiler], [OpenCV], [ITK] and many more.
 
 ## Quick Start
 
-Jump into the [documentation and tutorials](doc/README.md) to get started!
+Jump into the [documentation and tutorials](https://pyimagej.readthedocs.io/) to get started!
+
+## System Requirements
+
+### Hardware Requirements
+
+PyImageJ requires at minimum a standard computer with enough RAM and CPU
+performance to support the workflow operations defined by the user. While
+PyImageJ will run on a range of hardware, we recommend the following RAM
+and CPU specifications:
+
+- RAM: >= 2 GB (64 MB minimum)
+- CPU: >= 1 core
+
+Notably, PyImageJ can be installed and used on server infrastructure for
+large scale image processing.
+
+### OS Requirements
+
+PyImageJ has been tested on the following operating systems:
+
+- Linux (Ubuntu 20.04 LTS)
+- Windows
+- macOS
+
+### Software Requirements
+
+PyImageJ requires Python >= 3.6 and the following packages:
+
+* [JPype]
+* [NumPy]
+* [imglyb]
+* [scyjava]
+* [xarray]
+
+Please see [`setup.cfg`](setup.cfg) or [`environment.yml`](environment.yml)
+for the minimum version requirements of each package. PyImageJ will not
+function properly if dependency versions are too old.
+
+In addition, PyImageJ requires [OpenJDK] and [Maven] to be installed.
 
 ## Installation
 
-PyImageJ can be installed using conda. Here is how to create and activate
-a new conda environment with PyImageJ available:
+PyImageJ can be installed using [Conda]+[Mamba]. Here is how to create
+and activate a new conda environment with PyImageJ available:
 
 ```
-conda create -n pyimagej -c conda-forge pyimagej openjdk=8
+conda install mamba -n base -c conda-forge
+mamba create -n pyimagej -c conda-forge pyimagej openjdk=8
 conda activate pyimagej
 ```
 
-Alternately, it is possible to install PyImageJ with pip.
+Alternately, you can install PyImageJ with pip, but in this
+case you will need to install OpenJDK and Maven manually.
+
+Installation time takes approximately 20 seconds. Initializing PyImageJ
+takes an additional ~30 seconds to ~2-3 minutes (depending on bandwidth)
+while it downloads and caches the needed Java libraries.
 
 For detailed installation instructions and requirements,
 see [Install.md](doc/Install.md).
@@ -61,12 +108,16 @@ ij.py.show(image, cmap='gray')
 
 For more, see the [documentation and tutorials](doc/README.md).
 
+## API Reference
+
+For a complete reference of the PyImageJ API please see the [PyImageJ Read the Docs](https://pyimagej.readthedocs.io/en/latest/) site.
+
 ## Getting Help
 
 [The Scientific Community Image Forum](https://forum.image.sc/tag/pyimagej)
 is the best place to get general help on usage of PyImageJ, ImageJ2, and any
 other image processing tasks. Bugs can be reported to the PyImageJ GitHub
-[issue tracker](issues).
+[issue tracker](https://github.com/imagej/pyimagej/issues).
 
 ## Contributing
 
@@ -78,6 +129,9 @@ Most development discussion takes place on the pyimagej
 You can also reach the developers at the
 [pyimagej gitter](https://gitter.im/imagej/pyimagej).
 
+For details on how to develop the PyImageJ codebase,
+see [Development.md](doc/Development.md).
+
 ------------------------------------------------------------------------------
 
 [ImageJ2]: https://imagej.net/software/imagej2
@@ -85,3 +139,12 @@ You can also reach the developers at the
 [CellProfiler]: https://imagej.net/software/cellprofiler
 [OpenCV]: https://imagej.net/software/opencv
 [ITK]: https://imagej.net/software/itk
+[JPype]: https://jpype.readthedocs.io/
+[NumPy]: https://numpy.org/
+[imglyb]: https://github.com/imglib/imglyb
+[scyjava]: https://github.com/scijava/scyjava
+[xarray]: https://docs.xarray.dev/
+[OpenJDK]: https://en.wikipedia.org/wiki/OpenJDK
+[Maven]: https://maven.apache.org/
+[Conda]: https://conda.io/
+[Mamba]: https://mamba.readthedocs.io/

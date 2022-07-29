@@ -1,0 +1,6 @@
+[build-system]
+# Setuptools version constraint ensures PEP 517 compatibility
+requires = [
+    "setuptools >= 40.9.0"
+]
+build-backend = "setuptools.build_meta"

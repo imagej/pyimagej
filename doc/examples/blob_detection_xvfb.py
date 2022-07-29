@@ -23,16 +23,15 @@ def process(image, detections: np.ndarray, add_to_roi_manager=True, multimeasure
     Process the blob rois.
     """
     # get ImageJ resoures
-    ImagePlus = sj.jimport('ij.ImagePlus')
     OvalRoi = sj.jimport('ij.gui.OvalRoi')
     Overlay = sj.jimport('ij.gui.Overlay')
     ov = Overlay()
 
     # convert image to imp
-    imp = ij.convert().convert(image, ImagePlus)
+    imp = ij.py.to_imageplus(image)
 
     if add_to_roi_manager:
-        rm = ij.RoiManager().getRoiManager()
+        rm = ij.RoiManager.getRoiManager()
 
     for i in range(len(detections)):
         values = detections[i].tolist()
@@ -43,6 +42,7 @@ def process(image, detections: np.ndarray, add_to_roi_manager=True, multimeasure
         roi = OvalRoi(x - r, y - r, d, d)
         imp.setRoi(roi)
         ov.add(roi)
+
         if add_to_roi_manager:
             rm.addRoi(roi)
     
