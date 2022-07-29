@@ -5,7 +5,7 @@ from time import sleep
 
 
 class Loader:
-    def __init__(self, desc="Loading...", end="Done!", timeout=0.1, style="rotate"):
+    def __init__(self, start_msg="Loading...", end_msg="Done!", timeout=0.1, style="rotate"):
         """
         A loader-like context manager
 
@@ -14,8 +14,8 @@ class Loader:
             end (str, optional): Final print. Defaults to "Done!".
             timeout (float, optional): Sleep time between prints. Defaults to 0.1.
         """
-        self.desc = desc
-        self.end = end
+        self.start_msg = start_msg
+        self.end_msg = end_msg
         self.timeout = timeout
 
         self._thread = Thread(target=self._animate, daemon=True)
@@ -65,7 +65,7 @@ class Loader:
         for c in cycle(self.steps):
             if self.done:
                 break
-            print(f"\r{self.desc} {c} ", flush=True, end="")
+            print(f"\r{self.start_msg} {c} ", flush=True, end="")
             sleep(self.timeout)
 
     def __enter__(self):
@@ -75,7 +75,7 @@ class Loader:
         self.done = True
         cols = get_terminal_size((80, 20)).columns
         print("\r" + " " * cols, end="", flush=True)
-        print(f"\r{self.end}", flush=True)
+        print(f"\r{self.end_msg}", flush=True)
 
     def __exit__(self, exc_type, exc_value, tb):
         # handle exceptions with those variables ^
