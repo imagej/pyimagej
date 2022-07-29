@@ -2,17 +2,27 @@ from itertools import cycle
 from shutil import get_terminal_size
 from threading import Thread
 from time import sleep
-
+from typing import List
 
 class Loader:
     def __init__(self, start_msg="Loading...", end_msg="Done!", timeout=0.1, style="rotate"):
-        """
-        A loader-like context manager
+        """Loading animation wrapper.
 
-        Args:
-            desc (str, optional): The loader's description. Defaults to "Loading...".
-            end (str, optional): Final print. Defaults to "Done!".
-            timeout (float, optional): Sleep time between prints. Defaults to 0.1.
+        A wrapper for functions that provides three different loading animations.
+
+        :param start_msg: Message to dispalay while the animation cycles.
+        :param end_msg: Message to display after the animation ends.
+        :param timeout: Sleep timout between animation steps.
+        :param style:
+
+            * rotate
+                A counter clockwise rotating square.
+            * build
+                A constructing square (bottom to top).
+            * destroy
+                A deconstructing square (top to bottom).
+            * shuffle
+                A square with shuffling columns.
         """
         self.start_msg = start_msg
         self.end_msg = end_msg
