@@ -1518,9 +1518,7 @@ def init(
         raise EnvironmentError("Sorry, the interactive mode is not available on macOS.")
 
     if not sj.jvm_started():
-        with util.Loader(
-            "Building environment...", "Building environment...Done!", style="build"
-        ):
+        with util.Loader("Building environment...", "Done!", style="block-build"):
             success = _create_jvm(ij_dir_or_version_or_endpoint, mode, add_legacy)
         if not success:
             raise RuntimeError("Failed to create a JVM with the requested environment.")
@@ -1530,7 +1528,10 @@ def init(
         if macos:
             # NB: This will block the calling (main) thread forever!
             try:
-                setupGuiEnvironment(lambda: _create_gateway().ui().showUI())
+                with util.Loader(
+                    "Initializing PyImageJ...", "Done!", style="block-rotate"
+                ):
+                    setupGuiEnvironment(lambda: _create_gateway().ui().showUI())
             except ModuleNotFoundError as e:
                 if e.msg == "No module named 'PyObjCTools'":
                     advice = (
@@ -1547,7 +1548,8 @@ def init(
                     raise
         else:
             # Create and show the application.
-            gateway = _create_gateway()
+            with util.Loader("Initializing PyImageJ...", "Done!", style="block-rotate"):
+                gateway = _create_gateway()
             gateway.ui().showUI()
             # We are responsible for our own blocking.
             # TODO: Poll using something better than ui().isVisible().
@@ -1556,9 +1558,7 @@ def init(
             return None
     else:
         # HEADLESS or INTERACTIVE mode: create the gateway and return it.
-        with util.Loader(
-            "Initializing PyImageJ...", "Initializing PyImageJ...Done!", style="rotate"
-        ):
+        with util.Loader("Initializing PyImageJ...", "Done!", style="block-rotate"):
             return _create_gateway()
 
 
