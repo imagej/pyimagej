@@ -7,7 +7,7 @@ from typing import List
 
 class Loader:
     def __init__(
-        self, start_msg="Loading...", end_msg="Done!", timeout=0.1, style="rotate"
+        self, start_msg="Loading...", end_suffix="Done!", timeout=0.1, style="rotate"
     ):
         """Loading animation wrapper.
 
@@ -30,7 +30,7 @@ class Loader:
                 A square with shuffling columns.
         """
         self.start_msg = start_msg
-        self.end_msg = end_msg
+        self.end_msg = start_msg + end_suffix
         self.timeout = timeout
 
         self._thread = Thread(target=self._animate, daemon=True)
