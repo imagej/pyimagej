@@ -45,8 +45,8 @@ class Loader:
         """Return specified animation."""
 
         animation_styles = {
-            "rotate": ["⠚", "⠓", "⠋", "⠙"],
-            "build": [
+            "block-rotate": ["⠚", "⠓", "⠋", "⠙"],
+            "block-build": [
                 "⡀",
                 "⠄",
                 "⠂",
@@ -62,7 +62,7 @@ class Loader:
                 "⠫",
                 "⠛",
             ],
-            "destroy": [
+            "block-destroy": [
                 "⠛",
                 "⠫",
                 "⢋",
@@ -78,7 +78,41 @@ class Loader:
                 "⠄",
                 "⡀",
             ],
-            "shuffle": ["⠛", "⠞", "⡜", "⡴", "⣤", "⢦", "⢣", "⠳"],
+            "block-shuffle": ["⠛", "⠞", "⡜", "⡴", "⣤", "⢦", "⢣", "⠳"],
+            "block-fall": [" ", "⠉", "⠛", "⠶", "⣤", "⣀", " "],
+            "block-rise": [" ", "⣀", "⣤", "⠶", "⠛", "⠉", " "],
+            "stream-down": [
+                " ",
+                "⠁",
+                "⠃",
+                "⠇",
+                "⡎",
+                "⡜",
+                "⡸",
+                "⢱",
+                "⢣",
+                "⢇",
+                "⡆",
+                "⡄",
+                "⡀",
+                " ",
+            ],
+            "stream-up": [
+                " ",
+                "⡀",
+                "⡄",
+                "⡆",
+                "⢇",
+                "⢣",
+                "⢱",
+                "⡸",
+                "⡜",
+                "⡎",
+                "⠇",
+                "⠃",
+                "⠁",
+                " ",
+            ],
         }
 
         if style in animation_styles:
