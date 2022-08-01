@@ -11,7 +11,9 @@ class Loader:
     ):
         """Loading animation wrapper.
 
-        A wrapper for functions that provides three different loading animations.
+        A wrapper for functions that provides three different loading animations. This
+        class was directly adapted from a stackoverflow post (https://stackoverflow.com/a/66558182)
+        describing an easy way to create animations while a process is running.
 
         :param start_msg: Message to dispalay while the animation cycles.
         :param end_msg: Message to display after the animation ends.
