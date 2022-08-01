@@ -20,14 +20,22 @@ class Loader:
         :param timeout: Sleep timout between animation steps.
         :param style:
 
-            * rotate
-                A counter clockwise rotating square.
-            * build
-                A constructing square (bottom to top).
-            * destroy
-                A deconstructing square (top to bottom).
-            * shuffle
-                A square with shuffling columns.
+            * block-rotate
+                A counter clockwise rotating block.
+            * block-build
+                A constructing block (bottom to top).
+            * block-destroy
+                A deconstructing block (top to bottom).
+            * block-shuffle
+                A block with shuffling columns.
+            * block-fall
+                A block falling.
+            * block-rise
+                A block rising.
+            * stream-down
+                Streaming column of dots (top to bottom).
+            * stream-up
+                Streaming column of dots (bottom to top).
         """
         self.start_msg = start_msg
         self.end_msg = start_msg + end_suffix
