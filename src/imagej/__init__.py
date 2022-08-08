@@ -1656,10 +1656,10 @@ def _create_jvm(
         )
         sj.config.endpoints.append(endpoint)
 
-    elif os.path.isdir(ij_dir_or_version_or_endpoint):
+    elif os.path.isdir(os.path.expanduser(ij_dir_or_version_or_endpoint)):
         # Assume path to local ImageJ2 installation.
         add_legacy = False
-        path = os.path.abspath(ij_dir_or_version_or_endpoint)
+        path = os.path.abspath(os.path.expanduser(ij_dir_or_version_or_endpoint))
         _logger.debug("Local path to ImageJ2 installation given: %s", path)
         num_jars = _set_ij_env(path)
         if num_jars <= 0:
