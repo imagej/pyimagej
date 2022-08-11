@@ -18,14 +18,13 @@ mamba activate pyimagej-dev
 ## Running the automated tests
 
 ```
-./test.sh
+make test
 ```
 
 ## Building the reference documentation
 
 ```
-cd doc/
-make html
+make docs
 ```
 
 Results are generated to `doc/_build/html`.
@@ -35,11 +34,11 @@ Production documentation is available online at
 ## Formatting the code
 
 ```
-black src test
+make lint
 ```
 
 ## Building distribution bundles
 
 ```
-python -m build
+make dist
 ```
