@@ -45,7 +45,7 @@ jobs:
 
     - name: Test PyImageJ
       run: |
-        ./test.sh
+        bin/test.sh
       
 
   lint:
