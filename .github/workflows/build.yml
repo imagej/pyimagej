@@ -101,4 +101,4 @@ jobs:
           mamba env update -f dev-environment.yml -n base
       - name: Test PyImageJ
         run: |
-          ./test.sh
+          bin/test.sh
