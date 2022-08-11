@@ -3,7 +3,6 @@
 /.eggs/
 /.idea/
 /.pytest_cache/
-/bin/
 /build/
 /dist/
 /src/*/_version.py

@@ -1,7 +1,7 @@
 #!/bin/sh
 
 dir=$(dirname "$0")
-cd "$dir"
+cd "$dir/.."
 
 echo "-------------------------------------"
 echo "| Testing ImageJ2 + original ImageJ |"
