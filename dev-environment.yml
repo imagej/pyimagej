@@ -43,7 +43,9 @@ dependencies:
   - sphinx
   - sphinx_rtd_theme
   - myst-nb
-  # Project from source
   - pip
   - pip:
+    # PyPI-only dependencies
+    - readthedocs-sphinx-search
+    # Project from source
     - -e .
