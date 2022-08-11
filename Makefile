@@ -1,6 +1,7 @@
 help:
 	@echo "Available targets:\n\
 		clean - remove build files and directories\n\
+		setup - create mamba developer environment\n\
 		lint  - run code formatters and linters\n\
 		test  - run automated test suite\n\
 		docs  - generate documentation site\n\
@@ -11,16 +12,22 @@ help:
 clean:
 	bin/clean.sh
 
-lint:
+setup:
+	bin/setup.sh
+
+check:
+	@bin/check.sh
+
+lint: check
 	black src test
 
-test:
+test: check
 	bin/test.sh
 
-docs:
+docs: check
 	cd doc && $(MAKE) html
 
-dist:
+dist: check
 	python -m build
 
 .PHONY: test
