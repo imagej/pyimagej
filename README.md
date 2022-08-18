@@ -127,7 +127,7 @@ via pull requests onto the pyimagej repository.
 Most development discussion takes place on the pyimagej
 [GitHub repository](https://github.com/imagej/pyimagej).
 You can also reach the developers at the
-[pyimagej gitter](https://gitter.im/imagej/pyimagej).
+[Image.sc Zulip chat](https://imagesc.zulipchat.com/#narrow/stream/328100-scyjava).
 
 For details on how to develop the PyImageJ codebase,
 see [Development.md](doc/Development.md).
