@@ -1758,9 +1758,11 @@ def _set_ij_env(ij_dir):
 
 
 # Import Java resources on demand.
+
+
 @lru_cache(maxsize=None)
-def _Dataset():
-    return sj.jimport("net.imagej.Dataset")
+def _JObjectArray():
+    return JArray(JObject)
 
 
 @lru_cache(maxsize=None)
@@ -1770,6 +1772,21 @@ def _ImagePlus():
     except TypeError:
         # No original ImageJ on the classpath.
         return None
+
+
+@lru_cache(maxsize=None)
+def _Dataset():
+    return sj.jimport("net.imagej.Dataset")
+
+
+@lru_cache(maxsize=None)
+def _ImgPlus():
+    return sj.jimport("net.imagej.ImgPlus")
+
+
+@lru_cache(maxsize=None)
+def _RandomAccessibleInterval():
+    return sj.jimport("net.imglib2.RandomAccessibleInterval")
 
 
 @lru_cache(maxsize=None)
@@ -1783,28 +1800,13 @@ def _Img():
 
 
 @lru_cache(maxsize=None)
-def _ImgLabeling():
-    return sj.jimport("net.imglib2.roi.labeling.ImgLabeling")
-
-
-@lru_cache(maxsize=None)
-def _ImgPlus():
-    return sj.jimport("net.imagej.ImgPlus")
-
-
-@lru_cache(maxsize=None)
 def _ImgView():
     return sj.jimport("net.imglib2.img.ImgView")
 
 
 @lru_cache(maxsize=None)
-def _RandomAccessibleInterval():
-    return sj.jimport("net.imglib2.RandomAccessibleInterval")
-
-
-@lru_cache(maxsize=None)
-def _JObjectArray():
-    return JArray(JObject)
+def _ImgLabeling():
+    return sj.jimport("net.imglib2.roi.labeling.ImgLabeling")
 
 
 @lru_cache(maxsize=None)
