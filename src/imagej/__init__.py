@@ -1259,7 +1259,7 @@ class RAIOperators(object):
         max_dim = self.numDimensions() - 1
         for i in range(self.numDimensions() // 2):
             if self._op is not None:
-                view = ij.op().run("transform.permuteView", self, i, max_dim - i)
+                view = self._op.run("transform.permuteView", view, i, max_dim - i)
             else:
                 view = _Views().permute(view, i, max_dim - i)
         return view
