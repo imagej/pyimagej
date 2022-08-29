@@ -1172,7 +1172,7 @@ class RAIOperators(object):
         return (
             self._op.run("math.add", self, other)
             if self._op is not None
-            else self._ImgMath(self, other, "add")
+            else _ImgMath().add(self._jargs(self, other))
         )
 
     def __sub__(self, other):
@@ -1180,7 +1180,7 @@ class RAIOperators(object):
         return (
             self._op.run("math.sub", self, other)
             if self._op is not None
-            else self._ImgMath(self, other, "sub")
+            else _ImgMath().sub(self._jargs(self, other))
         )
 
     def __mul__(self, other):
@@ -1188,7 +1188,7 @@ class RAIOperators(object):
         return (
             self._op.run("math.mul", self, other)
             if self._op is not None
-            else self._ImgMath(self, other, "mul")
+            else _ImgMath().mul(self._jargs(self, other))
         )
 
     def __truediv__(self, other):
@@ -1196,7 +1196,7 @@ class RAIOperators(object):
         return (
             self._op.run("math.div", self, other)
             if self._op is not None
-            else self._ImgMath(self, other, "div")
+            else _ImgMath().div(self._jargs(self, other))
         )
 
     def __getitem__(self, key):
@@ -1274,16 +1274,6 @@ class RAIOperators(object):
                     pos += self.shape[i]
                 ra.setPosition(pos, i)
             return ra.get()
-
-    def _ImgMath(self, other, operation: str):
-        ImgMath = sj.jimport("net.imglib2.algorithm.math.ImgMath")
-        ImgMath_operations = {
-            "add": ImgMath.add(self._jargs(self, other)),
-            "sub": ImgMath.sub(self._jargs(self, other)),
-            "mul": ImgMath.mul(self._jargs(self, other)),
-            "div": ImgMath.div(self._jargs(self, other)),
-        }
-        return ImgMath_operations[operation]
 
     def _is_index(self, a):
         # Check dimensionality - if we don't have enough dims, it's a slice
@@ -1789,6 +1779,11 @@ def _ImagePlus():
     except TypeError:
         # No original ImageJ on the classpath.
         return None
+
+
+@lru_cache(maxsize=None)
+def _ImgMath():
+    return sj.jimport("net.imglib2.algorithm.math.ImgMath")
 
 
 @lru_cache(maxsize=None)
