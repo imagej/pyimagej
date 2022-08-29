@@ -1293,19 +1293,11 @@ class RAIOperators(object):
     @property
     @lru_cache(maxsize=None)
     def _op(self):
-        # check if has getcontext() attribute
-        op = None
-        if hasattr(self, "getContext"):
-            op = self.getContext().getService("net.imagej.ops.OpService")
-
-        # if not context, try to get global ij or return None
-        if op == None:
-            try:
-                return ij.op()
-            except:
-                return None
-        else:
-            return op
+        return (
+            self.getContext().getService("net.imagej.ops.OpService")
+            if hasattr(self, "getContext")
+            else None
+        )
 
     @property
     def _ra(self):
@@ -1567,7 +1559,6 @@ def _create_gateway():
         )
         return False
 
-    global ij
     ij = ImageJ()
 
     # Forward stdout and stderr from Java to Python.
