@@ -1235,11 +1235,10 @@ class RAIOperators(object):
         if type(axis) != tuple:
             raise ValueError(f"Invalid type for axis parameter: {type(axis)}")
 
-        Views = sj.jimport("net.imglib2.view.Views")
         res = self
         for d in range(self.numDimensions() - 1, -1, -1):
             if d in axis and self.dimension(d) == 1:
-                res = Views.hyperSlice(res, d, self.min(d))
+                res = _Views().hyperSlice(res, d, self.min(d))
         return res
 
     @property
@@ -1262,7 +1261,7 @@ class RAIOperators(object):
             if self._op is not None:
                 view = ij.op().run("transform.permuteView", self, i, max_dim - i)
             else:
-                raise RuntimeError(f"OpService is unavailable for this operation.")
+                view = _Views().permute(view, i, max_dim - i)
         return view
 
     def _index(self, position):
@@ -1820,3 +1819,8 @@ def _RandomAccessibleInterval():
 @lru_cache(maxsize=None)
 def _JObjectArray():
     return JArray(JObject)
+
+
+@lru_cache(maxsize=None)
+def _Views():
+    return sj.jimport("net.imglib2.view.Views")
