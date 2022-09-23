@@ -53,8 +53,6 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - uses: psf/black@stable
-        with:
-          src: "./src ./test" # we should skip the doc folder
 
   coverage:
     runs-on: ubuntu-latest

@@ -48,9 +48,19 @@ import imglyb
 import numpy as np
 import scyjava as sj
 import xarray as xr
-from jpype import (JArray, JByte, JException, JFloat,
-                   JImplementationFor, JImplements, JLong, JObject, JOverride,
-                   JShort, setupGuiEnvironment)
+from jpype import (
+    JArray,
+    JByte,
+    JException,
+    JFloat,
+    JImplementationFor,
+    JImplements,
+    JLong,
+    JObject,
+    JOverride,
+    JShort,
+    setupGuiEnvironment,
+)
 from labeling import Labeling
 from scyjava.config import find_jars
 
@@ -794,13 +804,11 @@ class ImageJPython:
                 return k(converted)
         raise ValueError(f"Cannot convert RealType {value}")
 
-
     def _is_supported_realType(self, obj):
         if not isinstance(obj, sj.jimport("net.imglib2.type.numeric.RealType")):
             return False
         type_str = obj.getClass().getName()
         return type_str in self.ctype_map.values()
-
 
     # -- Helper functions - type conversion --
 
