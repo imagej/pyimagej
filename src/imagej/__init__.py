@@ -756,14 +756,14 @@ class ImageJPython:
     # Dict between ctypes and equivalent realTypes
     ctype_map: Dict[type, str] = {
         ctypes.c_bool: "net.imglib2.type.logic.BoolType",
-        ctypes.c_byte: "net.imglib2.type.numeric.integer.ByteType",
-        ctypes.c_ubyte: "net.imglib2.type.numeric.integer.UnsignedByteType",
-        ctypes.c_short: "net.imglib2.type.numeric.integer.ShortType",
-        ctypes.c_ushort: "net.imglib2.type.numeric.integer.UnsignedShortType",
-        ctypes.c_int: "net.imglib2.type.numeric.integer.IntType",
-        ctypes.c_uint: "net.imglib2.type.numeric.integer.UnsignedIntType",
-        ctypes.c_long: "net.imglib2.type.numeric.integer.LongType",
-        ctypes.c_ulong: "net.imglib2.type.numeric.integer.UnsignedLongType",
+        ctypes.c_int8: "net.imglib2.type.numeric.integer.ByteType",
+        ctypes.c_uint8: "net.imglib2.type.numeric.integer.UnsignedByteType",
+        ctypes.c_int16: "net.imglib2.type.numeric.integer.ShortType",
+        ctypes.c_uint16: "net.imglib2.type.numeric.integer.UnsignedShortType",
+        ctypes.c_int32: "net.imglib2.type.numeric.integer.IntType",
+        ctypes.c_uint32: "net.imglib2.type.numeric.integer.UnsignedIntType",
+        ctypes.c_int64: "net.imglib2.type.numeric.integer.LongType",
+        ctypes.c_uint64: "net.imglib2.type.numeric.integer.UnsignedLongType",
         ctypes.c_float: "net.imglib2.type.numeric.real.FloatType",
         ctypes.c_double: "net.imglib2.type.numeric.real.DoubleType",
     }
