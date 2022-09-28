@@ -75,8 +75,8 @@ Installation time takes approximately 20 seconds. Initializing PyImageJ
 takes an additional ~30 seconds to ~2-3 minutes (depending on bandwidth)
 while it downloads and caches the needed Java libraries.
 
-For detailed installation instructions and requirements,
-see [Install.md](doc/Install.md).
+For detailed installation instructions and requirements, see
+[Installation](https://pyimagej.readthedocs.io/en/latest/Install.html).
 
 ## Usage
 
@@ -86,8 +86,8 @@ installation. Using the gateway, you have full access to the ImageJ2 API,
 plus utility functions for translating between Python (NumPy, xarray,
 pandas, etc.) and Java (ImageJ2, ImgLib2, etc.) structures.
 
-For instructions on how to start up the gateway for various settings,
-see [Initialization.md](doc/Initialization.md).
+For instructions on how to start up the gateway for various settings, see
+[How to initialize PyImageJ](https://pyimagej.readthedocs.io/en/latest/Initialization.html).
 
 Here is an example of opening an image using ImageJ2 and displaying it:
 
@@ -108,11 +108,13 @@ image = ij.py.from_java(jimage)
 ij.py.show(image, cmap='gray')
 ```
 
-For more, see the [documentation and tutorials](doc/README.md).
+For more, see the
+[tutorial notebooks](https://pyimagej.readthedocs.io/en/latest/notebooks.html).
 
 ## API Reference
 
-For a complete reference of the PyImageJ API please see the [PyImageJ Read the Docs](https://pyimagej.readthedocs.io/en/latest/) site.
+For a complete reference of the PyImageJ API, please see the
+[API Reference](https://pyimagej.readthedocs.io/en/latest/api.html).
 
 ## Getting Help
 
@@ -131,8 +133,8 @@ Most development discussion takes place on the pyimagej
 You can also reach the developers at the
 [Image.sc Zulip chat](https://imagesc.zulipchat.com/#narrow/stream/328100-scyjava).
 
-For details on how to develop the PyImageJ codebase,
-see [Development.md](doc/Development.md).
+For details on how to develop the PyImageJ codebase, see
+[Development.md](https://pyimagej.readthedocs.io/en/latest/Development.html).
 
 ------------------------------------------------------------------------------
 
