@@ -41,17 +41,19 @@ PyImageJ has been tested on the following operating systems:
 
 ### Software Requirements
 
-PyImageJ requires Python >= 3.6 and the following packages:
+PyImageJ requires the following packages:
 
-* [JPype]
+* Python >= 3.7
+* [imglyb] >= 2.0.1
+* [jgo] >= 1.0.3
+* [JPype] >= 1.3.0
+* [labeling] >= 0.1.12
+* [matplotlib] \(optional, for `ij.py.show` function only)
 * [NumPy]
-* [imglyb]
-* [scyjava]
+* [scyjava] >= 1.6.0
 * [xarray]
 
-Please see [`setup.cfg`](setup.cfg) or [`environment.yml`](environment.yml)
-for the minimum version requirements of each package. PyImageJ will not
-function properly if dependency versions are too old.
+PyImageJ will not function properly if dependency versions are too old.
 
 In addition, PyImageJ requires [OpenJDK] and [Maven] to be installed.
 
@@ -139,9 +141,12 @@ see [Development.md](doc/Development.md).
 [CellProfiler]: https://imagej.net/software/cellprofiler
 [OpenCV]: https://imagej.net/software/opencv
 [ITK]: https://imagej.net/software/itk
-[JPype]: https://jpype.readthedocs.io/
-[NumPy]: https://numpy.org/
 [imglyb]: https://github.com/imglib/imglyb
+[jgo]: https://github.com/scijava/jgo
+[JPype]: https://jpype.readthedocs.io/
+[labeling]: https://github.com/Labelings/Labeling
+[matplotlib]: https://matplotlib.org/
+[NumPy]: https://numpy.org/
 [scyjava]: https://github.com/scijava/scyjava
 [xarray]: https://docs.xarray.dev/
 [OpenJDK]: https://en.wikipedia.org/wiki/OpenJDK
