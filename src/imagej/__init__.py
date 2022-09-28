@@ -67,7 +67,8 @@ from scyjava.config import find_jars
 import imagej.dims as dims
 import imagej.stack as stack
 
-from .config import __author__, __version__
+__author__ = "ImageJ2 developers"
+__version__ = sj.get_version("pyimagej")
 
 _logger = logging.getLogger(__name__)
 rai_lock = threading.Lock()
