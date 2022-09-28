@@ -754,6 +754,10 @@ class ImageJPython:
         return permuted_rai
 
     # Dict between ctypes and equivalent realTypes
+    # These types were chosen to guarantee the number of bits in each
+    # ctype, as the sizes of some ctypes are platform-dependent. See 
+    # https://docs.python.org/3/library/ctypes.html#ctypes-fundamental-data-types-2
+    # for more information.
     ctype_map: Dict[type, str] = {
         ctypes.c_bool: "net.imglib2.type.logic.BoolType",
         ctypes.c_int8: "net.imglib2.type.numeric.integer.ByteType",
