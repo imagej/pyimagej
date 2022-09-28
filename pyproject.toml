@@ -57,9 +57,15 @@ imagej = "imagej:imagej_main"
 [project.optional-dependencies]
 # Ensure any changes made to this list are also added to dev-environment.yml!
 dev = [
+    "autopep8",
     "black",
     "build",
+    "flake8",
+    "isort",
+    "myst-nb",
+    "pre-commit",
     "pytest",
+    "pytest-cov",
     "sphinx",
     "sphinx_rtd_theme",
 ]
@@ -75,3 +81,8 @@ namespaces = false
 
 [tool.black]
 exclude = 'dist|doc'
+
+[tool.isort]
+profile = "black"
+skip = ["doc"]
+

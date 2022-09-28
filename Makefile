@@ -19,7 +19,7 @@ check:
 	@bin/check.sh
 
 lint: check
-	black src test
+	black src tests
 
 test: check
 	bin/test.sh
@@ -30,4 +30,4 @@ docs: check
 dist: check
 	python -m build
 
-.PHONY: test
+.PHONY: tests

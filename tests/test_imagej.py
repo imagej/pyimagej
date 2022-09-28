@@ -1,13 +1,11 @@
-import argparse
 import ctypes
 import random
-import sys
 
 import numpy as np
 import pytest
 import scyjava as sj
 import xarray as xr
-from jpype import JArray, JException, JInt, JLong, JObject
+from jpype import JArray, JInt, JLong
 
 import imagej.dims as dims
 
@@ -103,12 +101,12 @@ class TestImageJ(object):
              45,  45,  45,  45,  45,  45,  45,  45,  45,  45,
              62,  62,  62,  62,  62,  62,  62,  62,  62,  62,
              82,  82,  82,  82,  82,  82,  82,  82,  82,  82,
-            104, 104, 104, 104, 104, 104, 104, 104, 104, 104,
-            126, 126, 126, 126, 126, 126, 126, 126, 126, 126,
-            148, 148, 148, 148, 148, 148, 148, 148, 148, 148,
-            168, 168, 168, 168, 168, 168, 168, 168, 168, 168,
-            185, 185, 185, 185, 185, 185, 185, 185, 185, 185,
-            200, 200, 200, 200, 200, 200, 200, 200, 200, 200
+            104, 104, 104, 104, 104, 104, 104, 104, 104, 104,  # noqa: E131
+            126, 126, 126, 126, 126, 126, 126, 126, 126, 126,  # noqa: E131
+            148, 148, 148, 148, 148, 148, 148, 148, 148, 148,  # noqa: E131
+            168, 168, 168, 168, 168, 168, 168, 168, 168, 168,  # noqa: E131
+            185, 185, 185, 185, 185, 185, 185, 185, 185, 185,  # noqa: E131
+            200, 200, 200, 200, 200, 200, 200, 200, 200, 200   # noqa: E131
         ]
         # fmt: on
 
@@ -318,7 +316,10 @@ def assert_permuted_rai_equal_to_source_rai(imgplus):
                             for b in range(ob_len):
                                 imgplus_access.setPosition(b, ob)
                                 permuted_rai_access.setPosition(b, nb)
-                                sample_name = f"C: {c}, X: {x}, Y: {y}, Z: {z}, T: {t}, F: {f}, B: {b}"
+                                sample_name = (
+                                    f"C: {c}, X: {x}, Y: {y}, Z: {z}, "
+                                    f"T: {t}, F: {f}, B: {b}"
+                                )
                                 assert (
                                     imgplus_access.get() == permuted_rai_access.get()
                                 ), sample_name
@@ -380,7 +381,6 @@ class TestSynchronization(object):
         ij_fixture.ui().show(ds)
         macro = """run("Add...", "value=5");"""
         ij_fixture.py.run_macro(macro)
-        imp = ij_fixture.py.active_imageplus()
 
         assert arr[0, 0] == original + 5
 
@@ -454,7 +454,8 @@ def assert_ndarray_equal_to_img(img, nparr):
     while cursor.hasNext():
         y = cursor.next().get()
         cursor.localize(arr)
-        # TODO: Imglib has inverted dimensions - extract this behavior into a helper function
+        # TODO: Imglib has inverted dimensions - extract this behavior into a
+        # helper function
         x = nparr[tuple(arr[::-1])]
         assert x == y
 
@@ -492,13 +493,13 @@ class TestRAIArraylike(object):
         # Return the new img
         return img
 
-    def test_slice_index(self, ij_fixture, img):
+    def test_slice_index(self, img):
         assert img[0, 0, 0].get() == 1
 
-    def test_slice_index_negative(self, ij_fixture, img):
+    def test_slice_index_negative(self, img):
         assert img[-1, -1, -1].get() == 24
 
-    def test_slice_2d(self, ij_fixture, img):
+    def test_slice_2d(self, img):
         Views = sj.jimport("net.imglib2.view.Views")
         expected = Views.hyperSlice(img, 0, 0)
         actual = img[0, :, :]
@@ -506,7 +507,7 @@ class TestRAIArraylike(object):
             for j in range(4):
                 assert expected[i, j] == actual[i, j]
 
-    def test_slice_2d_negative(self, ij_fixture, img):
+    def test_slice_2d_negative(self, img):
         Views = sj.jimport("net.imglib2.view.Views")
         expected = Views.hyperSlice(img, 0, 1)
         actual = img[-1, :, :]
@@ -514,21 +515,21 @@ class TestRAIArraylike(object):
             for j in range(4):
                 assert expected[i, j] == actual[i, j]
 
-    def test_slice_1d(self, ij_fixture, img):
+    def test_slice_1d(self, img):
         Views = sj.jimport("net.imglib2.view.Views")
         expected = Views.hyperSlice(Views.hyperSlice(img, 0, 0), 0, 0)
         actual = img[0, 0, :]
         for i in range(4):
             assert expected[i] == actual[i]
 
-    def test_slice_1d_negative(self, ij_fixture, img):
+    def test_slice_1d_negative(self, img):
         Views = sj.jimport("net.imglib2.view.Views")
         expected = Views.hyperSlice(Views.hyperSlice(img, 0, 1), 0, 1)
         actual = img[-1, -2, :]
         for i in range(4):
             assert expected[i] == actual[i]
 
-    def test_slice_int(self, ij_fixture, img):
+    def test_slice_int(self, img):
         Views = sj.jimport("net.imglib2.view.Views")
         expected = Views.hyperSlice(img, 0, 0)
         actual = img[0]
@@ -536,14 +537,14 @@ class TestRAIArraylike(object):
             for j in range(4):
                 assert expected[i, j] == actual[i, j]
 
-    def test_slice_not_enough_dims(self, ij_fixture, img):
+    def test_slice_not_enough_dims(self, img):
         Views = sj.jimport("net.imglib2.view.Views")
         expected = Views.hyperSlice(Views.hyperSlice(img, 0, 0), 0, 0)
         actual = img[0, 0]
         for i in range(4):
             assert expected[i] == actual[i]
 
-    def test_step(self, ij_fixture, img):
+    def test_step(self, img):
         # Create a stepped img via Views
         Views = sj.jimport("net.imglib2.view.Views")
         steps = JArray(JLong)([1, 1, 2])
@@ -555,7 +556,7 @@ class TestRAIArraylike(object):
                 for k in range(2):
                     assert expected[i, j, k] == actual[i, j, k]
 
-    def test_step_not_enough_dims(self, ij_fixture, img):
+    def test_step_not_enough_dims(self, img):
         # Create a stepped img via Views
         Views = sj.jimport("net.imglib2.view.Views")
         steps = JArray(JLong)([2, 1, 1])
@@ -567,7 +568,7 @@ class TestRAIArraylike(object):
             for j in range(4):
                 assert expected[i, j] == actual[i, j]
 
-    def test_slice_and_step(self, ij_fixture, img):
+    def test_slice_and_step(self, img):
         # Create a stepped img via Views
         Views = sj.jimport("net.imglib2.view.Views")
         intervaled = Views.hyperSlice(img, 0, 0)
@@ -579,33 +580,33 @@ class TestRAIArraylike(object):
             for j in range(2):
                 assert expected[i, j] == actual[i, j]
 
-    def test_shape(self, ij_fixture, img):
+    def test_shape(self, img):
         assert hasattr(img, "shape")
         assert img.shape == (2, 3, 4)
 
-    def test_dtype(self, ij_fixture, img):
+    def test_dtype(self, img):
         assert hasattr(img, "dtype")
         ByteType = sj.jimport("net.imglib2.type.numeric.integer.ByteType")
         assert img.dtype == ByteType
 
-    def test_dtype(self, ij_fixture, img):
+    def test_ndim(self, img):
         assert hasattr(img, "ndim")
         assert img.ndim == 3
 
-    def test_transpose1d(self, ij_fixture, img):
+    def test_transpose1d(self, img):
         img = img[0, 0]
         transpose = img.T
         for i in range(2):
             assert transpose[i] == img[i]
 
-    def test_transpose2d(self, ij_fixture, img):
+    def test_transpose2d(self, img):
         img = img[0]
         transpose = img.T
         for i in range(3):
             for j in range(2):
                 assert transpose[i, j] == img[j, i]
 
-    def test_transpose3d(self, ij_fixture, img):
+    def test_transpose3d(self, img):
         transpose = img.T
         for i in range(4):
             for j in range(3):

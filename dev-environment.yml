@@ -37,13 +37,17 @@ dependencies:
   - notebook
   - scikit-image
   # Developer tools
+  - autopep8
   - black
   - build
+  - flake8
+  - isort
+  - myst-nb
+  - pre-commit
   - pytest
   - pytest-cov
   - sphinx
   - sphinx_rtd_theme
-  - myst-nb
   - pip
   - pip:
     # PyPI-only dependencies

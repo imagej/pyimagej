@@ -16,7 +16,12 @@ To enable debug-level logging:
 
 """
 
-import importlib, logging, os, shutil, subprocess, sys
+import importlib
+import logging
+import os
+import shutil
+import subprocess
+import sys
 from pathlib import Path
 
 
@@ -30,7 +35,10 @@ def _execute(command):
 
 
 def checkup(output=print):
-    """Check your environment for health problems that could prevent PyImageJ from functioning."""
+    """
+    Check your environment for health problems that could prevent PyImageJ from
+    functioning.
+    """
     output("")
     advice = []
 
@@ -50,12 +58,13 @@ def checkup(output=print):
             (Path(conda_prefix) / "python.exe").resolve(),
         ]
         if actual_exe in expected_exes:
-            output(f"--> Python executable matches Conda environment.")
+            output("--> Python executable matches Conda environment.")
         else:
-            output(f"--> Python executable is NOT from that Conda environment!")
+            output("--> Python executable is NOT from that Conda environment!")
             indent = "\n    * "
             advice.append(
-                "Are you sure you're using the correct Python executable? I expected one of these:"
+                "Are you sure you're using the correct Python executable? "
+                "I expected one of these:"
                 + indent
                 + indent.join(map(str, expected_exes))
             )
@@ -99,7 +108,8 @@ def checkup(output=print):
     else:
         output("--> JAVA_HOME is NOT set!")
         advice.append(
-            "Activate a conda environment with openjdk installed, or set JAVA_HOME manually."
+            "Activate a conda environment with openjdk installed, "
+            "or set JAVA_HOME manually."
         )
     java_executable = shutil.which("java")
     output(f"--> Java executable = {java_executable or 'NOT FOUND!'}")
