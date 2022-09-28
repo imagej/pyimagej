@@ -11,7 +11,8 @@ on:
       - master
 
 jobs:
-  build-cross-platform:
+  build-pip:
+    name: pip - ${{matrix.os}} - ${{matrix.python-version}}
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
@@ -46,7 +47,6 @@ jobs:
     - name: Test PyImageJ
       run: |
         bin/test.sh
-      
 
   ensure-clean-code:
     runs-on: ubuntu-latest
