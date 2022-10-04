@@ -1,5 +1,6 @@
-import scyjava as sj
 from typing import List, Tuple
+
+import scyjava as sj
 
 
 def rai_slice(rai, imin: Tuple, imax: Tuple, istep: Tuple):
@@ -18,7 +19,8 @@ def rai_slice(rai, imin: Tuple, imax: Tuple, istep: Tuple):
     # Otherwise, building the sphinx docs in doc/rtd fails with:
     #
     #   Warning, treated as error:
-    #   autodoc: failed to determine imagej.stack.JLong (<java class 'JLong'>) to be documented, the following exception was raised:
+    #   autodoc: failed to determine imagej.stack.JLong (<java class 'JLong'>) to be
+    #     documented, the following exception was raised:
     #   Java Virtual Machine is not running
     #
     # Which can be reproduced in a REPL like this:
@@ -38,7 +40,7 @@ def rai_slice(rai, imin: Tuple, imax: Tuple, istep: Tuple):
     for py_dim, j_dim in zip(dim_itr, dim_itr):
 
         # Set minimum
-        if imin[py_dim] == None:
+        if imin[py_dim] is None:
             index = 0
         else:
             index = imin[py_dim]
@@ -46,7 +48,7 @@ def rai_slice(rai, imin: Tuple, imax: Tuple, istep: Tuple):
                 index += shape[j_dim]
         imin_fix[j_dim] = JLong(index)
         # Set maximum
-        if imax[py_dim] == None:
+        if imax[py_dim] is None:
             index = shape[j_dim] - 1
         else:
             index = imax[py_dim]

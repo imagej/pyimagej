@@ -1,6 +1,8 @@
-import imagej
-import pytest
 import argparse
+
+import pytest
+
+import imagej
 
 
 def pytest_addoption(parser):

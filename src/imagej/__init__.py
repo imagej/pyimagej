@@ -49,7 +49,6 @@ import numpy as np
 import scyjava as sj
 import xarray as xr
 from jpype import (
-    JArray,
     JByte,
     JException,
     JFloat,
@@ -66,8 +65,10 @@ from scyjava.config import find_jars
 
 import imagej.dims as dims
 import imagej.stack as stack
+from imagej._utils import JObjectArray, jc
 
-from .config import __author__, __version__
+__author__ = "ImageJ2 developers"
+__version__ = sj.get_version("pyimagej")
 
 _logger = logging.getLogger(__name__)
 rai_lock = threading.Lock()
@@ -78,7 +79,7 @@ try:
     if debug:
         _logger.setLevel(logging.DEBUG)
         dims._logger.setLevel(logging.DEBUG)
-except KeyError as e:
+except KeyError:
     pass
 
 
@@ -110,7 +111,7 @@ class ImageJPython:
         self._ij = ij
         sj.when_jvm_starts(self._add_converters)
 
-    def active_dataset(self) -> "net.imagej.Dataset":
+    def active_dataset(self) -> "jc.Dataset":
         """Get the active Dataset image.
 
         Get the active image as a Dataset from the Dataset service.
@@ -119,20 +120,22 @@ class ImageJPython:
         """
         return self._ij.imageDisplay().getActiveDataset()
 
-    def active_image_plus(self, sync=True) -> "ij.ImagePlus":
+    def active_image_plus(self, sync=True) -> "jc.ImagePlus":
         """
         ij.py.active_image_plus() is deprecated.
         Use ij.py.active_imageplus() instead.
         """
         _logger.warning(
-            "ij.py.active_image_plus() is deprecated. Use ij.py.active_imageplus() instead."
+            "ij.py.active_image_plus() is deprecated. "
+            "Use ij.py.active_imageplus() instead."
         )
         return self.active_imageplus(sync)
 
-    def active_imageplus(self, sync=True) -> "ij.ImagePlus":
+    def active_imageplus(self, sync=True) -> "jc.ImagePlus":
         """Get the active ImagePlus image.
 
-        Get the active image as an ImagePlus, optionally synchronizing from ImageJ to ImageJ2.
+        Get the active image as an ImagePlus, optionally synchronizing from ImageJ
+        to ImageJ2.
 
         :param sync: Synchronize the current ImagePlus slice if True.
         :return: The ImagePlus corresponding to the active image.
@@ -147,14 +150,15 @@ class ImageJPython:
     def active_xarray(self, sync=True) -> xr.DataArray:
         """Get the active image as an xarray.
 
-        Get the active image as an xarray.DataArray, synchronizing from ImageJ to ImageJ2.
+        Get the active image as an xarray.DataArray, synchronizing from ImageJ
+        to ImageJ2.
 
         :param sync: Synchronize the current ImagePlus slice if True.
         :return: xarray.DataArray array containing the image data.
         """
         # todo: make the behavior use pure ImageJ2 if legacy is not active
 
-        if ij.legacy and ij.legacy.isActive():
+        if self._ij.legacy and self._ij.legacy.isActive():
             imp = self.active_imageplus(sync=sync)
             return self.from_java(imp)
         else:
@@ -166,7 +170,8 @@ class ImageJPython:
         Assemble an ImageJ (1.x) argument string from arguments in a dict.
 
         :param args: A dict of arguments in key/value pairs
-        :param ij1_style: True to use implicit booleans in original ImageJ style, or False for explicit booleans in ImageJ2 style
+        :param ij1_style: True to use implicit booleans in original ImageJ style, or
+            False for explicit booleans in ImageJ2 style
         :return: A string version of the arguments
         """
         if isinstance(args, str):
@@ -190,12 +195,44 @@ class ImageJPython:
             raise TypeError("Unsupported type: " + str(type(image)))
         if isinstance(image, sj.jimport("net.imglib2.Dimensions")):
             return list(image.dimensionsAsLongArray())
-        if _ImagePlus() and isinstance(image, _ImagePlus()):
+        if jc.ImagePlus and isinstance(image, jc.ImagePlus):
             dims = image.getDimensions()
             dims.reverse()
             dims = [dim for dim in dims if dim > 1]
             return dims
         raise TypeError("Unsupported Java type: " + str(sj.jclass(image).getName()))
+
+    # fmt: off
+    _ij2_types = {
+        # "net.imglib2.type.logic.BitType":                               "bool",
+        "net.imglib2.type.numeric.integer.ByteType":                    "int8",
+        "net.imglib2.type.numeric.integer.ByteLongAccessType":          "int8",
+        "net.imglib2.type.numeric.integer.ShortType":                   "int16",
+        "net.imglib2.type.numeric.integer.ShortLongAccessType":         "int16",
+        "net.imglib2.type.numeric.integer.IntType":                     "int32",
+        "net.imglib2.type.numeric.integer.IntLongAccessType":           "int32",
+        "net.imglib2.type.numeric.integer.LongType":                    "int64",
+        "net.imglib2.type.numeric.integer.LongLongAccessType":          "int64",
+        "net.imglib2.type.numeric.integer.UnsignedByteType":            "uint8",
+        "net.imglib2.type.numeric.integer.UnsignedByteLongAccessType":  "uint8",
+        "net.imglib2.type.numeric.integer.UnsignedShortType":           "uint16",
+        "net.imglib2.type.numeric.integer.UnsignedShortLongAccessType": "uint16",
+        "net.imglib2.type.numeric.integer.UnsignedIntType":             "uint32",
+        "net.imglib2.type.numeric.integer.UnsignedIntLongAccessType":   "uint32",
+        "net.imglib2.type.numeric.integer.UnsignedLongType":            "uint64",
+        "net.imglib2.type.numeric.integer.UnsignedLongLongAccessType":  "uint64",
+        # "net.imglib2.type.numeric.ARGBType":                            "argb",
+        # "net.imglib2.type.numeric.ARGBLongAccessType":                  "argb",
+        "net.imglib2.type.numeric.real.FloatType":                      "float32",
+        "net.imglib2.type.numeric.real.FloatLongAccessType":            "float32",
+        "net.imglib2.type.numeric.real.DoubleType":                     "float64",
+        "net.imglib2.type.numeric.real.DoubleLongAccessType":           "float64",
+        # "net.imglib2.type.numeric.complex.ComplexFloatType":            "cfloat32",
+        # "net.imglib2.type.numeric.complex.ComplexFloatLongAccessType":  "cfloat32",
+        # "net.imglib2.type.numeric.complex.ComplexDoubleType":           "cfloat64",
+        # "net.imglib2.type.numeric.complex.ComplexDoubleLongAccessType": "cfloat64",
+    }
+    # fmt: on
 
     def dtype(self, image_or_type):
         """Get the dtype of the input image as a numpy.dtype object.
@@ -214,7 +251,7 @@ class ImageJPython:
 
         :return: Input image dtype.
         """
-        if type(image_or_type) == np.dtype:
+        if isinstance(image_or_type, np.dtype):
             return image_or_type
         if self._is_arraylike(image_or_type):
             return image_or_type.dtype
@@ -223,58 +260,28 @@ class ImageJPython:
 
         # -- ImgLib2 types --
         if isinstance(image_or_type, sj.jimport("net.imglib2.type.Type")):
-            # fmt: off
-            ij2_types = {
-                #"net.imglib2.type.logic.BitType":                               "bool",
-                "net.imglib2.type.numeric.integer.ByteType":                    "int8",
-                "net.imglib2.type.numeric.integer.ByteLongAccessType":          "int8",
-                "net.imglib2.type.numeric.integer.ShortType":                   "int16",
-                "net.imglib2.type.numeric.integer.ShortLongAccessType":         "int16",
-                "net.imglib2.type.numeric.integer.IntType":                     "int32",
-                "net.imglib2.type.numeric.integer.IntLongAccessType":           "int32",
-                "net.imglib2.type.numeric.integer.LongType":                    "int64",
-                "net.imglib2.type.numeric.integer.LongLongAccessType":          "int64",
-                "net.imglib2.type.numeric.integer.UnsignedByteType":            "uint8",
-                "net.imglib2.type.numeric.integer.UnsignedByteLongAccessType":  "uint8",
-                "net.imglib2.type.numeric.integer.UnsignedShortType":           "uint16",
-                "net.imglib2.type.numeric.integer.UnsignedShortLongAccessType": "uint16",
-                "net.imglib2.type.numeric.integer.UnsignedIntType":             "uint32",
-                "net.imglib2.type.numeric.integer.UnsignedIntLongAccessType":   "uint32",
-                "net.imglib2.type.numeric.integer.UnsignedLongType":            "uint64",
-                "net.imglib2.type.numeric.integer.UnsignedLongLongAccessType":  "uint64",
-                #"net.imglib2.type.numeric.ARGBType":                            "argb",
-                #"net.imglib2.type.numeric.ARGBLongAccessType":                  "argb",
-                "net.imglib2.type.numeric.real.FloatType":                      "float32",
-                "net.imglib2.type.numeric.real.FloatLongAccessType":            "float32",
-                "net.imglib2.type.numeric.real.DoubleType":                     "float64",
-                "net.imglib2.type.numeric.real.DoubleLongAccessType":           "float64",
-                #"net.imglib2.type.numeric.complex.ComplexFloatType":            "cfloat32",
-                #"net.imglib2.type.numeric.complex.ComplexFloatLongAccessType":  "cfloat32",
-                #"net.imglib2.type.numeric.complex.ComplexDoubleType":           "cfloat64",
-                #"net.imglib2.type.numeric.complex.ComplexDoubleLongAccessType": "cfloat64",
-            }
-            # fmt: on
-            for c in ij2_types:
+            for c in self._ij2_types:
                 if isinstance(image_or_type, sj.jimport(c)):
-                    return np.dtype(ij2_types[c])
+                    return np.dtype(self._ij2_types[c])
             raise TypeError(f"Unsupported ImgLib2 type: {image_or_type}")
 
         # -- ImgLib2 images --
         if isinstance(image_or_type, sj.jimport("net.imglib2.IterableInterval")):
             ij2_type = image_or_type.firstElement()
             return self.dtype(ij2_type)
-        if isinstance(image_or_type, _RandomAccessibleInterval()):
+        if isinstance(image_or_type, jc.RandomAccessibleInterval):
             Util = sj.jimport("net.imglib2.util.Util")
             ij2_type = Util.getTypeFromInterval(image_or_type)
             return self.dtype(ij2_type)
 
         # -- Original ImageJ images --
-        if _ImagePlus() and isinstance(image_or_type, _ImagePlus()):
+        if jc.ImagePlus and isinstance(image_or_type, jc.ImagePlus):
             ij1_type = image_or_type.getType()
             ij1_types = {
-                _ImagePlus().GRAY8: "uint8",
-                _ImagePlus().GRAY16: "uint16",
-                _ImagePlus().GRAY32: "float32",  # NB: ImageJ's 32-bit type is float32, not uint32.
+                jc.ImagePlus.GRAY8: "uint8",
+                jc.ImagePlus.GRAY16: "uint16",
+                # NB: ImageJ's 32-bit type is float32, not uint32.
+                jc.ImagePlus.GRAY32: "float32",
             }
             for t in ij1_types:
                 if ij1_type == t:
@@ -317,7 +324,7 @@ class ImageJPython:
         shape = list(image.shape)
 
         # reverse shape if image is a RandomAccessibleInterval
-        if isinstance(image, _RandomAccessibleInterval()):
+        if isinstance(image, jc.RandomAccessibleInterval):
             shape.reverse()
 
         return np.zeros(shape, dtype=dtype_to_use)
@@ -333,7 +340,7 @@ class ImageJPython:
         :param args: The Python arguments to wrap into an Object[].
         :return: A Java Object[]
         """
-        return _JObjectArray()([self.to_java(arg) for arg in args])
+        return JObjectArray()([self.to_java(arg) for arg in args])
 
     def new_numpy_image(self, image):
         """
@@ -345,33 +352,35 @@ class ImageJPython:
         except TypeError:
             dtype_to_use = np.dtype("float64")
         _logger.warning(
-            "ij.py.new_numpy_image() is deprecated. Use ij.py.initialize_numpy_image() instead."
+            "ij.py.new_numpy_image() is deprecated. "
+            "Use ij.py.initialize_numpy_image() instead."
         )
         return np.zeros(self.dims(image), dtype=dtype_to_use)
 
     def rai_to_numpy(
-        self, rai: "net.imglib2.RandomAccessibleInterval", numpy_array: np.ndarray
+        self, rai: "jc.RandomAccessibleInterval", numpy_array: np.ndarray
     ) -> np.ndarray:
         """Copy a RandomAccessibleInterval into a numpy array.
 
-        The input RandomAccessibleInterval is copied into the pre-initialized numpy array
-        with either "fast copy" via 'net.imagej.util.Images.copy' if available or
+        The input RandomAccessibleInterval is copied into the pre-initialized numpy
+        array with either "fast copy" via 'net.imagej.util.Images.copy' if available or
         the slower "copy.rai" method. Note that the input RandomAccessibleInterval and
-        numpy array must have reversed dimensions relative to each other (e.g. [t, z, y, x, c]
-        and [c, x, y, z, t]). Use _permute_rai_to_python() on the RandomAccessibleInterval
-        to reorganize the dimensions.
+        numpy array must have reversed dimensions relative to each other
+        (e.g. [t, z, y, x, c] and [c, x, y, z, t]). Use _permute_rai_to_python() on the
+        RandomAccessibleInterval to reorganize the dimensions.
 
         :param rai: A net.imglib2.RandomAccessibleInterval.
-        :param numpy_array: A NumPy array with the same shape as the input RandomAccessibleInterval.
+        :param numpy_array: A NumPy array with the same shape as the input
+            RandomAccessibleInterval.
         :return: NumPy array with the input RandomAccessibleInterval data.
         """
-        if not isinstance(rai, _RandomAccessibleInterval()):
+        if not isinstance(rai, jc.RandomAccessibleInterval):
             raise TypeError("rai is not a RAI")
         if not self._is_arraylike(numpy_array):
             raise TypeError("numpy_array is not arraylike")
 
         # Check imglib2 version for fast copy availability.
-        imglib2_version = sj.get_version(_RandomAccessibleInterval())
+        imglib2_version = sj.get_version(jc.RandomAccessibleInterval)
         # TODO: After scyjava 1.6.0 is released, use:
         # sj.is_version_at_least(imglib2_version, "5.9.0")
         min_imglib2_version = "5.9.0"
@@ -385,7 +394,7 @@ class ImageJPython:
             return numpy_array
 
         # Check imagej-common version for fast copy availability.
-        imagej_common_version = sj.get_version(_Dataset())
+        imagej_common_version = sj.get_version(jc.Dataset)
         # TODO: After scyjava 1.6.0 is released, use:
         # sj.is_version_at_least(imagej_common_version, "0.30.0")
         min_imagej_common_version = "0.30.0"
@@ -393,7 +402,8 @@ class ImageJPython:
             sj.compare_version(min_imagej_common_version, imagej_common_version)
             or imagej_common_version == min_imagej_common_version
         ):
-            # ImageJ Common is new enough to use (deprecated) net.imagej.util.Images.copy.
+            # ImageJ Common is new enough to use (deprecated)
+            # net.imagej.util.Images.copy.
             Images = sj.jimport("net.imagej.util.Images")
             Images.copy(rai, self.to_java(numpy_array))
             return numpy_array
@@ -440,7 +450,7 @@ class ImageJPython:
             else:
                 return (
                     self._ij.script()
-                    .run("macro.ijm", macro, True, ij.py.jargs(args))
+                    .run("macro.ijm", macro, True, self._ij.py.jargs(args))
                     .get()
                 )
         except Exception as exc:
@@ -457,7 +467,8 @@ class ImageJPython:
 
         :param plugin: The string name for the plugin command.
         :param args: A dictionary of plugin arguments in key: value pairs.
-        :param ij1_style: Boolean to set which implicit boolean style to use (ImageJ or ImageJ2).
+        :param ij1_style: Boolean to set which implicit boolean style to use
+            (ImageJ or ImageJ2).
 
         :example:
 
@@ -528,7 +539,7 @@ class ImageJPython:
                 return self._ij.script().run("script." + ext, script, True).get()
             return (
                 self._ij.script()
-                .run("script." + ext, script, True, ij.py.jargs(args))
+                .run("script." + ext, script, True, self._ij.py.jargs(args))
                 .get()
             )
         except Exception as exc:
@@ -555,7 +566,7 @@ class ImageJPython:
         pyplot.imshow(self.from_java(image), interpolation="nearest", cmap=cmap)
         pyplot.show()
 
-    def sync_image(self, imp: "ij.ImagePlus"):
+    def sync_image(self, imp: "jc.ImagePlus"):
         """Synchronize data between ImageJ and ImageJ2.
 
         Synchronize between a Dataset or ImageDisplay linked to an
@@ -563,19 +574,22 @@ class ImageJPython:
 
         :param imp: The ImagePlus that needs to be synchronized.
         """
-        # This code is necessary because an ImagePlus can sometimes be modified without modifying the
-        # linked Dataset/ImageDisplay.  This happens when someone uses the ImageProcessor of the ImagePlus to change
-        # values on a slice.  The imagej-legacy layer does not synchronize when this happens to prevent
-        # significant overhead, as otherwise changing a single pixel would mean syncing a whole slice.  The
-        # ImagePlus also has a stack, which in the legacy case links to the Dataset/ImageDisplay.  This stack is
-        # updated by the legacy layer when you change slices, using ImageJVirtualStack.setPixelsZeroBasedIndex().
-        # As such, we only need to make sure that the current 2D image slice is up to date.  We do this by manually
-        # setting the stack to be the same as the imageprocessor.
+        # This code is necessary because an ImagePlus can sometimes be modified without
+        # modifying the linked Dataset/ImageDisplay. This happens when someone uses
+        # the ImageProcessor of the ImagePlus to change values on a slice. The
+        # imagej-legacy layer does not synchronize when this happens to prevent
+        # significant overhead, as otherwise changing a single pixel would mean syncing
+        # a whole slice. The ImagePlus also has a stack, which in the legacy case links
+        # to the Dataset/ImageDisplay. This stack is updated by the legacy layer when
+        # you change slices, using ImageJVirtualStack.setPixelsZeroBasedIndex(). As
+        # such, we only need to make sure that the current 2D image slice is up to
+        # date. We do this by manually setting the stack to be the same as the
+        # imageprocessor.
         stack = imp.getStack()
         pixels = imp.getProcessor().getPixels()
         stack.setPixels(pixels, imp.getCurrentSlice())
 
-    def synchronize_ij1_to_ij2(self, imp: "ij.ImagePlus"):
+    def synchronize_ij1_to_ij2(self, imp: "jc.ImagePlus"):
         """
         This function is deprecated. Use sync_image instead.
         """
@@ -630,7 +644,7 @@ class ImageJPython:
         :return: An 'ij.ImagePlus'.
         """
         self._ij._check_legacy_active("Conversion to ImagePlus is not supported.")
-        return self._ij.convert().convert(self.to_dataset(data), _ImagePlus())
+        return self._ij.convert().convert(self.to_dataset(data), jc.ImagePlus)
 
     def to_java(self, data):
         """Convert supported Python data into Java equivalents.
@@ -655,7 +669,7 @@ class ImageJPython:
 
     # -- Helper functions --
 
-    def _assign_dataset_metadata(self, dataset: "net.imagej.Dataset", attrs):
+    def _assign_dataset_metadata(self, dataset: "jc.Dataset", attrs):
         """
         :param dataset: ImageJ2 Dataset
         :param attrs: Dictionary containing metadata
@@ -679,7 +693,7 @@ class ImageJPython:
         return argument
 
     def _format_value(self, value):
-        if isinstance(value, _ImagePlus()):
+        if isinstance(value, jc.ImagePlus):
             return str(value.getTitle())
         temp_value = str(value).replace("\\", "/")
         if temp_value.startswith("[") and temp_value.endswith("]"):
@@ -690,7 +704,8 @@ class ImageJPython:
     def _get_origin(self, axis):
         """
         Get the coordinate origin of an axis, assuming it is the first entry.
-        :param axis: A 1D list like entry accessible with indexing, which contains the axis coordinates
+        :param axis: A 1D list like entry accessible with indexing, which contains
+            the axis coordinates
         :return: The origin for this axis.
         """
         return axis.values[0]
@@ -728,29 +743,33 @@ class ImageJPython:
         )
 
     def _permute_dataset_to_python(self, rai):
-        """Wrap a numpy array with xarray and axes metadata from a RandomAccessibleInterval.
+        """
+        Wrap a numpy array with xarray and axes metadata from a
+        RandomAccessibleInterval.
 
         Wraps a numpy array with the metadata from the source RandomAccessibleInterval
         metadata (i.e. axes). Also permutes the dimension of the rai to conform to
         numpy's standards
 
-        :param permuted_rai: A RandomAccessibleInterval with axes (e.g. Dataset or ImgPlus).
+        :param permuted_rai: A RandomAccessibleInterval with axes (e.g. Dataset or
+            ImgPlus).
         :return: xarray.DataArray with metadata/axes.
         """
-        data = self._ij.convert().convert(rai, _ImgPlus())
+        data = self._ij.convert().convert(rai, jc.ImgPlus)
         permuted_rai = self._permute_rai_to_python(data)
         numpy_result = self.initialize_numpy_image(permuted_rai)
         numpy_result = self.rai_to_numpy(permuted_rai, numpy_result)
         return self._dataset_to_xarray(permuted_rai, numpy_result)
 
-    def _permute_rai_to_python(self, rich_rai: "net.imglib2.RandomAccessibleInterval"):
+    def _permute_rai_to_python(self, rich_rai: "jc.RandomAccessibleInterval"):
         """Permute a RandomAccessibleInterval to the python reference order.
 
         Permute a RandomAccessibleInterval to the Python reference order of
-        CXYZT (where dimensions exist). Note that this is reverse from the final array order of
-        TZYXC.
+        CXYZT (where dimensions exist). Note that this is reverse from the
+        final array order of TZYXC.
 
-        :param rich_rai: A RandomAccessibleInterval with axis labels (e.g. Dataset or ImgPlus).
+        :param rich_rai: A RandomAccessibleInterval with axis labels
+            (e.g. Dataset or ImgPlus).
         :return: A permuted RandomAccessibleInterval.
         """
         # get input rai metadata if it exists
@@ -768,7 +787,7 @@ class ImageJPython:
         permuted_rai = dims.reorganize(rich_rai, permute_order)
 
         # add metadata to image if it exists
-        if rai_metadata != None:
+        if rai_metadata is not None:
             permuted_rai.getProperties().putAll(rai_metadata)
 
         return permuted_rai
@@ -870,19 +889,19 @@ class ImageJPython:
         """Get all ImgLib2-to-Python Converters"""
         return [
             sj.Converter(
-                predicate=lambda obj: isinstance(obj, _ImgLabeling()),
+                predicate=lambda obj: isinstance(obj, jc.ImgLabeling),
                 converter=self._imglabeling_to_labeling,
                 priority=sj.Priority.HIGH,
             ),
             sj.Converter(
-                predicate=lambda obj: _ImagePlus() and isinstance(obj, _ImagePlus()),
+                predicate=lambda obj: jc.ImagePlus and isinstance(obj, jc.ImagePlus),
                 converter=lambda obj: self.from_java(self._imageplus_to_imgplus(obj)),
                 priority=sj.Priority.HIGH + 2,
             ),
             sj.Converter(
                 predicate=self._can_convert_imgPlus,
                 converter=lambda obj: self._permute_dataset_to_python(
-                    self._ij.convert().convert(obj, _ImgPlus())
+                    self._ij.convert().convert(obj, jc.ImgPlus)
                 ),
                 priority=sj.Priority.HIGH,
             ),
@@ -901,7 +920,7 @@ class ImageJPython:
     def _can_convert_imgPlus(self, obj) -> bool:
         """Return false unless conversion to RAI is possible."""
         try:
-            can_convert = self._ij.convert().supports(obj, _ImgPlus())
+            can_convert = self._ij.convert().supports(obj, jc.ImgPlus)
             has_axis = dims._has_axis(obj)
             return can_convert and has_axis
         except Exception:
@@ -910,28 +929,31 @@ class ImageJPython:
     def _can_convert_rai(self, obj) -> bool:
         """Return false unless conversion to RAI is possible."""
         try:
-            return self._ij.convert().supports(obj, _RandomAccessibleInterval())
+            return self._ij.convert().supports(obj, jc.RandomAccessibleInterval)
         except Exception:
             return False
 
     def _convert_rai(self, data):
-        rai = self._ij.convert().convert(data, _RandomAccessibleInterval())
+        rai = self._ij.convert().convert(data, jc.RandomAccessibleInterval)
         numpy_result = self.initialize_numpy_image(rai)
         return self.rai_to_numpy(rai, numpy_result)
 
     def _dataset_to_xarray(
-        self, rich_rai: "net.imglib2.RandomAccessibleInterval", numpy_array: np.ndarray
+        self, rich_rai: "jc.RandomAccessibleInterval", numpy_array: np.ndarray
     ) -> xr.DataArray:
-        """Wrap a numpy array with xarray and axes metadta from a RandomAccessibleInterval.
+        """
+        Wrap a numpy array with xarray and axes metadata from a
+        RandomAccessibleInterval.
 
         Wraps a numpy array with the metadata from the source RandomAccessibleInterval
         metadata (i.e. axes).
 
-        :param rich_rai: A RandomAccessibleInterval with metadata (e.g. Dataset or ImgPlus).
+        :param rich_rai: A RandomAccessibleInterval with metadata
+            (e.g. Dataset or ImgPlus).
         :param numpy_array: A np.ndarray to wrap with xarray.
         :return: xarray.DataArray with metadata/axes.
         """
-        if not isinstance(rich_rai, _RandomAccessibleInterval()):
+        if not isinstance(rich_rai, jc.RandomAccessibleInterval):
             raise TypeError("rich_rai is not a RAI")
         if not hasattr(rich_rai, "dim_axes"):
             raise TypeError("rich_rai is not a rich RAI")
@@ -950,10 +972,10 @@ class ImageJPython:
         return xr.DataArray(numpy_array, dims=xr_dims, coords=xr_coords, attrs=xr_attrs)
 
     def _imageplus_to_imgplus(self, imp):
-        if not _ImagePlus() or not isinstance(imp, _ImagePlus()):
+        if not jc.ImagePlus or not isinstance(imp, jc.ImagePlus):
             raise ValueError("Input is not an ImagePlus")
 
-        ds = self._ij.convert().convert(imp, _Dataset())
+        ds = self._ij.convert().convert(imp, jc.Dataset)
         return ds.getImgPlus()
 
     def _java_to_dataset(self, data):
@@ -961,23 +983,23 @@ class ImageJPython:
         Convert the data into an ImageJ2 Dataset.
         """
         assert sj.isjava(data)
-        if isinstance(data, _Dataset()):
+        if isinstance(data, jc.Dataset):
             return data
 
-        # NB: This try checking is necessary because the set of ImageJ2 converters is not complete.
-        # E.g., there is no way to directly go from Img to Dataset, instead you need to chain the
-        # Img->ImgPlus->Dataset converters.
+        # NB: This try checking is necessary because the set of ImageJ2 converters is
+        # not complete. E.g., there is no way to directly go from Img to Dataset,
+        # instead you need to chain the Img->ImgPlus->Dataset converters.
         try:
-            if self._ij.convert().supports(data, _Dataset()):
-                return self._ij.convert().convert(data, _Dataset())
-            if self._ij.convert().supports(data, _ImgPlus()):
-                imgPlus = self._ij.convert().convert(data, _ImgPlus())
+            if self._ij.convert().supports(data, jc.Dataset):
+                return self._ij.convert().convert(data, jc.Dataset)
+            if self._ij.convert().supports(data, jc.ImgPlus):
+                imgPlus = self._ij.convert().convert(data, jc.ImgPlus)
                 return self._ij.dataset().create(imgPlus)
-            if self._ij.convert().supports(data, _Img()):
-                img = self._ij.convert().convert(data, _Img())
-                return self._ij.dataset().create(_ImgPlus()(img))
-            if self._ij.convert().supports(data, _RandomAccessibleInterval()):
-                rai = self._ij.convert().convert(data, _RandomAccessibleInterval())
+            if self._ij.convert().supports(data, jc.Img):
+                img = self._ij.convert().convert(data, jc.Img)
+                return self._ij.dataset().create(jc.ImgPlus(img))
+            if self._ij.convert().supports(data, jc.RandomAccessibleInterval):
+                rai = self._ij.convert().convert(data, jc.RandomAccessibleInterval)
                 return self._ij.dataset().create(rai)
         except Exception as exc:
             _dump_exception(exc)
@@ -989,16 +1011,17 @@ class ImageJPython:
         Convert the data into an ImgLib2 Img.
         """
         assert sj.isjava(data)
-        if isinstance(data, _Img()):
+        if isinstance(data, jc.Img):
             return data
 
-        # NB: This try checking is necessary because the set of ImageJ2 converters is not complete.
+        # NB: This try checking is necessary because the set of ImageJ2
+        # converters is not complete.
         try:
-            if self._ij.convert().supports(data, _Img()):
-                return self._ij.convert().convert(data, _Img())
-            if self._ij.convert().supports(data, _RandomAccessibleInterval()):
-                rai = self._ij.convert().convert(data, _RandomAccessibleInterval())
-                return _ImgView().wrap(rai)
+            if self._ij.convert().supports(data, jc.Img):
+                return self._ij.convert().convert(data, jc.Img)
+            if self._ij.convert().supports(data, jc.RandomAccessibleInterval):
+                rai = self._ij.convert().convert(data, jc.RandomAccessibleInterval)
+                return jc.ImgView.wrap(rai)
         except Exception as exc:
             _dump_exception(exc)
             raise exc
@@ -1016,7 +1039,9 @@ class ImageJPython:
 
     def _xarray_to_dataset(self, xarr):
         """
-        Converts a xarray dataarray to a dataset, inverting C-style (slow axis first) to F-style (slow-axis last)
+        Converts a xarray dataarray to a dataset, inverting C-style (slow axis first)
+        to F-style (slow-axis last)
+
         :param xarr: Pass an xarray dataarray and turn into a dataset.
         :return: The dataset
         """
@@ -1034,7 +1059,9 @@ class ImageJPython:
 
     def _xarray_to_img(self, xarr):
         """
-        Converts a xarray dataarray to an img, inverting C-style (slow axis first) to F-style (slow-axis last)
+        Converts a xarray dataarray to an img, inverting C-style (slow axis first) to
+        F-style (slow-axis last)
+
         :param xarr: Pass an xarray dataarray and turn into a img.
         :return: The img
         """
@@ -1074,7 +1101,7 @@ class ImageJPython:
         tmp_pth_tif = tmp_pth + ".tif"
         try:
             self._delete_labeling_files(tmp_pth)
-            data = self._ij.convert().convert(data, _ImgLabeling())
+            data = self._ij.convert().convert(data, jc.ImgLabeling)
             labels.save(
                 data, tmp_pth_tif
             )  # TODO: improve, likely utilizing the data's name
@@ -1146,11 +1173,14 @@ class GatewayAddons(object):
         """
         if not hasattr(self, "_legacy"):
             try:
-                LegacyService = sj.jimport("net.imagej.legacy.LegacyService")
+                # NB This call is necessary for loading the LegacyService
+                sj.jimport("net.imagej.legacy.LegacyService")
+
                 self._legacy = self.get("net.imagej.legacy.LegacyService")
                 if self.ui().isHeadless():
                     _logger.warning(
-                        "Operating in headless mode - the original ImageJ will have limited functionality."
+                        "Operating in headless mode - the original ImageJ "
+                        "will have limited functionality."
                     )
             except TypeError:
                 self._legacy = None
@@ -1196,7 +1226,8 @@ class GatewayAddons(object):
         if not hasattr(self, property_name):
             if self.ui().isHeadless():
                 _logger.warning(
-                    f"Operating in headless mode - the {class_name} class will not be fully functional."
+                    f"Operating in headless mode - the {class_name} "
+                    "class will not be fully functional."
                 )
             setattr(self, property_name, sj.jimport(fqcn))
 
@@ -1205,7 +1236,9 @@ class GatewayAddons(object):
     def _check_legacy_active(self, usage_context=""):
         if not self.legacy or not self.legacy.isActive():
             raise ImportError(
-                f"The original ImageJ is not available in this environment. {usage_context} See: https://github.com/imagej/pyimagej/blob/master/doc/Initialization.md"
+                "The original ImageJ is not available in this environment. "
+                f"{usage_context} See: "
+                "https://github.com/imagej/pyimagej/blob/master/doc/Initialization.md"
             )
 
 
@@ -1249,7 +1282,7 @@ class RAIOperators(object):
         return (
             self._op.run("math.add", self, other)
             if self._op is not None
-            else _ImgMath().add(self._jargs(self, other))
+            else jc.ImgMath.add(self._jargs(self, other))
         )
 
     def __sub__(self, other):
@@ -1257,7 +1290,7 @@ class RAIOperators(object):
         return (
             self._op.run("math.sub", self, other)
             if self._op is not None
-            else _ImgMath().sub(self._jargs(self, other))
+            else jc.ImgMath.sub(self._jargs(self, other))
         )
 
     def __mul__(self, other):
@@ -1265,7 +1298,7 @@ class RAIOperators(object):
         return (
             self._op.run("math.mul", self, other)
             if self._op is not None
-            else _ImgMath().mul(self._jargs(self, other))
+            else jc.ImgMath.mul(self._jargs(self, other))
         )
 
     def __truediv__(self, other):
@@ -1273,16 +1306,16 @@ class RAIOperators(object):
         return (
             self._op.run("math.div", self, other)
             if self._op is not None
-            else _ImgMath().div(self._jargs(self, other))
+            else jc.ImgMath.div(self._jargs(self, other))
         )
 
     def __getitem__(self, key):
-        if type(key) == slice:
+        if isinstance(key, slice):
             # Wrap single slice into tuple of length 1.
             return self._slice((key,))
-        elif type(key) == tuple:
+        elif isinstance(key, tuple):
             return self._index(key) if self._is_index(key) else self._slice(key)
-        elif type(key) == int:
+        elif isinstance(key, int):
             # Wrap single int into tuple of length 1.
             return self.__getitem__((key,))
         else:
@@ -1306,16 +1339,16 @@ class RAIOperators(object):
         if axis is None:
             # Process all dimensions.
             axis = tuple(range(self.numDimensions()))
-        if type(axis) == int:
+        if isinstance(axis, int):
             # Convert int to singleton tuple.
             axis = (axis,)
-        if type(axis) != tuple:
+        if not isinstance(axis, tuple):
             raise ValueError(f"Invalid type for axis parameter: {type(axis)}")
 
         res = self
         for d in range(self.numDimensions() - 1, -1, -1):
             if d in axis and self.dimension(d) == 1:
-                res = _Views().hyperSlice(res, d, self.min(d))
+                res = jc.Views.hyperSlice(res, d, self.min(d))
         return res
 
     @property
@@ -1338,7 +1371,7 @@ class RAIOperators(object):
             if self._op is not None:
                 view = self._op.run("transform.permuteView", view, i, max_dim - i)
             else:
-                view = _Views().permute(view, i, max_dim - i)
+                view = jc.Views.permute(view, i, max_dim - i)
         return view
 
     def _index(self, position):
@@ -1354,18 +1387,18 @@ class RAIOperators(object):
 
     def _is_index(self, a):
         # Check dimensionality - if we don't have enough dims, it's a slice
-        num_dims = 1 if type(a) == int else len(a)
+        num_dims = 1 if isinstance(a, int) else len(a)
         if num_dims < self.numDimensions():
             return False
         # if an int, it is an index
-        if type(a) == int:
+        if isinstance(a, int):
             return True
         # if we have a tuple, it's an index if there are any slices
-        hasSlice = True in [type(item) == slice for item in a]
+        hasSlice = True in [isinstance(item, slice) for item in a]
         return not hasSlice
 
     def _jargs(self, *args):
-        return _JObjectArray()(list(map(sj.to_java, args)))
+        return JObjectArray()(list(map(sj.to_java, args)))
 
     @property
     @lru_cache(maxsize=None)
@@ -1404,11 +1437,11 @@ class RAIOperators(object):
         imin = []
         imax = []
         istep = []
-        dslices = [r if type(r) == slice else slice(r, r + 1) for r in ranges]
+        dslices = [r if isinstance(r, slice) else slice(r, r + 1) for r in ranges]
         for dslice in dslices:
-            imax.append(None if dslice.stop == None else dslice.stop - 1)
-            imin.append(None if dslice.start == None else dslice.start)
-            istep.append(1 if dslice.step == None else dslice.step)
+            imax.append(None if dslice.stop is None else dslice.stop - 1)
+            imin.append(None if dslice.start is None else dslice.start)
+            istep.append(1 if dslice.step is None else dslice.step)
 
         # BE WARNED! This does not yet preserve net.imagej-level axis metadata!
         # We need to finish RichImg to support that properly.
@@ -1449,7 +1482,7 @@ class AnnotatedSpaceAddons(object):
     """
 
     @property
-    def dim_axes(self) -> Tuple["net.imagej.axis.Axis"]:
+    def dim_axes(self) -> Tuple["jc.Axis"]:
         """Get the axes of the dimensional space.
 
         :return: tuple of net.imagej.axis.Axis objects describing the
@@ -1513,7 +1546,12 @@ def init(
         | OR version of net.imagej:imagej artifact to launch (e.g. 2.3.0),
         | OR endpoint of another artifact built on ImageJ2 (e.g. sc.fiji:fiji),
         | OR list of Maven artifacts to include (e.g.
-        |   ['net.imagej:imagej:2.3.0', 'net.imagej:imagej-legacy', 'net.preibisch:BigStitcher']).
+        |   [
+        |       'net.imagej:imagej:2.3.0',
+        |       'net.imagej:imagej-legacy',
+        |       'net.preibisch:BigStitcher',
+        |   ]
+        | ).
         | The default is the latest version of net.imagej:imagej.
 
     :param mode:
@@ -1565,7 +1603,8 @@ def init(
     """
     if headless is not None:
         _logger.warning(
-            "The headless flag of imagej.init is deprecated. Use the mode argument instead."
+            "The headless flag of imagej.init is deprecated. "
+            "Use the mode argument instead."
         )
         mode = Mode.HEADLESS if headless else Mode.INTERACTIVE
 
@@ -1591,7 +1630,10 @@ def init(
                         "PyObjC is required for GUI mode on macOS. Please install it.\n"
                     )
                     if "CONDA_PREFIX" in os.environ:
-                        advice += "E.g.: conda install -c conda-forge pyobjc-core pyobjc-framework-cocoa"
+                        advice += (
+                            "E.g.: conda install -c conda-forge pyobjc-core "
+                            "pyobjc-framework-cocoa"
+                        )
                     else:
                         advice += "E.g.: pip install pyobjc"
                     raise RuntimeError(
@@ -1614,12 +1656,16 @@ def init(
 
 
 def imagej_main():
-    """Entry point for launching ImageJ from the command line via the `imagej` console entry point script."""
+    """
+    Entry point for launching ImageJ from the command line via the `imagej`
+    console entry point script.
+    """
     args = []
     for i in range(1, len(sys.argv)):
         args.append(sys.argv[i])
     mode = "headless" if "--headless" in args else "gui"
-    ij = init(mode=mode)
+    # Initialize imagej
+    init(mode=mode)
 
 
 def _create_gateway():
@@ -1628,11 +1674,11 @@ def _create_gateway():
         ImageJ = sj.jimport("net.imagej.ImageJ")
     except TypeError:
         _logger.error(
-            """
-***Invalid initialization: ImageJ2 was not found***
-   Please update your initialization call to include an ImageJ2 application or endpoint (e.g. net.imagej:imagej).
-   NOTE: You MUST restart your python interpreter as Java can only be started once.
-"""
+            "***Invalid initialization: ImageJ2 was not found***\n"
+            "Please update your initialization call to include an ImageJ2 "
+            "application or endpoint (e.g. net.imagej:imagej).\n"
+            "NOTE: You MUST restart your python interpreter as Java can only "
+            "be started once."
         )
         return False
 
@@ -1689,7 +1735,8 @@ def _create_jvm(
         _logger.warning("Failed to guess the Java version.")
         _logger.debug(e, exc_info=True)
 
-    # We want ImageJ2's endpoints to come first, so these will be restored later
+    # We want ImageJ2's endpoints to come first, so these will be restored
+    # later
     original_endpoints = sj.config.endpoints.copy()
     sj.config.endpoints.clear()
     init_failed = False
@@ -1721,8 +1768,8 @@ def _create_jvm(
         num_jars = _set_ij_env(path)
         if num_jars <= 0:
             _logger.error(
-                "Given directory does not appear to be a valid ImageJ2 installation: %s",
-                path,
+                "Given directory does not appear to be a valid ImageJ2 installation: "
+                f"{path}"
             )
             init_failed = True
         else:
@@ -1781,27 +1828,30 @@ def _create_jvm(
     try:
         sj.start_jvm()
     except subprocess.CalledProcessError as e:
-        # Check to see if initialization failed due to "un-managed" imagej-legacy
+        # Check to see if initialization failed due to "un-managed"
+        # imagej-legacy
         err_lines = []
         unmanaged_legacy = False
         if e.stdout:
             err_lines += e.stdout.decode().splitlines()
         if e.stderr:
             err_lines += e.stderr.decode().splitlines()
-        for l in err_lines:
+        for line in err_lines:
             if (
-                "'dependencies.dependency.version' for net.imagej:imagej-legacy:jar is missing."
-                in l
+                "'dependencies.dependency.version' for net.imagej:imagej-legacy:jar "
+                "is missing." in line
             ):
                 unmanaged_legacy = True
         if unmanaged_legacy:
             _logger.error(
-                """
-***Invalid Initialization: you may be using primary endpoint that lacks pom-scijava as a parent***
-   To keep all Java components at compatible versions we recommend using a primary endpoint with a pom-scijava parent.
-   For example, by putting 'net.imagej:imagej' first in your list of endpoints.
-   If you are sure you DO NOT want a primary endpoint with a pom-scijava parent, please re-initialize with 'add_legacy=False'.
-"""
+                "***Invalid Initialization: you may be using primary endpoint that "
+                "lacks pom-scijava as a parent***\n"
+                "To keep all Java components at compatible versions we recommend using "
+                "a primary endpoint with a pom-scijava parent.\n"
+                "For example, by putting 'net.imagej:imagej' first in your list of "
+                "endpoints.\n"
+                "If you are sure you DO NOT want a primary endpoint with a pom-scijava "
+                "parent, please re-initialize with 'add_legacy=False'."
             )
         sj.config.endpoints.clear()
         sj.config.endpoints.extend(original_endpoints)
@@ -1812,7 +1862,7 @@ def _create_jvm(
 
 def _dump_exception(exc):
     if _logger.isEnabledFor(logging.DEBUG):
-        jtrace = jstacktrace(exc)
+        jtrace = sj.jstacktrace(exc)
         if jtrace:
             _logger.debug(jtrace)
 
@@ -1832,60 +1882,3 @@ def _set_ij_env(ij_dir):
     # add to classpath
     sj.config.add_classpath(os.pathsep.join(jars))
     return len(jars)
-
-
-# Import Java resources on demand.
-
-
-@lru_cache(maxsize=None)
-def _JObjectArray():
-    return JArray(JObject)
-
-
-@lru_cache(maxsize=None)
-def _ImagePlus():
-    try:
-        return sj.jimport("ij.ImagePlus")
-    except TypeError:
-        # No original ImageJ on the classpath.
-        return None
-
-
-@lru_cache(maxsize=None)
-def _Dataset():
-    return sj.jimport("net.imagej.Dataset")
-
-
-@lru_cache(maxsize=None)
-def _ImgPlus():
-    return sj.jimport("net.imagej.ImgPlus")
-
-
-@lru_cache(maxsize=None)
-def _RandomAccessibleInterval():
-    return sj.jimport("net.imglib2.RandomAccessibleInterval")
-
-
-@lru_cache(maxsize=None)
-def _ImgMath():
-    return sj.jimport("net.imglib2.algorithm.math.ImgMath")
-
-
-@lru_cache(maxsize=None)
-def _Img():
-    return sj.jimport("net.imglib2.img.Img")
-
-
-@lru_cache(maxsize=None)
-def _ImgView():
-    return sj.jimport("net.imglib2.img.ImgView")
-
-
-@lru_cache(maxsize=None)
-def _ImgLabeling():
-    return sj.jimport("net.imglib2.roi.labeling.ImgLabeling")
-
-
-@lru_cache(maxsize=None)
-def _Views():
-    return sj.jimport("net.imglib2.view.Views")

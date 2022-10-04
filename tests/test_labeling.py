@@ -1,10 +1,8 @@
 from typing import Any, Dict, List
 
+import numpy as np
 import pytest
 import scyjava as sj
-import numpy as np
-
-from jpype import JObject, JException, JArray, JInt, JLong
 
 
 @pytest.fixture(scope="module")
@@ -39,8 +37,8 @@ def java_labeling(ij_fixture):
     img[2:, :2] = 7
     img[2:, 2:] = 4
     img_java = ij_fixture.py.to_java(img)
-    sets = [[], [1], [2], [1, 2], [2, 3], [3], [1, 4], [3, 4]]
-    sets = [set(l) for l in sets]
+    example_lists = [[], [1], [2], [1, 2], [2, 3], [3], [1, 4], [3, 4]]
+    sets = [set(example) for example in example_lists]
     sets_java = ij_fixture.py.to_java(sets)
 
     ImgLabeling = sj.jimport("net.imglib2.roi.labeling.ImgLabeling")
