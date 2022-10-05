@@ -1747,24 +1747,19 @@ def _create_jvm(
         sj.config.endpoints.append("net.imagej:imagej")
 
     elif isinstance(ij_dir_or_version_or_endpoint, list):
-        # Assume that this is a list of Maven endpoints
-        if any(
-            item.startswith("net.imagej:imagej-legacy")
-            for item in ij_dir_or_version_or_endpoint
-        ):
-            add_legacy = False
-
-        endpoint = "+".join(ij_dir_or_version_or_endpoint)
+        # Assume that this is a list of Maven endpoints.
         _logger.debug(
             "List of Maven coordinates given: %s", ij_dir_or_version_or_endpoint
         )
-        sj.config.endpoints.append(endpoint)
+        if _includes_imagej_legacy(ij_dir_or_version_or_endpoint):
+            add_legacy = False
+        sj.config.endpoints.extend(ij_dir_or_version_or_endpoint)
 
     elif os.path.isdir(os.path.expanduser(ij_dir_or_version_or_endpoint)):
         # Assume path to local ImageJ2 installation.
+        _logger.debug("Local path to ImageJ2 installation given: %s", path)
         add_legacy = False
         path = os.path.abspath(os.path.expanduser(ij_dir_or_version_or_endpoint))
-        _logger.debug("Local path to ImageJ2 installation given: %s", path)
         num_jars = _set_ij_env(path)
         if num_jars <= 0:
             _logger.error(
@@ -1789,19 +1784,16 @@ def _create_jvm(
 
     elif ":" in ij_dir_or_version_or_endpoint:
         # Assume endpoint of an artifact.
-        # Strip out white spaces
-        endpoint = ij_dir_or_version_or_endpoint.replace("    ", "")
-        if any(
-            item.startswith("net.imagej:imagej-legacy") for item in endpoint.split("+")
-        ):
+        _logger.debug("Maven coordinate given: %s", ij_dir_or_version_or_endpoint)
+        # Strip whitespace and split concatenated endpoints.
+        endpoints = re.sub("\s*", "", ij_dir_or_version_or_endpoint).split("+")
+        if _includes_imagej_legacy(endpoints):
             add_legacy = False
-        _logger.debug("Maven coordinate given: %s", endpoint)
-        sj.config.endpoints.append(endpoint)
+        sj.config.endpoints.extend(endpoints)
 
     else:
-        # Assume version of net.imagej:imagej.
+        # Assume string is an x.y.z-style version of net.imagej:imagej.
         version = ij_dir_or_version_or_endpoint
-        # Skip ignore
         if not re.match("\\d+\\.\\d+\\.\\d+", version):
             _logger.error("Invalid initialization string: %s", version)
             init_failed = True
@@ -1811,7 +1803,7 @@ def _create_jvm(
             sj.config.endpoints.append("net.imagej:imagej:" + version)
 
     if init_failed:
-        # Restore any pre-existing endpoints to allow for re-initialization
+        # Restore any pre-existing endpoints to allow for re-initialization.
         sj.config.endpoints.clear()
         sj.config.endpoints.extend(original_endpoints)
         return False
@@ -1819,10 +1811,10 @@ def _create_jvm(
     if add_legacy:
         sj.config.endpoints.append("net.imagej:imagej-legacy:MANAGED")
 
-    # Add additional ImageJ endpoints specific to PyImageJ
+    # Add additional ImageJ endpoints specific to PyImageJ.
     sj.config.endpoints.append("io.scif:scifio-labeling:0.3.1")
 
-    # Restore any pre-existing endpoints, after ImageJ2's
+    # Restore any pre-existing endpoints, after ImageJ2's.
     sj.config.endpoints.extend(original_endpoints)
 
     try:
@@ -1865,6 +1857,10 @@ def _dump_exception(exc):
         jtrace = sj.jstacktrace(exc)
         if jtrace:
             _logger.debug(jtrace)
+
+
+def _includes_imagej_legacy(items: list):
+    return any(item.startswith("net.imagej:imagej-legacy") for item in items)
 
 
 def _set_ij_env(ij_dir):
