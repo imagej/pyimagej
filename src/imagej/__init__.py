@@ -31,7 +31,6 @@ Here is an example of opening an image using ImageJ2 and displaying it:
     ij.py.show(image, cmap='gray')
 """
 
-import ctypes
 import logging
 import os
 import re
@@ -42,27 +41,24 @@ import time
 from enum import Enum
 from functools import lru_cache
 from pathlib import Path
-from typing import Dict, Tuple, Union
+from typing import Tuple, Union
 
 import imglyb
 import numpy as np
 import scyjava as sj
 import xarray as xr
 from jpype import (
-    JByte,
     JException,
-    JFloat,
     JImplementationFor,
     JImplements,
-    JLong,
     JObject,
     JOverride,
-    JShort,
     setupGuiEnvironment,
 )
 from labeling import Labeling
 from scyjava.config import find_jars
 
+import imagej.convert as convert
 import imagej.dims as dims
 import imagej.images as images
 import imagej.stack as stack
@@ -771,67 +767,6 @@ class ImageJPython:
 
         return permuted_rai
 
-    # Dict between ctypes and equivalent realTypes
-    # These types were chosen to guarantee the number of bits in each
-    # ctype, as the sizes of some ctypes are platform-dependent. See
-    # https://docs.python.org/3/library/ctypes.html#ctypes-fundamental-data-types-2
-    # for more information.
-    ctype_map: Dict[type, str] = {
-        ctypes.c_bool: "net.imglib2.type.logic.BoolType",
-        ctypes.c_int8: "net.imglib2.type.numeric.integer.ByteType",
-        ctypes.c_uint8: "net.imglib2.type.numeric.integer.UnsignedByteType",
-        ctypes.c_int16: "net.imglib2.type.numeric.integer.ShortType",
-        ctypes.c_uint16: "net.imglib2.type.numeric.integer.UnsignedShortType",
-        ctypes.c_int32: "net.imglib2.type.numeric.integer.IntType",
-        ctypes.c_uint32: "net.imglib2.type.numeric.integer.UnsignedIntType",
-        ctypes.c_int64: "net.imglib2.type.numeric.integer.LongType",
-        ctypes.c_uint64: "net.imglib2.type.numeric.integer.UnsignedLongType",
-        ctypes.c_float: "net.imglib2.type.numeric.real.FloatType",
-        ctypes.c_double: "net.imglib2.type.numeric.real.DoubleType",
-    }
-
-    # Dict of casters for realtypes that cannot directly take
-    # the raw conversion of ctype.value
-    realtype_casters: Dict[str, type] = {
-        "net.imglib2.type.numeric.integer.ByteType": JByte,
-        "net.imglib2.type.numeric.integer.UnsignedIntType": JLong,
-        "net.imglib2.type.numeric.integer.ShortType": JShort,
-        "net.imglib2.type.numeric.integer.LongType": JLong,
-        "net.imglib2.type.numeric.integer.UnsignedLongType": JLong,
-        "net.imglib2.type.numeric.real.DoubleType": JFloat,
-    }
-
-    def _to_realType(self, obj: ctypes._SimpleCData):
-        # First, convert the ctype value to java
-        jtype_raw = self.to_java(obj.value)
-        # Then, find the correct RealType
-        realType_str = self.ctype_map[type(obj)]
-        # jtype_raw is usually an Integer or Double.
-        # We may have to cast it to fit the RealType parameter
-        if realType_str in self.realtype_casters:
-            caster = self.realtype_casters[realType_str]
-            jtype_raw = caster(jtype_raw)
-        # Create and return the RealType
-        realType = sj.jimport(realType_str)
-        return realType(jtype_raw)
-
-    def _from_realType(self, realType):
-        # First, convert the realType to a Java primitive
-        jtype_raw = realType.get()
-        # Then, convert to the python primitive
-        converted = self.from_java(jtype_raw)
-        value = realType.getClass().getName()
-        for k, v in self.ctype_map.items():
-            if v == value:
-                return k(converted)
-        raise ValueError(f"Cannot convert RealType {value}")
-
-    def _is_supported_realType(self, obj):
-        if not isinstance(obj, sj.jimport("net.imglib2.type.numeric.RealType")):
-            return False
-        type_str = obj.getClass().getName()
-        return type_str in self.ctype_map.values()
-
     # -- Helper functions - type conversion --
 
     def _add_converters(self):
@@ -847,8 +782,8 @@ class ImageJPython:
         )
         sj.add_java_converter(
             sj.Converter(
-                predicate=lambda obj: type(obj) in self.ctype_map,
-                converter=self._to_realType,
+                predicate=convert.supports_ctype_to_realtype,
+                converter=convert.ctype_to_realtype,
                 priority=sj.Priority.HIGH + 1,
             )
         )
@@ -877,8 +812,8 @@ class ImageJPython:
         )
         sj.add_py_converter(
             sj.Converter(
-                predicate=self._is_supported_realType,
-                converter=self._from_realType,
+                predicate=convert.supports_realtype_to_ctype,
+                converter=convert.realtype_to_ctype,
                 priority=sj.Priority.HIGH + 1,
             )
         )

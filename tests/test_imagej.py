@@ -637,7 +637,7 @@ parameters = [
 
 
 @pytest.mark.parametrize(argnames="ctype,jtype_str,value", argvalues=parameters)
-def test_ctype_to_realType(ij_fixture, ctype, jtype_str, value):
+def test_ctype_to_realtype(ij_fixture, ctype, jtype_str, value):
     py_type = ctype(value)
     # Convert the ctype into a RealType
     converted = ij_fixture.py.to_java(py_type)
