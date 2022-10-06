@@ -19,7 +19,7 @@ check:
 	@bin/check.sh
 
 lint: check
-	black src tests
+	bin/lint.sh
 
 test: check
 	bin/test.sh
