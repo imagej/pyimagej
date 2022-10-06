@@ -6,6 +6,8 @@ import scyjava as sj
 import xarray as xr
 from jpype import JException, JObject
 
+from imagej.images import is_arraylike as _is_arraylike
+from imagej.images import is_xarraylike as _is_xarraylike
 from imagej._utils import jc
 
 _logger = logging.getLogger(__name__)
@@ -402,26 +404,6 @@ def _has_axis(rai: "jc.RandomAccessibleInterval"):
         return hasattr(rai, "axis")
     else:
         False
-
-
-def _is_arraylike(arr):
-    """Check if object is an array."""
-    return (
-        hasattr(arr, "shape")
-        and hasattr(arr, "dtype")
-        and hasattr(arr, "__array__")
-        and hasattr(arr, "ndim")
-    )
-
-
-def _is_xarraylike(xarr):
-    """Check if object is an xarray."""
-    return (
-        hasattr(xarr, "values")
-        and hasattr(xarr, "dims")
-        and hasattr(xarr, "coords")
-        and _is_arraylike(xarr.values)
-    )
 
 
 def _to_pydim(key: str) -> str:

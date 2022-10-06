@@ -64,6 +64,7 @@ from labeling import Labeling
 from scyjava.config import find_jars
 
 import imagej.dims as dims
+import imagej.images as images
 import imagej.stack as stack
 from imagej._utils import JObjectArray, jc
 
@@ -189,7 +190,7 @@ class ImageJPython:
         ij.py.dims(image) is deprecated. Use image.shape instead.
         """
         _logger.warning("ij.py.dims(image) is deprecated. Use image.shape instead.")
-        if self._is_arraylike(image):
+        if images.is_arraylike(image):
             return image.shape
         if not sj.isjava(image):
             raise TypeError("Unsupported type: " + str(type(image)))
@@ -253,7 +254,7 @@ class ImageJPython:
         """
         if isinstance(image_or_type, np.dtype):
             return image_or_type
-        if self._is_arraylike(image_or_type):
+        if images.is_arraylike(image_or_type):
             return image_or_type.dtype
         if not sj.isjava(image_or_type):
             raise TypeError("Unsupported type: " + str(type(image_or_type)))
@@ -376,7 +377,7 @@ class ImageJPython:
         """
         if not isinstance(rai, jc.RandomAccessibleInterval):
             raise TypeError("rai is not a RAI")
-        if not self._is_arraylike(numpy_array):
+        if not images.is_arraylike(numpy_array):
             raise TypeError("numpy_array is not arraylike")
 
         # Check imglib2 version for fast copy availability.
@@ -609,9 +610,9 @@ class ImageJPython:
         :param data: Image object to be converted to Dataset.
         :return: A 'net.imagej.Dataset'.
         """
-        if self._is_xarraylike(data):
+        if images.is_xarraylike(data):
             return self._xarray_to_dataset(data)
-        if self._is_arraylike(data):
+        if images.is_arraylike(data):
             return self._numpy_to_dataset(data)
         if sj.isjava(data):
             return self._java_to_dataset(data)
@@ -627,9 +628,9 @@ class ImageJPython:
         :param data: Image object to be converted to Img.
         :return: A 'net.imglib2.img.Img'.
         """
-        if self._is_xarraylike(data):
+        if images.is_xarraylike(data):
             return self._xarray_to_img(data)
-        if self._is_arraylike(data):
+        if images.is_arraylike(data):
             return self._numpy_to_img(data)
         if sj.isjava(data):
             return self._java_to_img(data)
@@ -720,29 +721,6 @@ class ImageJPython:
         reverse_cut = list(reversed(cut_list))
         reverse_cut.append(lst[-1])
         return reverse_cut
-
-    def _is_arraylike(self, arr):
-        return (
-            hasattr(arr, "shape")
-            and hasattr(arr, "dtype")
-            and hasattr(arr, "__array__")
-            and hasattr(arr, "ndim")
-        )
-
-    def _is_memoryarraylike(self, arr):
-        return (
-            self._is_arraylike(arr)
-            and hasattr(arr, "data")
-            and type(arr.data).__name__ == "memoryview"
-        )
-
-    def _is_xarraylike(self, xarr):
-        return (
-            hasattr(xarr, "values")
-            and hasattr(xarr, "dims")
-            and hasattr(xarr, "coords")
-            and self._is_arraylike(xarr.values)
-        )
 
     def _permute_dataset_to_python(self, rai):
         """
@@ -862,7 +840,7 @@ class ImageJPython:
         # Python to Java
         sj.add_java_converter(
             sj.Converter(
-                predicate=self._is_xarraylike,
+                predicate=images.is_xarraylike,
                 converter=self.to_dataset,
                 priority=sj.Priority.HIGH + 1,
             )
@@ -883,7 +861,7 @@ class ImageJPython:
         )
         sj.add_java_converter(
             sj.Converter(
-                predicate=self._is_memoryarraylike,
+                predicate=images.is_memoryarraylike,
                 converter=self.to_img,
                 priority=sj.Priority.HIGH,
             )
@@ -968,7 +946,7 @@ class ImageJPython:
             raise TypeError("rich_rai is not a RAI")
         if not hasattr(rich_rai, "dim_axes"):
             raise TypeError("rich_rai is not a rich RAI")
-        if not self._is_arraylike(numpy_array):
+        if not images.is_arraylike(numpy_array):
             raise TypeError("numpy_array is not arraylike")
 
         # get metadata
@@ -1039,12 +1017,12 @@ class ImageJPython:
         raise TypeError("Cannot convert to img: " + str(type(data)))
 
     def _numpy_to_dataset(self, data):
-        assert self._is_arraylike(data)
+        assert images.is_arraylike(data)
         rai = imglyb.to_imglib(data)
         return self._java_to_dataset(rai)
 
     def _numpy_to_img(self, data):
-        assert self._is_arraylike(data)
+        assert images.is_arraylike(data)
         rai = imglyb.to_imglib(data)
         return self._java_to_img(rai)
 
@@ -1056,7 +1034,7 @@ class ImageJPython:
         :param xarr: Pass an xarray dataarray and turn into a dataset.
         :return: The dataset
         """
-        assert self._is_xarraylike(xarr)
+        assert images.is_xarraylike(xarr)
         if dims._ends_with_channel_axis(xarr):
             vals = np.moveaxis(xarr.values, -1, 0)
             dataset = self._numpy_to_dataset(vals)
@@ -1076,7 +1054,7 @@ class ImageJPython:
         :param xarr: Pass an xarray dataarray and turn into a img.
         :return: The img
         """
-        assert self._is_xarraylike(xarr)
+        assert images.is_xarraylike(xarr)
         if dims._ends_with_channel_axis(xarr):
             vals = np.moveaxis(xarr.values, -1, 0)
             return self._numpy_to_img(vals)
