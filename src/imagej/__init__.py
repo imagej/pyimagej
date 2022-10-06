@@ -861,20 +861,6 @@ class ImageJPython:
         # Python to Java
         sj.add_java_converter(
             sj.Converter(
-                predicate=lambda obj: isinstance(obj, Labeling),
-                converter=self._labeling_to_imglabeling,
-                priority=sj.Priority.HIGH + 1,
-            )
-        )
-        sj.add_java_converter(
-            sj.Converter(
-                predicate=self._is_memoryarraylike,
-                converter=self.to_img,
-                priority=sj.Priority.HIGH,
-            )
-        )
-        sj.add_java_converter(
-            sj.Converter(
                 predicate=self._is_xarraylike,
                 converter=self.to_dataset,
                 priority=sj.Priority.HIGH + 1,
@@ -887,20 +873,34 @@ class ImageJPython:
                 priority=sj.Priority.HIGH + 1,
             )
         )
-
-        # Java to Python
-        sj.add_py_converter(
+        sj.add_java_converter(
             sj.Converter(
-                predicate=lambda obj: isinstance(obj, jc.ImgLabeling),
-                converter=self._imglabeling_to_labeling,
+                predicate=lambda obj: isinstance(obj, Labeling),
+                converter=self._labeling_to_imglabeling,
+                priority=sj.Priority.HIGH + 1,
+            )
+        )
+        sj.add_java_converter(
+            sj.Converter(
+                predicate=self._is_memoryarraylike,
+                converter=self.to_img,
                 priority=sj.Priority.HIGH,
             )
         )
+
+        # Java to Python
         sj.add_py_converter(
             sj.Converter(
                 predicate=lambda obj: jc.ImagePlus and isinstance(obj, jc.ImagePlus),
                 converter=lambda obj: self.from_java(self._imageplus_to_imgplus(obj)),
                 priority=sj.Priority.HIGH + 2,
+            )
+        )
+        sj.add_py_converter(
+            sj.Converter(
+                predicate=self._is_supported_realType,
+                converter=self._from_realType,
+                priority=sj.Priority.HIGH + 1,
             )
         )
         sj.add_py_converter(
@@ -914,16 +914,16 @@ class ImageJPython:
         )
         sj.add_py_converter(
             sj.Converter(
-                predicate=self._can_convert_rai,
-                converter=self._convert_rai,
-                priority=sj.Priority.HIGH - 2,
+                predicate=lambda obj: isinstance(obj, jc.ImgLabeling),
+                converter=self._imglabeling_to_labeling,
+                priority=sj.Priority.HIGH,
             )
         )
         sj.add_py_converter(
             sj.Converter(
-                predicate=self._is_supported_realType,
-                converter=self._from_realType,
-                priority=sj.Priority.HIGH + 1,
+                predicate=self._can_convert_rai,
+                converter=self._convert_rai,
+                priority=sj.Priority.HIGH - 2,
             )
         )
 
