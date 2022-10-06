@@ -12,7 +12,7 @@ def rai_slice(rai, imin: Tuple, imax: Tuple, istep: Tuple):
     :param rai: An ImgLib2 RandomAccessibleInterval
     :param imin: Tuple of minimum interval range values.
     :param imax: Tuple of maximum interval range values.
-    :return: Sliced ImgLib2 RandomAccisbleInterval.
+    :return: Sliced ImgLib2 RandomAccessibleInterval.
     """
 
     # HACK: Avoid importing JLong at global scope.

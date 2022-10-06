@@ -42,7 +42,7 @@ import time
 from enum import Enum
 from functools import lru_cache
 from pathlib import Path
-from typing import Dict, List, Tuple
+from typing import Dict, Tuple, Union
 
 import imglyb
 import numpy as np
@@ -457,7 +457,7 @@ class ImageJPython:
             _dump_exception(exc)
             raise exc
 
-    def run_plugin(self, plugin: str, args={}, ij1_style=True, imp=None):
+    def run_plugin(self, plugin: str, args=None, ij1_style=True, imp=None):
         """Run an ImageJ 1.x plugin.
 
         Run an ImageJ 1.x plugin by specifying the plugin name as a string,
@@ -482,6 +482,8 @@ class ImageJPython:
             }
             ij.py.run_plugin(plugin, args)
         """
+        if args is None:
+            args = {}
         argline = self.argstring(args, ij1_style)
         if imp is None:
             # NB: Avoid ambiguous overload between:
@@ -751,8 +753,7 @@ class ImageJPython:
         metadata (i.e. axes). Also permutes the dimension of the rai to conform to
         numpy's standards
 
-        :param permuted_rai: A RandomAccessibleInterval with axes (e.g. Dataset or
-            ImgPlus).
+        :param rai: A RandomAccessibleInterval with axes (e.g. Dataset or ImgPlus).
         :return: xarray.DataArray with metadata/axes.
         """
         data = self._ij.convert().convert(rai, jc.ImgPlus)
@@ -1538,7 +1539,7 @@ class ImagePlusAddons(object):
 
 def init(
     ij_dir_or_version_or_endpoint=None,
-    mode=Mode.HEADLESS,
+    mode: Union[Mode, str] = Mode.HEADLESS,
     add_legacy=True,
     headless=None,
 ):
