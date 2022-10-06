@@ -1757,9 +1757,9 @@ def _create_jvm(
 
     elif os.path.isdir(os.path.expanduser(ij_dir_or_version_or_endpoint)):
         # Assume path to local ImageJ2 installation.
+        path = os.path.abspath(os.path.expanduser(ij_dir_or_version_or_endpoint))
         _logger.debug("Local path to ImageJ2 installation given: %s", path)
         add_legacy = False
-        path = os.path.abspath(os.path.expanduser(ij_dir_or_version_or_endpoint))
         num_jars = _set_ij_env(path)
         if num_jars <= 0:
             _logger.error(
@@ -1786,7 +1786,7 @@ def _create_jvm(
         # Assume endpoint of an artifact.
         _logger.debug("Maven coordinate given: %s", ij_dir_or_version_or_endpoint)
         # Strip whitespace and split concatenated endpoints.
-        endpoints = re.sub("\s*", "", ij_dir_or_version_or_endpoint).split("+")
+        endpoints = re.sub("\\s*", "", ij_dir_or_version_or_endpoint).split("+")
         if _includes_imagej_legacy(endpoints):
             add_legacy = False
         sj.config.endpoints.extend(endpoints)
