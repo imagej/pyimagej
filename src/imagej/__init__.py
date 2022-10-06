@@ -857,65 +857,75 @@ class ImageJPython:
 
     def _add_converters(self):
         """Add all known converters to ScyJava's conversion mechanism."""
-        [sj.add_java_converter(c) for c in self._imagej_java_converters()]
-        [sj.add_py_converter(c) for c in self._imagej_py_converters()]
 
-    def _imagej_java_converters(self) -> List[sj.Converter]:
-        """Get all Python-to-ImgLib2 Converters"""
-        return [
+        # Python to Java
+        sj.add_java_converter(
             sj.Converter(
                 predicate=lambda obj: isinstance(obj, Labeling),
                 converter=self._labeling_to_imglabeling,
                 priority=sj.Priority.HIGH + 1,
-            ),
+            )
+        )
+        sj.add_java_converter(
             sj.Converter(
                 predicate=self._is_memoryarraylike,
                 converter=self.to_img,
                 priority=sj.Priority.HIGH,
-            ),
+            )
+        )
+        sj.add_java_converter(
             sj.Converter(
                 predicate=self._is_xarraylike,
                 converter=self.to_dataset,
                 priority=sj.Priority.HIGH + 1,
-            ),
+            )
+        )
+        sj.add_java_converter(
             sj.Converter(
                 predicate=lambda obj: type(obj) in self.ctype_map,
                 converter=self._to_realType,
                 priority=sj.Priority.HIGH + 1,
-            ),
-        ]
+            )
+        )
 
-    def _imagej_py_converters(self) -> List[sj.Converter]:
-        """Get all ImgLib2-to-Python Converters"""
-        return [
+        # Java to Python
+        sj.add_py_converter(
             sj.Converter(
                 predicate=lambda obj: isinstance(obj, jc.ImgLabeling),
                 converter=self._imglabeling_to_labeling,
                 priority=sj.Priority.HIGH,
-            ),
+            )
+        )
+        sj.add_py_converter(
             sj.Converter(
                 predicate=lambda obj: jc.ImagePlus and isinstance(obj, jc.ImagePlus),
                 converter=lambda obj: self.from_java(self._imageplus_to_imgplus(obj)),
                 priority=sj.Priority.HIGH + 2,
-            ),
+            )
+        )
+        sj.add_py_converter(
             sj.Converter(
                 predicate=self._can_convert_imgPlus,
                 converter=lambda obj: self._permute_dataset_to_python(
                     self._ij.convert().convert(obj, jc.ImgPlus)
                 ),
                 priority=sj.Priority.HIGH,
-            ),
+            )
+        )
+        sj.add_py_converter(
             sj.Converter(
                 predicate=self._can_convert_rai,
                 converter=self._convert_rai,
                 priority=sj.Priority.HIGH - 2,
-            ),
+            )
+        )
+        sj.add_py_converter(
             sj.Converter(
                 predicate=self._is_supported_realType,
                 converter=self._from_realType,
                 priority=sj.Priority.HIGH + 1,
-            ),
-        ]
+            )
+        )
 
     def _can_convert_imgPlus(self, obj) -> bool:
         """Return false unless conversion to RAI is possible."""
