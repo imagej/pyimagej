@@ -29,6 +29,7 @@ def rai_slice(rai, imin: Tuple, imax: Tuple, istep: Tuple):
     #   >>> help(JLong)
     #
     # So while the import here is unfortunate, it avoids the issue.
+    # TODO: Change to scyjava.new_jarray once we have that function.
     from jpype import JArray, JLong
 
     Views = sj.jimport("net.imglib2.view.Views")

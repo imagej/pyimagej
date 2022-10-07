@@ -5,6 +5,7 @@ import numpy as np
 import pytest
 import scyjava as sj
 import xarray as xr
+# TODO: Change to scyjava.new_jarray once we have that function.
 from jpype import JArray, JInt, JLong
 
 import imagej.dims as dims
