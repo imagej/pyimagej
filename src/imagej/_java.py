@@ -59,12 +59,24 @@ class JavaClasses(object):
         return "ij.ImagePlus"
 
     @blocking_import
+    def LabelingIOService(self):
+        return "io.scif.labeling.LabelingIOService"
+
+    @blocking_import
     def Dataset(self):
         return "net.imagej.Dataset"
 
     @blocking_import
+    def ImageJ(self):
+        return "net.imagej.ImageJ"
+
+    @blocking_import
     def ImgPlus(self):
         return "net.imagej.ImgPlus"
+
+    @blocking_import
+    def Axes(self):
+        return "net.imagej.axis.Axes"
 
     @blocking_import
     def Axis(self):
@@ -77,6 +89,10 @@ class JavaClasses(object):
     @blocking_import
     def CalibratedAxis(self):
         return "net.imagej.axis.CalibratedAxis"
+
+    @blocking_import
+    def Dimensions(self):
+        return "net.imglib2.Dimensions"
 
     @blocking_import
     def RandomAccessibleInterval(self):
@@ -97,6 +113,10 @@ class JavaClasses(object):
     @blocking_import
     def ImgLabeling(self):
         return "net.imglib2.roi.labeling.ImgLabeling"
+
+    @blocking_import
+    def Util(self):
+        return "net.imglib2.util.Util"
 
     @blocking_import
     def Views(self):

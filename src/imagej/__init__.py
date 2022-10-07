@@ -191,7 +191,7 @@ class ImageJPython:
             return image.shape
         if not sj.isjava(image):
             raise TypeError("Unsupported type: " + str(type(image)))
-        if isinstance(image, sj.jimport("net.imglib2.Dimensions")):
+        if isinstance(image, jc.Dimensions):
             return list(image.dimensionsAsLongArray())
         if jc.ImagePlus and isinstance(image, jc.ImagePlus):
             dims = image.getDimensions()
@@ -268,8 +268,7 @@ class ImageJPython:
             ij2_type = image_or_type.firstElement()
             return self.dtype(ij2_type)
         if isinstance(image_or_type, jc.RandomAccessibleInterval):
-            Util = sj.jimport("net.imglib2.util.Util")
-            ij2_type = Util.getTypeFromInterval(image_or_type)
+            ij2_type = jc.Util.getTypeFromInterval(image_or_type)
             return self.dtype(ij2_type)
 
         # -- Original ImageJ images --
@@ -1017,8 +1016,7 @@ class ImageJPython:
         :param data: the data
         :return: a Labeling
         """
-        LabelingIOService = sj.jimport("io.scif.labeling.LabelingIOService")
-        labels = self._ij.context().getService(LabelingIOService)
+        labels = self._ij.context().getService(jc.LabelingIOService)
 
         # Save the image on the java side
         tmp_pth = os.getcwd() + "/tmp"
@@ -1044,8 +1042,7 @@ class ImageJPython:
         :param data: the data
         :return: an ImgLabeling
         """
-        LabelingIOService = sj.jimport("io.scif.labeling.LabelingIOService")
-        labels = self._ij.context().getService(LabelingIOService)
+        labels = self._ij.context().getService(jc.LabelingIOService)
 
         # Save the image on the python side
         tmp_pth = "./tmp"
@@ -1253,8 +1250,7 @@ class RAIOperators(object):
 
         :return: dtype of the RandomAccessibleInterval.
         """
-        Util = sj.jimport("net.imglib2.util.Util")
-        return type(Util.getTypeFromInterval(self))
+        return type(jc.Util.getTypeFromInterval(self))
 
     def squeeze(self, axis=None):
         """Remove axes of length one from array.
@@ -1596,7 +1592,7 @@ def imagej_main():
 def _create_gateway():
     # Initialize ImageJ2
     try:
-        ImageJ = sj.jimport("net.imagej.ImageJ")
+        ImageJ = jc.ImageJ
     except TypeError:
         _logger.error(
             "***Invalid initialization: ImageJ2 was not found***\n"
