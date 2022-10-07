@@ -55,18 +55,6 @@ class JavaClasses(object):
         return inner
 
     @blocking_import
-    def Axis(self):
-        return "net.imagej.axis.Axis"
-
-    @blocking_import
-    def AxisType(self):
-        return "net.imagej.axis.AxisType"
-
-    @blocking_import
-    def CalibratedAxis(self):
-        return "net.imagej.axis.CalibratedAxis"
-
-    @blocking_import
     def ImagePlus(self):
         return "ij.ImagePlus"
 
@@ -77,6 +65,18 @@ class JavaClasses(object):
     @blocking_import
     def ImgPlus(self):
         return "net.imagej.ImgPlus"
+
+    @blocking_import
+    def Axis(self):
+        return "net.imagej.axis.Axis"
+
+    @blocking_import
+    def AxisType(self):
+        return "net.imagej.axis.AxisType"
+
+    @blocking_import
+    def CalibratedAxis(self):
+        return "net.imagej.axis.CalibratedAxis"
 
     @blocking_import
     def RandomAccessibleInterval(self):
