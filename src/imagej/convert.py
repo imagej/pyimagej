@@ -221,13 +221,6 @@ def java_to_xarray(ij: "jc.ImageJ", jobj) -> xr.DataArray:
     return xr.DataArray(narr, dims=xr_dims, coords=xr_coords, attrs=xr_attrs)
 
 
-# TODO:
-# * supports_ndarray_to_dataset
-# * supports_ndarray_to_img
-# * supports_xarray_to_dataset
-# * supports_xarray_to_img
-
-
 def supports_java_to_ndarray(ij: "jc.ImageJ", obj) -> bool:
     """
     Return True iff the given object is convertible to a NumPy ndarray
