@@ -46,15 +46,7 @@ from typing import Tuple, Union
 import numpy as np
 import scyjava as sj
 import xarray as xr
-from jpype import (
-    JException,
-    JImplementationFor,
-    JImplements,
-    JObject,
-    JOverride,
-    setupGuiEnvironment,
-)
-from labeling import Labeling
+from jpype import JImplementationFor, JImplements, JOverride, setupGuiEnvironment
 from scyjava.config import find_jars
 
 import imagej.convert as convert
@@ -610,8 +602,8 @@ class ImageJPython:
         )
         sj.add_java_converter(
             sj.Converter(
-                predicate=lambda obj: isinstance(obj, Labeling),
-                converter=self._labeling_to_imglabeling,
+                predicate=convert.supports_labeling_to_imglabeling,
+                converter=lambda obj: convert.labeling_to_imglabeling(self._ij, obj),
                 priority=sj.Priority.HIGH + 1,
             )
         )
@@ -647,8 +639,8 @@ class ImageJPython:
         )
         sj.add_py_converter(
             sj.Converter(
-                predicate=lambda obj: isinstance(obj, jc.ImgLabeling),
-                converter=self._imglabeling_to_labeling,
+                predicate=convert.supports_imglabeling_to_labeling,
+                converter=lambda obj: convert.imglabeling_to_labeling(self._ij, obj),
                 priority=sj.Priority.HIGH,
             )
         )
@@ -659,70 +651,6 @@ class ImageJPython:
                 priority=sj.Priority.HIGH - 2,
             )
         )
-
-    # -- Helper functions - labelings --
-
-    def _delete_labeling_files(self, filepath):
-        """
-        Removes any Labeling data left over at filepath
-        :param filepath: the filepath where Labeling (might have) saved data
-        """
-        pth_json = filepath + ".lbl.json"
-        pth_tif = filepath + ".tif"
-        if os.path.exists(pth_tif):
-            os.remove(pth_tif)
-        if os.path.exists(pth_json):
-            os.remove(pth_json)
-
-    def _imglabeling_to_labeling(self, data):
-        """
-        Converts an ImgLabeling to an equivalent Python Labeling
-        :param data: the data
-        :return: a Labeling
-        """
-        labels = self._ij.context().getService(jc.LabelingIOService)
-
-        # Save the image on the java side
-        tmp_pth = os.getcwd() + "/tmp"
-        tmp_pth_json = tmp_pth + ".lbl.json"
-        tmp_pth_tif = tmp_pth + ".tif"
-        try:
-            self._delete_labeling_files(tmp_pth)
-            data = self._ij.convert().convert(data, jc.ImgLabeling)
-            labels.save(
-                data, tmp_pth_tif
-            )  # TODO: improve, likely utilizing the data's name
-        except JException:
-            print("Failed to save the data")
-
-        # Load the labeling on the python side
-        labeling = Labeling.from_file(tmp_pth_json)
-        self._delete_labeling_files(tmp_pth)
-        return labeling
-
-    def _labeling_to_imglabeling(self, data):
-        """
-        Converts a python Labeling to an equivalent ImgLabeling
-        :param data: the data
-        :return: an ImgLabeling
-        """
-        labels = self._ij.context().getService(jc.LabelingIOService)
-
-        # Save the image on the python side
-        tmp_pth = "./tmp"
-        self._delete_labeling_files(tmp_pth)
-        data.save_result(tmp_pth)
-
-        # Load the labeling on the python side
-        try:
-            tmp_pth_json = tmp_pth + ".lbl.json"
-            labeling = labels.load(tmp_pth_json, JObject, JObject)
-        except JException as exc:
-            self._delete_labeling_files(tmp_pth)
-            raise exc
-        self._delete_labeling_files(tmp_pth)
-
-        return labeling
 
 
 @JImplementationFor("net.imagej.ImageJ")

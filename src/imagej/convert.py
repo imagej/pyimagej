@@ -3,13 +3,15 @@ Utility functions for converting objects between types.
 """
 import ctypes
 import logging
+import os
 from typing import Dict
 
 import imglyb
 import numpy as np
 import scyjava as sj
 import xarray as xr
-from jpype import JByte, JFloat, JLong, JShort
+from jpype import JByte, JException, JFloat, JLong, JObject, JShort
+from labeling import Labeling
 
 import imagej.dims as dims
 import imagej.images as images
@@ -277,6 +279,75 @@ def supports_realtype_to_ctype(obj):
     return fqcn in _ctype_map.values()
 
 
+############################
+# Labeling <-> ImgLabeling #
+############################
+
+
+def labeling_to_imglabeling(ij: "jc.ImageJ", labeling: Labeling):
+    """
+    Convert a Python Labeling to an equivalent Java ImgLabeling.
+
+    :param ij: The ImageJ2 gateway (see imagej.init)
+    :param labeling: the Python Labeling
+    :return: a Java ImgLabeling
+    """
+    labeling_io_service = ij.context().service(jc.LabelingIOService)
+
+    # Save the image on the Python side
+    tmp_pth = "./tmp"
+    _delete_labeling_files(tmp_pth)
+    labeling.save_result(tmp_pth)
+
+    # Load the labeling on the Java side
+    try:
+        tmp_pth_json = tmp_pth + ".lbl.json"
+        imglabeling = labeling_io_service.load(tmp_pth_json, JObject, JObject)
+    except JException as exc:
+        _delete_labeling_files(tmp_pth)
+        raise exc
+    _delete_labeling_files(tmp_pth)
+
+    return imglabeling
+
+
+def imglabeling_to_labeling(ij: "jc.ImageJ", imglabeling: "jc.ImgLabeling"):
+    """
+    Convert a Java ImgLabeling to an equivalent Python Labeling.
+
+    :param ij: The ImageJ2 gateway (see imagej.init)
+    :param imglabeling: the Java ImgLabeling
+    :return: a Python Labeling
+    """
+    labeling_io_service = ij.context().service(jc.LabelingIOService)
+
+    # Save the image on the Python side
+    tmp_pth = os.getcwd() + "/tmp"
+    tmp_pth_json = tmp_pth + ".lbl.json"
+    tmp_pth_tif = tmp_pth + ".tif"
+    try:
+        _delete_labeling_files(tmp_pth)
+        imglabeling = ij.convert().convert(imglabeling, jc.ImgLabeling)
+        labeling_io_service.save(
+            imglabeling, tmp_pth_tif
+        )  # TODO: improve, likely utilizing the ImgLabeling's name
+    except JException:
+        print("Failed to save the data")
+
+    # Load the labeling on the python side
+    labeling = Labeling.from_file(tmp_pth_json)
+    _delete_labeling_files(tmp_pth)
+    return labeling
+
+
+def supports_labeling_to_imglabeling(obj):
+    return isinstance(obj, Labeling)
+
+
+def supports_imglabeling_to_labeling(obj):
+    return isinstance(obj, jc.ImgLabeling)
+
+
 ####################
 # Helper functions #
 ####################
@@ -320,3 +391,16 @@ def _permute_rai_to_python(rich_rai: "jc.RandomAccessibleInterval"):
         permuted_rai.getProperties().putAll(rai_metadata)
 
     return permuted_rai
+
+
+def _delete_labeling_files(filepath):
+    """
+    Removes any Labeling data left over at filepath
+    :param filepath: the filepath where Labeling (might have) saved data
+    """
+    pth_json = filepath + ".lbl.json"
+    pth_tif = filepath + ".tif"
+    if os.path.exists(pth_tif):
+        os.remove(pth_tif)
+    if os.path.exists(pth_json):
+        os.remove(pth_json)
