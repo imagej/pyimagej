@@ -95,9 +95,7 @@ def copy_rai_into_ndarray(
     array with either "fast copy" via 'net.imglib2.util.ImgUtil.copy' if
     available or the slower "copy.rai" method. Note that the input
     RandomAccessibleInterval and numpy array must have reversed dimensions
-    relative to each other (e.g. [t, z, y, x, c] and [c, x, y, z, t]). Use
-    _permute_rai_to_python() on the RandomAccessibleInterval to reorganize the
-    dimensions.
+    relative to each other (e.g. [t, z, y, x, c] and [c, x, y, z, t]).
 
     :param rai: A net.imglib2.RandomAccessibleInterval.
     :param narr: A NumPy array with the same shape as the input

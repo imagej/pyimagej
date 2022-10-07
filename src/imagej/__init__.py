@@ -279,8 +279,7 @@ class ImageJPython:
         array with either "fast copy" via 'net.imagej.util.Images.copy' if available or
         the slower "copy.rai" method. Note that the input RandomAccessibleInterval and
         numpy array must have reversed dimensions relative to each other
-        (e.g. [t, z, y, x, c] and [c, x, y, z, t]). Use _permute_rai_to_python() on the
-        RandomAccessibleInterval to reorganize the dimensions.
+        (e.g. [t, z, y, x, c] and [c, x, y, z, t]).
 
         :param rai: A net.imglib2.RandomAccessibleInterval.
         :param numpy_array: A NumPy array with the same shape as the input
@@ -589,55 +588,6 @@ class ImageJPython:
         reverse_cut.append(lst[-1])
         return reverse_cut
 
-    def _permute_dataset_to_python(self, rai):
-        """
-        Wrap a numpy array with xarray and axes metadata from a
-        RandomAccessibleInterval.
-
-        Wraps a numpy array with the metadata from the source RandomAccessibleInterval
-        metadata (i.e. axes). Also permutes the dimension of the rai to conform to
-        numpy's standards
-
-        :param rai: A RandomAccessibleInterval with axes (e.g. Dataset or ImgPlus).
-        :return: xarray.DataArray with metadata/axes.
-        """
-        data = self._ij.convert().convert(rai, jc.ImgPlus)
-        permuted_rai = self._permute_rai_to_python(data)
-        narr = self.initialize_numpy_image(permuted_rai)
-        narr = self.rai_to_numpy(permuted_rai, narr)
-        return convert._staple_dataset_to_xarray(permuted_rai, narr)
-
-    def _permute_rai_to_python(self, rich_rai: "jc.RandomAccessibleInterval"):
-        """Permute a RandomAccessibleInterval to the python reference order.
-
-        Permute a RandomAccessibleInterval to the Python reference order of
-        CXYZT (where dimensions exist). Note that this is reverse from the
-        final array order of TZYXC.
-
-        :param rich_rai: A RandomAccessibleInterval with axis labels
-            (e.g. Dataset or ImgPlus).
-        :return: A permuted RandomAccessibleInterval.
-        """
-        # get input rai metadata if it exists
-        try:
-            rai_metadata = rich_rai.getProperties()
-        except AttributeError:
-            rai_metadata = None
-
-        axis_types = [axis.type() for axis in rich_rai.dim_axes]
-
-        # permute rai to specified order and transfer metadata
-        permute_order = dims.prioritize_rai_axes_order(
-            axis_types, dims._python_rai_ref_order()
-        )
-        permuted_rai = dims.reorganize(rich_rai, permute_order)
-
-        # add metadata to image if it exists
-        if rai_metadata is not None:
-            permuted_rai.getProperties().putAll(rai_metadata)
-
-        return permuted_rai
-
     # -- Helper functions - type conversion --
 
     def _add_converters(self):
@@ -691,9 +641,7 @@ class ImageJPython:
         sj.add_py_converter(
             sj.Converter(
                 predicate=lambda obj: convert.supports_java_to_xarray(self._ij, obj),
-                converter=lambda obj: self._permute_dataset_to_python(
-                    self._ij.convert().convert(obj, jc.ImgPlus)
-                ),
+                converter=lambda obj: convert.java_to_xarray(self._ij, obj),
                 priority=sj.Priority.HIGH,
             )
         )

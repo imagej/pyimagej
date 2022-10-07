@@ -123,8 +123,8 @@ def xarray_to_dataset(ij: "jc.ImageJ", xarr):
 
 def xarray_to_img(ij: "jc.ImageJ", xarr):
     """
-    Converts a xarray dataarray to an img, inverting C-style (slow axis first) to
-    F-style (slow-axis last)
+    Converts a xarray dataarray to an ImgLib2 Img,
+    inverting C-style (slow axis first) to F-style (slow axis last).
 
     :param xarr: Pass an xarray dataarray and turn into a img.
     :return: The img
@@ -145,8 +145,41 @@ def java_to_ndarray(ij: "jc.ImageJ", jobj) -> np.ndarray:
     return narr
 
 
+def java_to_xarray(ij: "jc.ImageJ", jobj) -> xr.DataArray:
+    """
+    Converts a Java image to an xarray DataArray,
+    inverting F-style (slow axis last) to C-style (slow axis first).
+
+    Labeled dimensional axes are permuted as needed
+    to conform to the scikit-image standard order; see:
+    https://scikit-image.org/docs/dev/user_guide/numpy_images#coordinate-conventions
+
+    :param jobj: A RandomAccessibleInterval with axes (e.g. Dataset or ImgPlus).
+    :return: xarray.DataArray with metadata/axes.
+    """
+    imgplus = ij.convert().convert(jobj, jc.ImgPlus)
+
+    # Permute Java image dimensions to the scikit-image standard order.
+    permuted_rai = _permute_rai_to_python(imgplus)
+
+    # Create a new ndarray, and copy the Java image into it.
+    narr = images.create_ndarray(permuted_rai)
+    images.copy_rai_into_ndarray(ij, permuted_rai, narr)
+
+    # Wrap ndarray into an xarray with axes matching the permuted RAI.
+    assert hasattr(permuted_rai, "dim_axes")
+    xr_axes = list(permuted_rai.dim_axes)
+    xr_dims = list(permuted_rai.dims)
+    xr_attrs = sj.to_python(permuted_rai.getProperties())
+    # reverse axes and dims to match narr
+    xr_axes.reverse()
+    xr_dims.reverse()
+    xr_dims = dims._convert_dims(xr_dims, direction="python")
+    xr_coords = dims._get_axes_coords(xr_axes, xr_dims, narr.shape)
+    return xr.DataArray(narr, dims=xr_dims, coords=xr_coords, attrs=xr_attrs)
+
+
 # TODO:
-# * java_to_xarray
 # * supports_ndarray_to_dataset
 # * supports_ndarray_to_img
 # * supports_xarray_to_dataset
@@ -257,35 +290,33 @@ def _assign_dataset_metadata(dataset: "jc.Dataset", attrs):
     dataset.getProperties().putAll(sj.to_java(attrs))
 
 
-def _staple_dataset_to_xarray(
-    rich_rai: "jc.RandomAccessibleInterval", narr: np.ndarray
-) -> xr.DataArray:
-    """
-    Wrap a numpy array with xarray and axes metadata from a
-    RandomAccessibleInterval.
+def _permute_rai_to_python(rich_rai: "jc.RandomAccessibleInterval"):
+    """Permute a RandomAccessibleInterval to the python reference order.
 
-    Wraps a numpy array with the metadata from the source RandomAccessibleInterval
-    metadata (i.e. axes).
+    Permute a RandomAccessibleInterval to the Python reference order of
+    CXYZT (where dimensions exist). Note that this is reverse from the
+    final array order of TZYXC.
 
-    :param rich_rai: A RandomAccessibleInterval with metadata
+    :param rich_rai: A RandomAccessibleInterval with axis labels
         (e.g. Dataset or ImgPlus).
-    :param narr: A np.ndarray to wrap with xarray.
-    :return: xarray.DataArray with metadata/axes.
+    :return: A permuted RandomAccessibleInterval.
     """
-    if not isinstance(rich_rai, jc.RandomAccessibleInterval):
-        raise TypeError("rich_rai is not a RAI")
-    if not hasattr(rich_rai, "dim_axes"):
-        raise TypeError("rich_rai is not a rich RAI")
-    if not images.is_arraylike(narr):
-        raise TypeError("narr is not arraylike")
+    # get input rai metadata if it exists
+    try:
+        rai_metadata = rich_rai.getProperties()
+    except AttributeError:
+        rai_metadata = None
 
-    # get metadata
-    xr_axes = list(rich_rai.dim_axes)
-    xr_dims = list(rich_rai.dims)
-    xr_attrs = sj.to_python(rich_rai.getProperties())
-    # reverse axes and dims to match narr
-    xr_axes.reverse()
-    xr_dims.reverse()
-    xr_dims = dims._convert_dims(xr_dims, direction="python")
-    xr_coords = dims._get_axes_coords(xr_axes, xr_dims, narr.shape)
-    return xr.DataArray(narr, dims=xr_dims, coords=xr_coords, attrs=xr_attrs)
+    axis_types = [axis.type() for axis in rich_rai.dim_axes]
+
+    # permute rai to specified order and transfer metadata
+    permute_order = dims.prioritize_rai_axes_order(
+        axis_types, dims._python_rai_ref_order()
+    )
+    permuted_rai = dims.reorganize(rich_rai, permute_order)
+
+    # add metadata to image if it exists
+    if rai_metadata is not None:
+        permuted_rai.getProperties().putAll(rai_metadata)
+
+    return permuted_rai
