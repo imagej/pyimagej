@@ -26,38 +26,46 @@ _logger = logging.getLogger(__name__)
 ###############
 
 
-def java_to_dataset(ij: "jc.ImageJ", data) -> "jc.Dataset":
+def java_to_dataset(ij: "jc.ImageJ", jobj) -> "jc.Dataset":
     """
-    Convert the data into an ImageJ2 Dataset.
+    Convert the given Java image data into an ImageJ2 Dataset.
+
+    :param ij: The ImageJ2 gateway (see imagej.init)
+    :param jobj: The Java image (e.g. RandomAccessibleInterval)
+    :return: The converted ImageJ2 Dataset
     """
-    assert sj.isjava(data)
-    if isinstance(data, jc.Dataset):
-        return data
+    assert sj.isjava(jobj)
+    if isinstance(jobj, jc.Dataset):
+        return jobj
 
     # NB: This try checking is necessary because the set of ImageJ2 converters is
     # not complete. E.g., there is no way to directly go from Img to Dataset,
     # instead you need to chain the Img->ImgPlus->Dataset converters.
     try:
-        if ij.convert().supports(data, jc.Dataset):
-            return ij.convert().convert(data, jc.Dataset)
-        if ij.convert().supports(data, jc.ImgPlus):
-            imgplus = ij.convert().convert(data, jc.ImgPlus)
+        if ij.convert().supports(jobj, jc.Dataset):
+            return ij.convert().convert(jobj, jc.Dataset)
+        if ij.convert().supports(jobj, jc.ImgPlus):
+            imgplus = ij.convert().convert(jobj, jc.ImgPlus)
             return ij.dataset().create(imgplus)
-        if ij.convert().supports(data, jc.Img):
-            img = ij.convert().convert(data, jc.Img)
+        if ij.convert().supports(jobj, jc.Img):
+            img = ij.convert().convert(jobj, jc.Img)
             return ij.dataset().create(jc.ImgPlus(img))
-        if ij.convert().supports(data, jc.RandomAccessibleInterval):
-            rai = ij.convert().convert(data, jc.RandomAccessibleInterval)
+        if ij.convert().supports(jobj, jc.RandomAccessibleInterval):
+            rai = ij.convert().convert(jobj, jc.RandomAccessibleInterval)
             return ij.dataset().create(rai)
     except Exception as exc:
         _log_exception(_logger, exc)
         raise exc
-    raise TypeError("Cannot convert to dataset: " + str(type(data)))
+    raise TypeError("Cannot convert to Dataset: " + str(type(jobj)))
 
 
 def java_to_img(ij: "jc.ImageJ", jobj) -> "jc.Img":
     """
     Convert the data into an ImgLib2 Img.
+
+    :param ij: The ImageJ2 gateway (see imagej.init)
+    :param jobj: The Java image (e.g. RandomAccessibleInterval)
+    :return: The converted ImgLib2 Img
     """
     assert sj.isjava(jobj)
     if isinstance(jobj, jc.Img):
@@ -78,6 +86,13 @@ def java_to_img(ij: "jc.ImageJ", jobj) -> "jc.Img":
 
 
 def imageplus_to_imgplus(ij: "jc.ImageJ", imp: "jc.ImagePlus") -> "jc.ImgPlus":
+    """
+    Convert the given ImageJ ImagePlus into an ImageJ2 ImgPlus.
+
+    :param ij: The ImageJ2 gateway (see imagej.init)
+    :param imp: The ImageJ ImagePlus
+    :return: The converted ImageJ2 ImgPlus
+    """
     if not jc.ImagePlus or not isinstance(imp, jc.ImagePlus):
         raise ValueError("Input is not an ImagePlus")
 
@@ -91,12 +106,26 @@ def imageplus_to_imgplus(ij: "jc.ImageJ", imp: "jc.ImagePlus") -> "jc.ImgPlus":
 
 
 def ndarray_to_dataset(ij: "jc.ImageJ", narr):
+    """
+    Convert the given NumPy ndarray into an ImageJ2 Dataset.
+
+    :param ij: The ImageJ2 gateway (see imagej.init)
+    :param narr: The NumPy ndarray
+    :return: The converted ImageJ2 Dataset
+    """
     assert images.is_arraylike(narr)
     rai = imglyb.to_imglib(narr)
     return java_to_dataset(ij, rai)
 
 
 def ndarray_to_img(ij: "jc.ImageJ", narr):
+    """
+    Convert the given NumPy ndarray into an ImgLib2 Img.
+
+    :param ij: The ImageJ2 gateway (see imagej.init)
+    :param narr: The NumPy ndarray
+    :return: The converted ImgLib2 Img
+    """
     assert images.is_arraylike(narr)
     rai = imglyb.to_imglib(narr)
     return java_to_img(ij, rai)
@@ -104,11 +133,12 @@ def ndarray_to_img(ij: "jc.ImageJ", narr):
 
 def xarray_to_dataset(ij: "jc.ImageJ", xarr):
     """
-    Converts a xarray dataarray to a dataset, inverting C-style (slow axis first)
-    to F-style (slow-axis last)
+    Converts an xarray DataArray to an ImageJ2 Dataset,
+    inverting C-style (slow axis first) to F-style (slow-axis last).
 
-    :param xarr: Pass an xarray dataarray and turn into a dataset.
-    :return: The dataset
+    :param ij: The ImageJ2 gateway (see imagej.init)
+    :param xarr: The xarray DataArray
+    :return: The converted ImageJ2 Dataset
     """
     assert images.is_xarraylike(xarr)
     if dims._ends_with_channel_axis(xarr):
@@ -125,11 +155,12 @@ def xarray_to_dataset(ij: "jc.ImageJ", xarr):
 
 def xarray_to_img(ij: "jc.ImageJ", xarr):
     """
-    Converts a xarray dataarray to an ImgLib2 Img,
+    Converts an xarray DataArray into an ImgLib2 Img,
     inverting C-style (slow axis first) to F-style (slow axis last).
 
-    :param xarr: Pass an xarray dataarray and turn into a img.
-    :return: The img
+    :param ij: The ImageJ2 gateway (see imagej.init)
+    :param xarr: The xarray DataArray
+    :return: The converted ImgLib2 Img with inverted axes
     """
     assert images.is_xarraylike(xarr)
     if dims._ends_with_channel_axis(xarr):
@@ -140,6 +171,14 @@ def xarray_to_img(ij: "jc.ImageJ", xarr):
 
 
 def java_to_ndarray(ij: "jc.ImageJ", jobj) -> np.ndarray:
+    """
+    Convert a Java image to a NumPy ndarray,
+    inverting F-style (slow axis last) to C-style (slow axis first).
+
+    :param ij: The ImageJ2 gateway (see imagej.init)
+    :param jobj: The Java image (e.g. RandomAccessibleInterval)
+    :return: The converted NumPy ndarray with inverted axes
+    """
     assert sj.isjava(jobj)
     rai = ij.convert().convert(jobj, jc.RandomAccessibleInterval)
     narr = images.create_ndarray(rai)
@@ -149,15 +188,16 @@ def java_to_ndarray(ij: "jc.ImageJ", jobj) -> np.ndarray:
 
 def java_to_xarray(ij: "jc.ImageJ", jobj) -> xr.DataArray:
     """
-    Converts a Java image to an xarray DataArray,
+    Convert a Java image to an xarray DataArray,
     inverting F-style (slow axis last) to C-style (slow axis first).
 
     Labeled dimensional axes are permuted as needed
     to conform to the scikit-image standard order; see:
     https://scikit-image.org/docs/dev/user_guide/numpy_images#coordinate-conventions
 
-    :param jobj: A RandomAccessibleInterval with axes (e.g. Dataset or ImgPlus).
-    :return: xarray.DataArray with metadata/axes.
+    :param ij: The ImageJ2 gateway (see imagej.init)
+    :param jobj: The Java image with labeled axes (e.g. Dataset or ImgPlus)
+    :return: The converted xarray DataArray with standardized axes
     """
     imgplus = ij.convert().convert(jobj, jc.ImgPlus)
 
@@ -189,7 +229,14 @@ def java_to_xarray(ij: "jc.ImageJ", jobj) -> xr.DataArray:
 
 
 def supports_java_to_ndarray(ij: "jc.ImageJ", obj) -> bool:
-    """Return True iff conversion to ndarray is possible."""
+    """
+    Return True iff the given object is convertible to a NumPy ndarray
+    via the java_to_ndarray function.
+
+    :param ij: The ImageJ2 gateway (see imagej.init)
+    :param obj: The object to check for convertibility
+    :return: True iff conversion to a NumPy ndarray is possible
+    """
     try:
         return ij.convert().supports(obj, jc.RandomAccessibleInterval)
     except Exception:
@@ -197,7 +244,14 @@ def supports_java_to_ndarray(ij: "jc.ImageJ", obj) -> bool:
 
 
 def supports_java_to_xarray(ij: "jc.ImageJ", obj) -> bool:
-    """Return True iff conversion to ImgPlus is possible."""
+    """
+    Return True iff the given object is convertible to a NumPy ndarray
+    via the java_to_xarray function.
+
+    :param ij: The ImageJ2 gateway (see imagej.init)
+    :param obj: The object to check for convertibility
+    :return: True iff conversion to an xarray DataArray is possible
+    """
     try:
         can_convert = ij.convert().supports(obj, jc.ImgPlus)
         has_axis = dims._has_axis(obj)
@@ -241,11 +295,18 @@ _realtype_casters: Dict[str, type] = {
 }
 
 
-def ctype_to_realtype(obj: ctypes._SimpleCData):
+def ctype_to_realtype(ctype: ctypes._SimpleCData):
+    """
+    Convert the given Python ctype into an ImgLib2 RealType.
+
+    :param ij: The ImageJ2 gateway (see imagej.init)
+    :param ctype: The Python ctype
+    :return: The converted ImgLib2 RealType
+    """
     # First, convert the ctype value to java
-    jtype_raw = sj.to_java(obj.value)
+    jtype_raw = sj.to_java(ctype.value)
     # Then, find the correct RealType
-    realtype_fqcn = _ctype_map[type(obj)]
+    realtype_fqcn = _ctype_map[type(ctype)]
     # jtype_raw is usually an Integer or Double.
     # We may have to cast it to fit the RealType parameter
     if realtype_fqcn in _realtype_casters:
@@ -256,7 +317,14 @@ def ctype_to_realtype(obj: ctypes._SimpleCData):
     return realtype_class(jtype_raw)
 
 
-def realtype_to_ctype(realtype):
+def realtype_to_ctype(realtype: "jc.RealType"):
+    """
+    Convert the given ImgLib2 RealType into a Python ctype.
+
+    :param ij: The ImageJ2 gateway (see imagej.init)
+    :param realtype: The ImgLib2 RealType
+    :return: The converted Python ctype
+    """
     # First, convert the RealType to a Java primitive
     jtype_raw = realtype.get()
     # Then, convert to the python primitive
@@ -268,11 +336,25 @@ def realtype_to_ctype(realtype):
     raise ValueError(f"Cannot convert RealType {value}")
 
 
-def supports_ctype_to_realtype(obj: ctypes._SimpleCData):
+def supports_ctype_to_realtype(obj):
+    """
+    Return True iff the given object is convertible to an ImgLib2 RealType
+    via the ctype_to_realtype function.
+
+    :param obj: The object to check for convertibility
+    :return: True iff conversion to an ImgLib2 RealType is possible
+    """
     return type(obj) in _ctype_map
 
 
 def supports_realtype_to_ctype(obj):
+    """
+    Return True iff the given object is convertible to a Python ctype
+    via the realtype_to_ctype function.
+
+    :param obj: The object to check for convertibility
+    :return: True iff conversion to a Python ctype is possible
+    """
     if not isinstance(obj, sj.jimport("net.imglib2.type.numeric.RealType")):
         return False
     fqcn = obj.getClass().getName()
@@ -341,10 +423,26 @@ def imglabeling_to_labeling(ij: "jc.ImageJ", imglabeling: "jc.ImgLabeling"):
 
 
 def supports_labeling_to_imglabeling(obj):
+    """
+    Return True iff the given object is convertible to an ImgLib2 ImgLabeling
+    via the labeling_to_imglabeling function.
+
+    :param ij: The ImageJ2 gateway (see imagej.init)
+    :param obj: The object to check for convertibility
+    :return: True iff conversion to an ImgLib2 ImgLabeling is possible
+    """
     return isinstance(obj, Labeling)
 
 
 def supports_imglabeling_to_labeling(obj):
+    """
+    Return True iff the given object is convertible to a Python Labeling
+    via the imglabeling_to_labeling function.
+
+    :param ij: The ImageJ2 gateway (see imagej.init)
+    :param obj: The object to check for convertibility
+    :return: True iff conversion to a Python Labeling is possible
+    """
     return isinstance(obj, jc.ImgLabeling)
 
 
@@ -370,7 +468,7 @@ def _permute_rai_to_python(rich_rai: "jc.RandomAccessibleInterval"):
 
     :param rich_rai: A RandomAccessibleInterval with axis labels
         (e.g. Dataset or ImgPlus).
-    :return: A permuted RandomAccessibleInterval.
+    :return: A permuted RandomAccessibleInterval
     """
     # get input rai metadata if it exists
     try:

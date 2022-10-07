@@ -45,6 +45,13 @@ _imglib2_types = {
 
 
 def is_arraylike(arr):
+    """
+    Return True iff the object is arraylike: possessing
+    .shape, .dtype, .__array__, and .ndim attributes.
+
+    :param arr: The object to check for arraylike properties
+    :return: True iff the object is arraylike
+    """
     return (
         hasattr(arr, "shape")
         and hasattr(arr, "dtype")
@@ -54,6 +61,13 @@ def is_arraylike(arr):
 
 
 def is_memoryarraylike(arr):
+    """
+    Return True iff the object is memoryarraylike:
+    an arraylike object whose .data type is memoryview.
+
+    :param arr: The object to check for memoryarraylike properties
+    :return: True iff the object is memoryarraylike
+    """
     return (
         is_arraylike(arr)
         and hasattr(arr, "data")
@@ -62,6 +76,14 @@ def is_memoryarraylike(arr):
 
 
 def is_xarraylike(xarr):
+    """
+    Return True iff the object is xarraylike:
+    possessing .values, .dims, and .coords attributes,
+    and whose .values are arraylike.
+
+    :param arr: The object to check for xarraylike properties
+    :return: True iff the object is xarraylike
+    """
     return (
         hasattr(xarr, "values")
         and hasattr(xarr, "dims")
@@ -71,6 +93,12 @@ def is_xarraylike(xarr):
 
 
 def create_ndarray(image) -> np.ndarray:
+    """
+    Create a NumPy ndarray with the same dimensions as the given image.
+
+    :param image: The image whose shape the new ndarray will match.
+    :return: The newly constructed ndarray with matching dimensions.
+    """
     try:
         dtype_to_use = dtype(image)
     except TypeError:
@@ -89,17 +117,19 @@ def create_ndarray(image) -> np.ndarray:
 def copy_rai_into_ndarray(
     ij: "jc.ImageJ", rai: "jc.RandomAccessibleInterval", narr: np.ndarray
 ) -> None:
-    """Copy a RandomAccessibleInterval into a numpy array.
+    """
+    Copy an ImgLib2 RandomAccessibleInterval into a NumPy ndarray.
 
-    The input RandomAccessibleInterval is copied into the pre-initialized numpy
-    array with either "fast copy" via 'net.imglib2.util.ImgUtil.copy' if
-    available or the slower "copy.rai" method. Note that the input
-    RandomAccessibleInterval and numpy array must have reversed dimensions
+    The input RandomAccessibleInterval is copied into the pre-initialized
+    NumPy ndarray with either "fast copy" via 'net.imglib2.util.ImgUtil.copy'
+    if available or the slower "copy.rai" method. Note that the input
+    RandomAccessibleInterval and NumPy ndarray must have reversed dimensions
     relative to each other (e.g. [t, z, y, x, c] and [c, x, y, z, t]).
 
-    :param rai: A net.imglib2.RandomAccessibleInterval.
-    :param narr: A NumPy array with the same shape as the input
-        RandomAccessibleInterval.
+    :param ij: The ImageJ2 gateway (see imagej.init)
+    :param rai: The RandomAccessibleInterval.
+    :param narr: A NumPy ndarray with the same (reversed) shape
+        as the input RandomAccessibleInterval.
     """
     if not isinstance(rai, jc.RandomAccessibleInterval):
         raise TypeError("rai is not a RAI")
@@ -142,7 +172,7 @@ def copy_rai_into_ndarray(
     ij.op().run("copy.rai", sj.to_java(narr), rai)
 
 
-def dtype(image_or_type):
+def dtype(image_or_type) -> np.dtype:
     """Get the dtype of the input image as a numpy.dtype object.
 
     Note: for Java-based images, this is different than the image's dtype
@@ -151,8 +181,8 @@ def dtype(image_or_type):
     the dtype function (see https://github.com/imagej/pyimagej/issues/194).
 
     :param image_or_type:
-        | A NumPy array.
-        | OR A NumPy array dtype.
+        | A NumPy ndarray.
+        | OR A NumPy ndarray dtype.
         | OR An ImgLib2 image ('net.imglib2.Interval').
         | OR An ImageJ2 Dataset ('net.imagej.Dataset').
         | OR An ImageJ ImagePlus ('ij.ImagePlus').
