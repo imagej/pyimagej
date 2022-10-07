@@ -183,16 +183,16 @@ def dtype(image_or_type):
 
     # -- Original ImageJ images --
     if jc.ImagePlus and isinstance(image_or_type, jc.ImagePlus):
-        ij1_type = image_or_type.getType()
-        ij1_types = {
+        imagej_type = image_or_type.getType()
+        imagej_types = {
             jc.ImagePlus.GRAY8: "uint8",
             jc.ImagePlus.GRAY16: "uint16",
             # NB: ImageJ's 32-bit type is float32, not uint32.
             jc.ImagePlus.GRAY32: "float32",
         }
-        for t in ij1_types:
-            if ij1_type == t:
-                return np.dtype(ij1_types[t])
-        raise TypeError(f"Unsupported original ImageJ type: {ij1_type}")
+        for t in imagej_types:
+            if imagej_type == t:
+                return np.dtype(imagej_types[t])
+        raise TypeError(f"Unsupported original ImageJ type: {imagej_type}")
 
     raise TypeError("Unsupported Java type: " + str(sj.jclass(image_or_type).getName()))
