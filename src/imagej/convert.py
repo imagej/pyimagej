@@ -1,5 +1,5 @@
 """
-Utility functions for converting between types.
+Utility functions for converting objects between types.
 """
 import ctypes
 import logging

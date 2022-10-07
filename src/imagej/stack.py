@@ -1,3 +1,6 @@
+"""
+Utility functions for manipulating image stacks.
+"""
 from typing import List, Tuple
 
 import scyjava as sj
