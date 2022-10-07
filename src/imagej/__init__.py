@@ -62,7 +62,7 @@ import imagej.convert as convert
 import imagej.dims as dims
 import imagej.images as images
 import imagej.stack as stack
-from imagej._utils import JObjectArray, jc
+from imagej._java import JObjectArray, jc
 
 __author__ = "ImageJ2 developers"
 __version__ = sj.get_version("pyimagej")

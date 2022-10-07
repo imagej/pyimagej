@@ -6,9 +6,9 @@ import scyjava as sj
 import xarray as xr
 from jpype import JException, JObject
 
+from imagej._java import jc
 from imagej.images import is_arraylike as _is_arraylike
 from imagej.images import is_xarraylike as _is_xarraylike
-from imagej._utils import jc
 
 _logger = logging.getLogger(__name__)
 
