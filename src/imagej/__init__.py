@@ -63,6 +63,7 @@ import imagej.dims as dims
 import imagej.images as images
 import imagej.stack as stack
 from imagej._java import JObjectArray, jc
+from imagej._java import log_exception as _log_exception
 
 __author__ = "ImageJ2 developers"
 __version__ = sj.get_version("pyimagej")
@@ -451,7 +452,7 @@ class ImageJPython:
                     .get()
                 )
         except Exception as exc:
-            _dump_exception(exc)
+            _log_exception(_logger, exc)
             raise exc
 
     def run_plugin(self, plugin: str, args=None, ij1_style=True, imp=None):
@@ -542,7 +543,7 @@ class ImageJPython:
                 .get()
             )
         except Exception as exc:
-            _dump_exception(exc)
+            _log_exception(_logger, exc)
             raise exc
 
     def show(self, image, cmap=None):
@@ -926,7 +927,7 @@ class ImageJPython:
                 rai = self._ij.convert().convert(data, jc.RandomAccessibleInterval)
                 return self._ij.dataset().create(rai)
         except Exception as exc:
-            _dump_exception(exc)
+            _log_exception(_logger, exc)
             raise exc
         raise TypeError("Cannot convert to dataset: " + str(type(data)))
 
@@ -947,7 +948,7 @@ class ImageJPython:
                 rai = self._ij.convert().convert(data, jc.RandomAccessibleInterval)
                 return jc.ImgView.wrap(rai)
         except Exception as exc:
-            _dump_exception(exc)
+            _log_exception(_logger, exc)
             raise exc
         raise TypeError("Cannot convert to img: " + str(type(data)))
 
@@ -1780,13 +1781,6 @@ def _create_jvm(
         return False
 
     return True
-
-
-def _dump_exception(exc):
-    if _logger.isEnabledFor(logging.DEBUG):
-        jtrace = sj.jstacktrace(exc)
-        if jtrace:
-            _logger.debug(jtrace)
 
 
 def _includes_imagej_legacy(items: list):

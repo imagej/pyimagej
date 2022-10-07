@@ -1,8 +1,17 @@
+import logging
 from functools import lru_cache
 from typing import Callable
 
 from jpype import JArray, JClass, JObject
-from scyjava import jimport, jvm_started
+from scyjava import jimport, jstacktrace, jvm_started
+
+
+def log_exception(logger, exc):
+    if logger.isEnabledFor(logging.DEBUG):
+        jtrace = jstacktrace(exc)
+        if jtrace:
+            logger.debug(jtrace)
+
 
 # Import Java resources on demand.
 
