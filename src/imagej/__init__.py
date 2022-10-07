@@ -537,51 +537,6 @@ class ImageJPython:
 
     # -- Helper functions --
 
-    def _format_argument(self, key, value, ij1_style):
-        if value is True:
-            argument = str(key)
-            if not ij1_style:
-                argument += "=true"
-        elif value is False:
-            argument = None
-            if not ij1_style:
-                argument = f"{key}=false"
-        elif value is None:
-            raise NotImplementedError("Conversion for None is not yet implemented")
-        else:
-            val_str = self._format_value(value)
-            argument = f"{key}={val_str}"
-        return argument
-
-    def _format_value(self, value):
-        if isinstance(value, jc.ImagePlus):
-            return str(value.getTitle())
-        temp_value = str(value).replace("\\", "/")
-        if temp_value.startswith("[") and temp_value.endswith("]"):
-            return temp_value
-        final_value = "[" + temp_value + "]"
-        return final_value
-
-    def _get_origin(self, axis):
-        """
-        Get the coordinate origin of an axis, assuming it is the first entry.
-        :param axis: A 1D list like entry accessible with indexing, which contains
-            the axis coordinates
-        :return: The origin for this axis.
-        """
-        return axis.values[0]
-
-    def _invert_except_last_element(self, lst):
-        """
-        Invert a list except for the last element.
-        """
-        cut_list = lst[0:-1]
-        reverse_cut = list(reversed(cut_list))
-        reverse_cut.append(lst[-1])
-        return reverse_cut
-
-    # -- Helper functions - type conversion --
-
     def _add_converters(self):
         """Add all known converters to ScyJava's conversion mechanism."""
 
@@ -651,6 +606,49 @@ class ImageJPython:
                 priority=sj.Priority.HIGH - 2,
             )
         )
+
+    def _format_argument(self, key, value, ij1_style):
+        if value is True:
+            argument = str(key)
+            if not ij1_style:
+                argument += "=true"
+        elif value is False:
+            argument = None
+            if not ij1_style:
+                argument = f"{key}=false"
+        elif value is None:
+            raise NotImplementedError("Conversion for None is not yet implemented")
+        else:
+            val_str = self._format_value(value)
+            argument = f"{key}={val_str}"
+        return argument
+
+    def _format_value(self, value):
+        if isinstance(value, jc.ImagePlus):
+            return str(value.getTitle())
+        temp_value = str(value).replace("\\", "/")
+        if temp_value.startswith("[") and temp_value.endswith("]"):
+            return temp_value
+        final_value = "[" + temp_value + "]"
+        return final_value
+
+    def _get_origin(self, axis):
+        """
+        Get the coordinate origin of an axis, assuming it is the first entry.
+        :param axis: A 1D list like entry accessible with indexing, which contains
+            the axis coordinates
+        :return: The origin for this axis.
+        """
+        return axis.values[0]
+
+    def _invert_except_last_element(self, lst):
+        """
+        Invert a list except for the last element.
+        """
+        cut_list = lst[0:-1]
+        reverse_cut = list(reversed(cut_list))
+        reverse_cut.append(lst[-1])
+        return reverse_cut
 
 
 @JImplementationFor("net.imagej.ImageJ")
