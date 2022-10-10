@@ -105,7 +105,7 @@ def imageplus_to_imgplus(ij: "jc.ImageJ", imp: "jc.ImagePlus") -> "jc.ImgPlus":
 ##############################
 
 
-def ndarray_to_dataset(ij: "jc.ImageJ", narr):
+def ndarray_to_dataset(ij: "jc.ImageJ", narr) -> "jc.Dataset":
     """
     Convert the given NumPy ndarray into an ImageJ2 Dataset.
 
@@ -118,7 +118,7 @@ def ndarray_to_dataset(ij: "jc.ImageJ", narr):
     return java_to_dataset(ij, rai)
 
 
-def ndarray_to_img(ij: "jc.ImageJ", narr):
+def ndarray_to_img(ij: "jc.ImageJ", narr) -> "jc.Img":
     """
     Convert the given NumPy ndarray into an ImgLib2 Img.
 
@@ -131,7 +131,7 @@ def ndarray_to_img(ij: "jc.ImageJ", narr):
     return java_to_img(ij, rai)
 
 
-def xarray_to_dataset(ij: "jc.ImageJ", xarr):
+def xarray_to_dataset(ij: "jc.ImageJ", xarr) -> "jc.Dataset":
     """
     Converts an xarray DataArray to an ImageJ2 Dataset,
     inverting C-style (slow axis first) to F-style (slow-axis last).
@@ -153,7 +153,7 @@ def xarray_to_dataset(ij: "jc.ImageJ", xarr):
     return dataset
 
 
-def xarray_to_img(ij: "jc.ImageJ", xarr):
+def xarray_to_img(ij: "jc.ImageJ", xarr) -> "jc.Img":
     """
     Converts an xarray DataArray into an ImgLib2 Img,
     inverting C-style (slow axis first) to F-style (slow axis last).

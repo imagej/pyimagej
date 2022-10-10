@@ -10,7 +10,7 @@ from jpype import JArray, JClass, JObject
 from scyjava import jimport, jstacktrace, jvm_started
 
 
-def log_exception(logger, exc):
+def log_exception(logger: logging.Logger, exc: "jc.Throwable") -> None:
     if logger.isEnabledFor(logging.DEBUG):
         jtrace = jstacktrace(exc)
         if jtrace:
@@ -57,6 +57,10 @@ class JavaClasses(object):
                 return None
 
         return inner
+
+    @blocking_import
+    def Throwable(self):
+        return "java.lang.Throwable"
 
     @blocking_import
     def ImagePlus(self):
