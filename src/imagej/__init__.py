@@ -466,38 +466,60 @@ class ImageJPython:
         )
         self.sync_image(imp)
 
-    def to_dataset(self, data):
+    def to_dataset(self, data, **kwargs):
         """Convert the data into an ImageJ2 Dataset.
 
         Converts a Python image (e.g. xarray or numpy array) or Java image (e.g.
         RandomAccessibleInterval or Img) into a 'net.imagej.Dataset' Java object.
 
         :param data: Image object to be converted to Dataset.
+        :param kwargs: Optional keyword arguments.
+            | "dim_order" : List[str]
         :return: A 'net.imagej.Dataset'.
         """
-        if images.is_xarraylike(data):
-            return convert.xarray_to_dataset(self._ij, data)
-        if images.is_arraylike(data):
-            return convert.ndarray_to_dataset(self._ij, data)
+        if kwargs:
+            if images.is_xarraylike(data):
+                return convert.xarray_to_dataset(self._ij, convert._rename_xarray_dims(data, kwargs))
+            if images.is_arraylike(data):
+                return convert.xarray_to_dataset(self._ij, convert.ndarray_to_xarray(data, kwargs))
+        else:
+            if images.is_xarraylike(data):
+                return convert.xarray_to_dataset(self._ij, data)
+            if images.is_arraylike(data):
+                return convert.ndarray_to_dataset(self._ij, data)
+
         if sj.isjava(data):
+            if kwargs:
+                _logger.warning(f"Keyword arguments are not supported for {type(data)}.")
             return convert.java_to_dataset(self._ij, data)
 
         raise TypeError(f"Type not supported: {type(data)}")
 
-    def to_img(self, data):
+    def to_img(self, data, **kwargs):
         """Convert the data into an ImgLib2 Img.
 
         Converts a Python image (e.g. xarray or numpy array) or Java image (e.g.
         RandomAccessibleInterval) into a 'net.imglib2.img.Img' Java object.
 
         :param data: Image object to be converted to Img.
+        :param kwargs: Optional keyword arguments.
+            | "dim_order" : List[str]
         :return: A 'net.imglib2.img.Img'.
         """
-        if images.is_xarraylike(data):
-            return convert.xarray_to_img(self._ij, data)
-        if images.is_arraylike(data):
-            return convert.ndarray_to_img(self._ij, data)
+        if kwargs:
+            if images.is_xarraylike(data):
+                return convert.xarray_to_img(self._ij, convert._rename_xarray_dims(data, kwargs))
+            if images.is_arraylike(data):
+                return convert.xarray_to_img(self._ij, convert.ndarray_to_xarray(data, kwargs))
+        else:
+            if images.is_xarraylike(data):
+                return convert.xarray_to_img(self._ij, data)
+            if images.is_arraylike(data):
+                return convert.ndarray_to_img(self._ij, data)
+
         if sj.isjava(data):
+            if kwargs:
+                _logger.warning(f"Keyword arguments are not supported for {type(data)}.")
             return convert.java_to_img(self._ij, data)
 
         raise TypeError(f"Type not supported: {type(data)}")
@@ -524,6 +546,36 @@ class ImageJPython:
         :return: A Java object converted from Python.
         """
         return sj.to_java(data)
+
+    def to_xarray(self, data, **kwargs):
+        """Convert the data into an ImgLib2 Img.
+
+        Converts a Python image (e.g. xarray or numpy array) or Java image (e.g.
+        RandomAccessibleInterval) into a 'xarray.DataArray' Python object.
+
+        :param data: Image object to be converted to xarray.DataArray.
+        :param kwargs: Optional keyword arguments.
+            | "dim_order" : List[str]
+        :return: An xarray.DataArray.
+        """
+        if kwargs:
+            if images.is_xarraylike(data):
+                return convert._rename_xarray_dims(data, kwargs)
+            if images.is_arraylike(data):
+                return convert.ndarray_to_xarray(data, kwargs)
+        else:
+            if images.is_xarraylike(data):
+                return data
+            if images.is_arraylike(data):
+                return xr.DataArray(data)
+
+        if sj.isjava(data):
+            if convert.supports_java_to_xarray(self._ij, data):
+                if kwargs:
+                    _logger.warning(f"Keyword arguments are not supported for {type(data)}.")
+                return convert.java_to_xarray(self._ij, data)
+
+        return TypeError(f"Type not supported: {type(data)}.")
 
     def window_manager(self):
         """
