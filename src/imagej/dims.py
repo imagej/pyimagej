@@ -1,3 +1,6 @@
+"""
+Utility functions for querying and manipulating dimensional axis metadata.
+"""
 import logging
 from typing import List, Tuple
 
@@ -6,7 +9,9 @@ import scyjava as sj
 import xarray as xr
 from jpype import JException, JObject
 
-from imagej._utils import jc
+from imagej._java import jc
+from imagej.images import is_arraylike as _is_arraylike
+from imagej.images import is_xarraylike as _is_xarraylike
 
 _logger = logging.getLogger(__name__)
 
@@ -38,7 +43,6 @@ def get_axis_types(rai: "jc.RandomAccessibleInterval") -> List["jc.AxisType"]:
         + "    axis_types = [axis.type() for axis in image.dim_axes]"
     )
     if _has_axis(rai):
-        Axes = sj.jimport("net.imagej.axis.Axes")
         rai_dims = get_dims(rai)
         for i in range(len(rai_dims)):
             if rai_dims[i].lower() == "c":
@@ -47,7 +51,7 @@ def get_axis_types(rai: "jc.RandomAccessibleInterval") -> List["jc.AxisType"]:
                 rai_dims[i] = "Time"
         rai_axis_types = []
         for i in range(len(rai_dims)):
-            rai_axis_types.append(Axes.get(rai_dims[i]))
+            rai_axis_types.append(jc.Axes.get(rai_dims[i]))
         return rai_axis_types
     else:
         raise AttributeError(
@@ -89,7 +93,7 @@ def get_shape(image) -> List[int]:
         return list(image.shape)
     if not sj.isjava(image):
         raise TypeError("Unsupported type: " + str(type(image)))
-    if isinstance(image, sj.jimport("net.imglib2.Dimensions")):
+    if isinstance(image, jc.Dimensions):
         return [image.dimension(d) for d in range(image.numDimensions())]
     if isinstance(image, jc.ImagePlus):
         shape = image.getDimensions()
@@ -180,7 +184,6 @@ def _assign_axes(xarr: xr.DataArray):
     :param xarr: xarray that holds the units
     :return: A list of ImageJ Axis with the specified origin and scale
     """
-    Axes = sj.jimport("net.imagej.axis.Axes")
     Double = sj.jimport("java.lang.Double")
 
     axes = [""] * len(xarr.dims)
@@ -193,7 +196,7 @@ def _assign_axes(xarr: xr.DataArray):
 
     for dim in xarr.dims:
         axis_str = _convert_dim(dim, direction="java")
-        ax_type = Axes.get(axis_str)
+        ax_type = jc.Axes.get(axis_str)
         ax_num = _get_axis_num(xarr, dim)
         scale = _get_scale(xarr.coords[dim])
 
@@ -343,9 +346,7 @@ def _python_rai_ref_order() -> List["jc.AxisType"]:
     reversed.
     :return: List of dimensions in numpy preferred order.
     """
-    Axes = sj.jimport("net.imagej.axis.Axes")
-
-    return [Axes.CHANNEL, Axes.X, Axes.Y, Axes.Z, Axes.TIME]
+    return [jc.Axes.CHANNEL, jc.Axes.X, jc.Axes.Y, jc.Axes.Z, jc.Axes.TIME]
 
 
 def _convert_dim(dim: str, direction: str) -> str:
@@ -402,26 +403,6 @@ def _has_axis(rai: "jc.RandomAccessibleInterval"):
         return hasattr(rai, "axis")
     else:
         False
-
-
-def _is_arraylike(arr):
-    """Check if object is an array."""
-    return (
-        hasattr(arr, "shape")
-        and hasattr(arr, "dtype")
-        and hasattr(arr, "__array__")
-        and hasattr(arr, "ndim")
-    )
-
-
-def _is_xarraylike(xarr):
-    """Check if object is an xarray."""
-    return (
-        hasattr(xarr, "values")
-        and hasattr(xarr, "dims")
-        and hasattr(xarr, "coords")
-        and _is_arraylike(xarr.values)
-    )
 
 
 def _to_pydim(key: str) -> str:

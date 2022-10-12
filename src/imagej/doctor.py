@@ -13,9 +13,7 @@ To enable debug-level logging:
     imagej.doctor.debug_to_stderr()
     import imagej
     ij = imagej.init()
-
 """
-
 import importlib
 import logging
 import os

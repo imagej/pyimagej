@@ -1,3 +1,6 @@
+"""
+Utility functions for manipulating image stacks.
+"""
 from typing import List, Tuple
 
 import scyjava as sj
@@ -12,7 +15,7 @@ def rai_slice(rai, imin: Tuple, imax: Tuple, istep: Tuple):
     :param rai: An ImgLib2 RandomAccessibleInterval
     :param imin: Tuple of minimum interval range values.
     :param imax: Tuple of maximum interval range values.
-    :return: Sliced ImgLib2 RandomAccisbleInterval.
+    :return: Sliced ImgLib2 RandomAccessibleInterval.
     """
 
     # HACK: Avoid importing JLong at global scope.
@@ -29,6 +32,7 @@ def rai_slice(rai, imin: Tuple, imax: Tuple, istep: Tuple):
     #   >>> help(JLong)
     #
     # So while the import here is unfortunate, it avoids the issue.
+    # TODO: Change to scyjava.new_jarray once we have that function.
     from jpype import JArray, JLong
 
     Views = sj.jimport("net.imglib2.view.Views")

@@ -1,8 +1,21 @@
+"""
+Internal utility functions for working with Java objects.
+These are not intended for external use in PyImageJ-based scripts!
+"""
+import logging
 from functools import lru_cache
 from typing import Callable
 
 from jpype import JArray, JClass, JObject
-from scyjava import jimport, jvm_started
+from scyjava import jimport, jstacktrace, jvm_started
+
+
+def log_exception(logger: logging.Logger, exc: "jc.Throwable") -> None:
+    if logger.isEnabledFor(logging.DEBUG):
+        jtrace = jstacktrace(exc)
+        if jtrace:
+            logger.debug(jtrace)
+
 
 # Import Java resources on demand.
 
@@ -46,6 +59,34 @@ class JavaClasses(object):
         return inner
 
     @blocking_import
+    def Throwable(self):
+        return "java.lang.Throwable"
+
+    @blocking_import
+    def ImagePlus(self):
+        return "ij.ImagePlus"
+
+    @blocking_import
+    def LabelingIOService(self):
+        return "io.scif.labeling.LabelingIOService"
+
+    @blocking_import
+    def Dataset(self):
+        return "net.imagej.Dataset"
+
+    @blocking_import
+    def ImageJ(self):
+        return "net.imagej.ImageJ"
+
+    @blocking_import
+    def ImgPlus(self):
+        return "net.imagej.ImgPlus"
+
+    @blocking_import
+    def Axes(self):
+        return "net.imagej.axis.Axes"
+
+    @blocking_import
     def Axis(self):
         return "net.imagej.axis.Axis"
 
@@ -58,16 +99,8 @@ class JavaClasses(object):
         return "net.imagej.axis.CalibratedAxis"
 
     @blocking_import
-    def ImagePlus(self):
-        return "ij.ImagePlus"
-
-    @blocking_import
-    def Dataset(self):
-        return "net.imagej.Dataset"
-
-    @blocking_import
-    def ImgPlus(self):
-        return "net.imagej.ImgPlus"
+    def Dimensions(self):
+        return "net.imglib2.Dimensions"
 
     @blocking_import
     def RandomAccessibleInterval(self):
@@ -88,6 +121,10 @@ class JavaClasses(object):
     @blocking_import
     def ImgLabeling(self):
         return "net.imglib2.roi.labeling.ImgLabeling"
+
+    @blocking_import
+    def Util(self):
+        return "net.imglib2.util.Util"
 
     @blocking_import
     def Views(self):
