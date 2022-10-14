@@ -59,6 +59,7 @@ dev = [
     "pytest-cov",
     "sphinx",
     "sphinx_rtd_theme",
+    "validate-pyproject[all]",
 ]
 
 [project.scripts]

@@ -50,7 +50,7 @@ dependencies:
   - sphinx_rtd_theme
   - pip
   - pip:
-    # PyPI-only dependencies
     - readthedocs-sphinx-search
+    - validate-pyproject[all]
     # Project from source
     - -e .
