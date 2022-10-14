@@ -5,13 +5,11 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "pyimagej"
 version = "1.2.2.dev0"
-authors = [
-    {name = "ImageJ2 developers", email = "ctrueden@wisc.edu"},
-]
 description = "Python wrapper for ImageJ"
-readme = "README.md"
 license = {text = "Apache-2.0"}
-requires-python = ">=3.7"
+authors = [{name = "ImageJ2 developers", email = "ctrueden@wisc.edu"}]
+readme = "README.md"
+keywords = ["java", "imagej", "imagej2", "fiji"]
 classifiers = [
     "Development Status :: 5 - Production/Stable",
     "Intended Audience :: Developers",
@@ -33,7 +31,9 @@ classifiers = [
     "Topic :: Software Development :: Libraries :: Python Modules",
     "Topic :: Utilities",
 ]
-# Ensure any changes made to this list are also added to environment.yml AND dev-environment.yml AND README.md!
+
+# NB: Keep this in sync with environment.yml AND dev-environment.yml!
+requires-python = ">=3.7"
 dependencies = [
     "imglyb >= 2.0.1",
     "jgo >= 1.0.3",
@@ -45,17 +45,8 @@ dependencies = [
     "xarray",
 ]
 
-[project.urls]
-Homepage = "https://github.com/imagej/pyimagej"
-"Bug Tracker" = "https://github.com/imagej/pyimagej/issues"
-Documentation = "https://pyimagej.readthedocs.io/en/latest/"
-repository = "https://github.com/imagej/pyimagej"
-
-[project.scripts]
-imagej = "imagej:imagej_main"
-
 [project.optional-dependencies]
-# Ensure any changes made to this list are also added to dev-environment.yml!
+# NB: Keep this in sync with dev-environment.yml!
 dev = [
     "autopep8",
     "black",
@@ -69,6 +60,16 @@ dev = [
     "sphinx",
     "sphinx_rtd_theme",
 ]
+
+[project.scripts]
+imagej = "imagej:imagej_main"
+
+[project.urls]
+homepage = "https://github.com/imagej/pyimagej"
+documentation = "https://pyimagej.readthedocs.io/"
+source = "https://github.com/imagej/pyimagej"
+download = "https://pypi.org/project/pyimagej/"
+tracker = "https://github.com/imagej/pyimagej/issues"
 
 [tool.setuptools]
 platforms = ["any"]
@@ -85,4 +86,3 @@ exclude = 'dist|doc'
 [tool.isort]
 profile = "black"
 skip = ["doc"]
-
