@@ -27,7 +27,7 @@ test: check
 docs: check
 	cd doc && $(MAKE) html
 
-dist: check
+dist: check clean
 	python -m build
 
 .PHONY: tests
