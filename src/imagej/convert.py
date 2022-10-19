@@ -131,6 +131,19 @@ def ndarray_to_img(ij: "jc.ImageJ", narr) -> "jc.Img":
     return java_to_img(ij, rai)
 
 
+def ndarray_to_xarray(narr: np.ndarray, dim_map) -> xr.DataArray:
+    """
+    Convert the given NumPy ndarray into an xarray.DataArray. A dict with
+    key 'dim_order' and a dimension order in a List[str] is required.
+
+    :param narr: The NumPy ndarray
+    :param dim_map: Dict with 'dim_order' key and List[str] value (usually from kwargs)
+    :return: The converted xarray.DataArray
+    """
+    assert images.is_arraylike(narr)
+    return xr.DataArray(narr, dims=dim_map["dim_order"])
+
+
 def xarray_to_dataset(ij: "jc.ImageJ", xarr) -> "jc.Dataset":
     """
     Converts an xarray DataArray to an ImageJ2 Dataset,
@@ -482,6 +495,16 @@ def _permute_rai_to_python(rich_rai: "jc.RandomAccessibleInterval"):
         permuted_rai.getProperties().putAll(rai_metadata)
 
     return permuted_rai
+
+
+def _rename_xarray_dims(xarr, kwargs):
+    curr_dims = xarr.dims
+    new_dims = kwargs["dim_order"]
+    dim_map = {}
+    for i in range(xarr.ndim):
+        dim_map[curr_dims[i]] = new_dims[i]
+
+    return xarr.rename(dim_map)
 
 
 def _delete_labeling_files(filepath):
