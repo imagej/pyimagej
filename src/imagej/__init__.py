@@ -479,9 +479,13 @@ class ImageJPython:
         """
         if kwargs:
             if images.is_xarraylike(data):
-                return convert.xarray_to_dataset(self._ij, convert._rename_xarray_dims(data, kwargs))
+                return convert.xarray_to_dataset(
+                    self._ij, convert._rename_xarray_dims(data, **kwargs)
+                )
             if images.is_arraylike(data):
-                return convert.xarray_to_dataset(self._ij, convert.ndarray_to_xarray(data, kwargs))
+                return convert.xarray_to_dataset(
+                    self._ij, convert.ndarray_to_xarray(data, **kwargs)
+                )
         else:
             if images.is_xarraylike(data):
                 return convert.xarray_to_dataset(self._ij, data)
@@ -490,7 +494,9 @@ class ImageJPython:
 
         if sj.isjava(data):
             if kwargs:
-                _logger.warning(f"Keyword arguments are not supported for {type(data)}.")
+                _logger.warning(
+                    f"Keyword arguments are not supported for {type(data)}."
+                )
             return convert.java_to_dataset(self._ij, data)
 
         raise TypeError(f"Type not supported: {type(data)}")
@@ -508,9 +514,13 @@ class ImageJPython:
         """
         if kwargs:
             if images.is_xarraylike(data):
-                return convert.xarray_to_img(self._ij, convert._rename_xarray_dims(data, kwargs))
+                return convert.xarray_to_img(
+                    self._ij, convert._rename_xarray_dims(data, **kwargs)
+                )
             if images.is_arraylike(data):
-                return convert.xarray_to_img(self._ij, convert.ndarray_to_xarray(data, kwargs))
+                return convert.xarray_to_img(
+                    self._ij, convert.ndarray_to_xarray(data, **kwargs)
+                )
         else:
             if images.is_xarraylike(data):
                 return convert.xarray_to_img(self._ij, data)
@@ -519,7 +529,9 @@ class ImageJPython:
 
         if sj.isjava(data):
             if kwargs:
-                _logger.warning(f"Keyword arguments are not supported for {type(data)}.")
+                _logger.warning(
+                    f"Keyword arguments are not supported for {type(data)}."
+                )
             return convert.java_to_img(self._ij, data)
 
         raise TypeError(f"Type not supported: {type(data)}")
@@ -536,7 +548,7 @@ class ImageJPython:
         self._ij._check_legacy_active("Conversion to ImagePlus is not supported.")
         return self._ij.convert().convert(self.to_dataset(data), jc.ImagePlus)
 
-    def to_java(self, data):
+    def to_java(self, data, **kwargs):
         """Convert supported Python data into Java equivalents.
 
         Converts Python objects (e.g. 'xarray.DataArray') into the Java
@@ -545,7 +557,8 @@ class ImageJPython:
         :param data: Python object to be converted into its respective Java counterpart.
         :return: A Java object converted from Python.
         """
-        return sj.to_java(data)
+
+        return sj.to_java(data, **kwargs)
 
     def to_xarray(self, data, **kwargs):
         """Convert the data into an ImgLib2 Img.
@@ -560,9 +573,9 @@ class ImageJPython:
         """
         if kwargs:
             if images.is_xarraylike(data):
-                return convert._rename_xarray_dims(data, kwargs)
+                return convert._rename_xarray_dims(data, **kwargs)
             if images.is_arraylike(data):
-                return convert.ndarray_to_xarray(data, kwargs)
+                return convert.ndarray_to_xarray(data, **kwargs)
         else:
             if images.is_xarraylike(data):
                 return data
@@ -572,7 +585,9 @@ class ImageJPython:
         if sj.isjava(data):
             if convert.supports_java_to_xarray(self._ij, data):
                 if kwargs:
-                    _logger.warning(f"Keyword arguments are not supported for {type(data)}.")
+                    _logger.warning(
+                        f"Keyword arguments are not supported for {type(data)}."
+                    )
                 return convert.java_to_xarray(self._ij, data)
 
         return TypeError(f"Type not supported: {type(data)}.")
