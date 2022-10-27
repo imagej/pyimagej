@@ -574,7 +574,9 @@ class ImageJPython:
         sj.add_py_converter(
             sj.Converter(
                 predicate=lambda obj: jc.ImagePlus and isinstance(obj, jc.ImagePlus),
-                converter=lambda obj: self.from_java(self._imageplus_to_imgplus(obj)),
+                converter=lambda obj: self.from_java(
+                    convert.imageplus_to_imgplus(self._ij, obj)
+                ),
                 priority=sj.Priority.HIGH + 2,
             )
         )
