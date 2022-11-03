@@ -466,25 +466,25 @@ class ImageJPython:
         )
         self.sync_image(imp)
 
-    def to_dataset(self, data, **kwargs):
+    def to_dataset(self, data, **hints):
         """Convert the data into an ImageJ2 Dataset.
 
         Converts a Python image (e.g. xarray or numpy array) or Java image (e.g.
         RandomAccessibleInterval or Img) into a 'net.imagej.Dataset' Java object.
 
         :param data: Image object to be converted to Dataset.
-        :param kwargs: Optional keyword arguments.
+        :param hints: Optional conversion hints.
             | "dim_order" : List[str]
         :return: A 'net.imagej.Dataset'.
         """
-        if kwargs:
+        if hints:
             if images.is_xarraylike(data):
                 return convert.xarray_to_dataset(
-                    self._ij, convert._rename_xarray_dims(data, **kwargs)
+                    self._ij, convert._rename_xarray_dims(data, **hints)
                 )
             if images.is_arraylike(data):
                 return convert.xarray_to_dataset(
-                    self._ij, convert.ndarray_to_xarray(data, **kwargs)
+                    self._ij, convert.ndarray_to_xarray(data, **hints)
                 )
         else:
             if images.is_xarraylike(data):
@@ -493,33 +493,33 @@ class ImageJPython:
                 return convert.ndarray_to_dataset(self._ij, data)
 
         if sj.isjava(data):
-            if kwargs:
+            if hints:
                 _logger.warning(
-                    f"Keyword arguments are not supported for {type(data)}."
+                    f"Conversion hints are not supported for {type(data)}."
                 )
             return convert.java_to_dataset(self._ij, data)
 
         raise TypeError(f"Type not supported: {type(data)}")
 
-    def to_img(self, data, **kwargs):
+    def to_img(self, data, **hints):
         """Convert the data into an ImgLib2 Img.
 
         Converts a Python image (e.g. xarray or numpy array) or Java image (e.g.
         RandomAccessibleInterval) into a 'net.imglib2.img.Img' Java object.
 
         :param data: Image object to be converted to Img.
-        :param kwargs: Optional keyword arguments.
+        :param hints: Optional conversion hints.
             | "dim_order" : List[str]
         :return: A 'net.imglib2.img.Img'.
         """
-        if kwargs:
+        if hints:
             if images.is_xarraylike(data):
                 return convert.xarray_to_img(
-                    self._ij, convert._rename_xarray_dims(data, **kwargs)
+                    self._ij, convert._rename_xarray_dims(data, **hints)
                 )
             if images.is_arraylike(data):
                 return convert.xarray_to_img(
-                    self._ij, convert.ndarray_to_xarray(data, **kwargs)
+                    self._ij, convert.ndarray_to_xarray(data, **hints)
                 )
         else:
             if images.is_xarraylike(data):
@@ -528,9 +528,9 @@ class ImageJPython:
                 return convert.ndarray_to_img(self._ij, data)
 
         if sj.isjava(data):
-            if kwargs:
+            if hints:
                 _logger.warning(
-                    f"Keyword arguments are not supported for {type(data)}."
+                    f"Conversion hints are not supported for {type(data)}."
                 )
             return convert.java_to_img(self._ij, data)
 
@@ -548,34 +548,35 @@ class ImageJPython:
         self._ij._check_legacy_active("Conversion to ImagePlus is not supported.")
         return self._ij.convert().convert(self.to_dataset(data), jc.ImagePlus)
 
-    def to_java(self, data, **kwargs):
+    def to_java(self, data, **hints):
         """Convert supported Python data into Java equivalents.
 
         Converts Python objects (e.g. 'xarray.DataArray') into the Java
         equivalents. For numpy arrays, the Java image points to the Python array.
 
         :param data: Python object to be converted into its respective Java counterpart.
+        :param hints: Optional conversion hints.
         :return: A Java object converted from Python.
         """
 
-        return sj.to_java(data, **kwargs)
+        return sj.to_java(data, **hints)
 
-    def to_xarray(self, data, **kwargs):
+    def to_xarray(self, data, **hints):
         """Convert the data into an ImgLib2 Img.
 
         Converts a Python image (e.g. xarray or numpy array) or Java image (e.g.
         RandomAccessibleInterval) into a 'xarray.DataArray' Python object.
 
         :param data: Image object to be converted to xarray.DataArray.
-        :param kwargs: Optional keyword arguments.
+        :param hints: Optional conversion hints.
             | "dim_order" : List[str]
         :return: An xarray.DataArray.
         """
-        if kwargs:
+        if hints:
             if images.is_xarraylike(data):
-                return convert._rename_xarray_dims(data, **kwargs)
+                return convert._rename_xarray_dims(data, **hints)
             if images.is_arraylike(data):
-                return convert.ndarray_to_xarray(data, **kwargs)
+                return convert.ndarray_to_xarray(data, **hints)
         else:
             if images.is_xarraylike(data):
                 return data
@@ -584,9 +585,9 @@ class ImageJPython:
 
         if sj.isjava(data):
             if convert.supports_java_to_xarray(self._ij, data):
-                if kwargs:
+                if hints:
                     _logger.warning(
-                        f"Keyword arguments are not supported for {type(data)}."
+                        f"Conversion hints are not supported for {type(data)}."
                     )
                 return convert.java_to_xarray(self._ij, data)
 
