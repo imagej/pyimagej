@@ -10,12 +10,29 @@ def arr():
     return empty_array
 
 
+# -- Helpers --
+
+
+def ensure_gui_available(ij):
+    if ij.ui().isHeadless():
+        pytest.skip("No GUI. Skipping test.")
+
+
+def ensure_legacy_disabled(ij):
+    if ij.legacy and ij.legacy.isActive():
+        pytest.skip("Original ImageJ installed. Skipping test.")
+
+
+def ensure_legacy_enabled(ij):
+    if not ij.legacy or not ij.legacy.isActive():
+        pytest.skip("No original ImageJ. Skipping test.")
+
+
 # -- Tests --
 
 
 def test_run_plugin(ij_fixture):
-    if not ij_fixture.legacy:
-        pytest.skip("No original ImageJ. Skipping test.")
+    ensure_legacy_enabled(ij_fixture)
 
     ramp = ij_fixture.IJ.createImage("Tile1", "8-bit ramp", 10, 10, 1)
     ij_fixture.py.run_plugin("Gaussian Blur...", args={"sigma": 3}, imp=ramp)
@@ -37,10 +54,8 @@ def test_run_plugin(ij_fixture):
 
 
 def test_get_imageplus_synchronizes_from_imagej_to_imagej2(ij_fixture, arr):
-    if not ij_fixture.legacy:
-        pytest.skip("No original ImageJ. Skipping test.")
-    if ij_fixture.ui().isHeadless():
-        pytest.skip("No GUI. Skipping test.")
+    ensure_legacy_enabled(ij_fixture)
+    ensure_gui_available(ij_fixture)
 
     original = arr[0, 0]
     ds = ij_fixture.py.to_java(arr)
@@ -52,10 +67,8 @@ def test_get_imageplus_synchronizes_from_imagej_to_imagej2(ij_fixture, arr):
 
 
 def test_synchronize_from_imagej_to_numpy(ij_fixture, arr):
-    if not ij_fixture.legacy:
-        pytest.skip("No original ImageJ. Skipping test.")
-    if ij_fixture.ui().isHeadless():
-        pytest.skip("No GUI. Skipping test.")
+    ensure_legacy_enabled(ij_fixture)
+    ensure_gui_available(ij_fixture)
 
     original = arr[0, 0]
     ds = ij_fixture.py.to_dataset(arr)
@@ -68,10 +81,8 @@ def test_synchronize_from_imagej_to_numpy(ij_fixture, arr):
 
 
 def test_window_to_numpy_converts_active_image_to_xarray(ij_fixture, arr):
-    if not ij_fixture.legacy:
-        pytest.skip("No original ImageJ. Skipping test.")
-    if ij_fixture.ui().isHeadless():
-        pytest.skip("No GUI. Skipping test.")
+    ensure_legacy_enabled(ij_fixture)
+    ensure_gui_available(ij_fixture)
 
     ds = ij_fixture.py.to_dataset(arr)
     ij_fixture.ui().show(ds)
@@ -80,8 +91,7 @@ def test_window_to_numpy_converts_active_image_to_xarray(ij_fixture, arr):
 
 
 def test_functions_throw_warning_if_legacy_not_enabled(ij_fixture):
-    if ij_fixture.legacy and ij_fixture.legacy.isActive():
-        pytest.skip("Original ImageJ installed. Skipping test.")
+    ensure_legacy_disabled(ij_fixture)
 
     with pytest.raises(AttributeError):
         ij_fixture.py.sync_image(None)
