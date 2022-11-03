@@ -31,6 +31,32 @@ def ensure_legacy_enabled(ij):
 # -- Tests --
 
 
+def test_convert_imageplus_to_python(ij_fixture):
+    ensure_legacy_enabled(ij_fixture)
+
+    w = 30
+    h = 20
+    imp = ij_fixture.IJ.createImage("Ramp", "16-bit ramp", w, h, 2, 3, 5)
+    xarr = ij_fixture.py.from_java(imp)
+    assert xarr.dims == ('t', 'pln', 'row', 'col', 'ch')
+    assert xarr.shape == (5, 3, h, w, 2)
+
+    index = 0
+    for c in range(imp.getNChannels()):
+        for z in range(imp.getNSlices()):
+           for t in range(imp.getNFrames()):
+               index += 1
+               ip = imp.getStack().getProcessor(index)
+               # NB: The commented out loop is super slow because Python + JNI.
+               # Instead, we grab the whole plane as a Java array and massage it.
+               #for y in range(imp.getHeight()):
+               #    for x in range(imp.getWidth()):
+               #        assert plane[y,x] == xarr[t,z,y,x,c]
+               plane = np.frombuffer(bytearray(ip.getPixels()), count=w*h, dtype=np.uint16).reshape(h, w)
+               assert all((plane == xarr[t,z,:,:,c]).data.flatten())
+
+
+
 def test_run_plugin(ij_fixture):
     ensure_legacy_enabled(ij_fixture)
 
