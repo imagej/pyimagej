@@ -4,6 +4,8 @@ import numpy as np
 import pytest
 import scyjava as sj
 
+# -- Fixtures --
+
 
 @pytest.fixture(scope="module")
 def py_labeling():
@@ -45,6 +47,9 @@ def java_labeling(ij_fixture):
     return ImgLabeling.fromImageAndLabelSets(img_java, sets_java)
 
 
+# -- Helpers --
+
+
 def assert_labels_equality(
     exp: Dict[str, Any], act: Dict[str, Any], ignored_keys: List[str]
 ):
@@ -54,47 +59,49 @@ def assert_labels_equality(
         assert exp[key] == act[key]
 
 
-class TestImgLabelingConversions(object):
-    def test_py_to_java(self, ij_fixture, py_labeling, java_labeling):
-        j_convert = ij_fixture.py.to_java(py_labeling)
-        # Assert indexImg equality
-        expected_img = ij_fixture.py.from_java(java_labeling.getIndexImg())
-        actual_img = ij_fixture.py.from_java(j_convert.getIndexImg())
-        assert np.array_equal(expected_img, actual_img)
-        # Assert label sets equality
-        expected_labels = ij_fixture.py.from_java(
-            java_labeling.getMapping().getLabelSets()
-        )
-        actual_labels = ij_fixture.py.from_java(j_convert.getMapping().getLabelSets())
-        assert expected_labels == actual_labels
+# -- Tests --
 
-    def test_java_to_py(self, ij_fixture, py_labeling, java_labeling):
-        # Convert
-        p_convert = ij_fixture.py.from_java(java_labeling)
-        # Assert indexImg equality
-        exp_img, exp_labels = py_labeling.get_result()
-        act_img, act_labels = p_convert.get_result()
-        assert np.array_equal(exp_img, act_img)
-        # Assert (APPLICABLE) metadata equality
-        # Skipping numSources - ImgLabeling doesn't have this
-        # Skipping indexImg - py_labeling wasn't loaded from file
-        assert_labels_equality(
-            vars(exp_labels), vars(act_labels), ["numSources", "indexImg"]
-        )
 
-    def test_py_java_py(self, ij_fixture, py_labeling):
-        # Convert
-        to_java = ij_fixture.py.to_java(py_labeling)
-        back_to_py = ij_fixture.py.from_java(to_java)
-        print(py_labeling.label_sets)
-        print(back_to_py.label_sets)
-        # Assert indexImg equality
-        exp_img, exp_labels = py_labeling.get_result()
-        act_img, act_labels = back_to_py.get_result()
-        assert np.array_equal(exp_img, act_img)
-        # Assert (APPLICABLE) metadata equality
-        # Skipping numSources - ImgLabeling doesn't have this
-        # Skipping indexImg - py_labeling wasn't loaded from file
-        assert_labels_equality(
-            vars(exp_labels), vars(act_labels), ["numSources", "indexImg"]
-        )
+def test_py_to_java(ij_fixture, py_labeling, java_labeling):
+    j_convert = ij_fixture.py.to_java(py_labeling)
+    # Assert indexImg equality
+    expected_img = ij_fixture.py.from_java(java_labeling.getIndexImg())
+    actual_img = ij_fixture.py.from_java(j_convert.getIndexImg())
+    assert np.array_equal(expected_img, actual_img)
+    # Assert label sets equality
+    expected_labels = ij_fixture.py.from_java(java_labeling.getMapping().getLabelSets())
+    actual_labels = ij_fixture.py.from_java(j_convert.getMapping().getLabelSets())
+    assert expected_labels == actual_labels
+
+
+def test_java_to_py(ij_fixture, py_labeling, java_labeling):
+    # Convert
+    p_convert = ij_fixture.py.from_java(java_labeling)
+    # Assert indexImg equality
+    exp_img, exp_labels = py_labeling.get_result()
+    act_img, act_labels = p_convert.get_result()
+    assert np.array_equal(exp_img, act_img)
+    # Assert (APPLICABLE) metadata equality
+    # Skipping numSources - ImgLabeling doesn't have this
+    # Skipping indexImg - py_labeling wasn't loaded from file
+    assert_labels_equality(
+        vars(exp_labels), vars(act_labels), ["numSources", "indexImg"]
+    )
+
+
+def test_py_java_py(ij_fixture, py_labeling):
+    # Convert
+    to_java = ij_fixture.py.to_java(py_labeling)
+    back_to_py = ij_fixture.py.from_java(to_java)
+    print(py_labeling.label_sets)
+    print(back_to_py.label_sets)
+    # Assert indexImg equality
+    exp_img, exp_labels = py_labeling.get_result()
+    act_img, act_labels = back_to_py.get_result()
+    assert np.array_equal(exp_img, act_img)
+    # Assert (APPLICABLE) metadata equality
+    # Skipping numSources - ImgLabeling doesn't have this
+    # Skipping indexImg - py_labeling wasn't loaded from file
+    assert_labels_equality(
+        vars(exp_labels), vars(act_labels), ["numSources", "indexImg"]
+    )
