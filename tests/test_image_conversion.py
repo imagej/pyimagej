@@ -76,6 +76,8 @@ def get_nparr():
 
 @pytest.fixture(scope="module")
 def get_xarr():
+    name: str = "test_data_array"
+
     def _get_xarr(option="C"):
         if option == "C":
             xarr = xr.DataArray(
@@ -89,6 +91,7 @@ def get_xarr():
                     "t": list(np.arange(0, 0.05, 0.01)),
                 },
                 attrs={"Hello": "World"},
+                name=name,
             )
         elif option == "F":
             xarr = xr.DataArray(
@@ -101,9 +104,10 @@ def get_xarr():
                     "t": list(np.arange(0, 0.05, 0.01)),
                 },
                 attrs={"Hello": "World"},
+                name=name,
             )
         else:
-            xarr = xr.DataArray(np.random.rand(1, 2, 3, 4, 5))
+            xarr = xr.DataArray(np.random.rand(1, 2, 3, 4, 5), name=name)
 
         return xarr
 
@@ -121,6 +125,7 @@ def assert_inverted_xarr_equal_to_xarr(dataset, ij_fixture, xarr):
     for key in xarr.coords:
         assert (xarr.coords[key] == invert_xarr.coords[key]).all()
     assert xarr.attrs == invert_xarr.attrs
+    assert xarr.name == invert_xarr.name
 
 
 def assert_ndarray_equal_to_ndarray(narr_1, narr_2):
@@ -250,6 +255,7 @@ def assert_xarray_equal_to_dataset(ij_fixture, xarr):
 
     assert expected_labels == labels
     assert xarr.attrs == ij_fixture.py.from_java(dataset.getProperties())
+    assert xarr.name == ij_fixture.py.from_java(dataset.getName())
 
 
 def convert_img_and_assert_equality(ij_fixture, img):

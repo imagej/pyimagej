@@ -168,6 +168,7 @@ def xarray_to_dataset(ij: "jc.ImageJ", xarr) -> "jc.Dataset":
         dataset = ndarray_to_dataset(ij, xarr.values)
     axes = dims._assign_axes(xarr)
     dataset.setAxes(axes)
+    dataset.setName(xarr.name)
     _assign_dataset_metadata(dataset, xarr.attrs)
 
     return dataset
@@ -238,7 +239,8 @@ def java_to_xarray(ij: "jc.ImageJ", jobj) -> xr.DataArray:
     xr_dims.reverse()
     xr_dims = dims._convert_dims(xr_dims, direction="python")
     xr_coords = dims._get_axes_coords(xr_axes, xr_dims, narr.shape)
-    return xr.DataArray(narr, dims=xr_dims, coords=xr_coords, attrs=xr_attrs)
+    name = jobj.getName() if isinstance(jobj, jc.Named) else None
+    return xr.DataArray(narr, dims=xr_dims, coords=xr_coords, attrs=xr_attrs, name=name)
 
 
 def supports_java_to_ndarray(ij: "jc.ImageJ", obj) -> bool:

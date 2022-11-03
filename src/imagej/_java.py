@@ -123,6 +123,10 @@ class JavaClasses(object):
         return "net.imglib2.roi.labeling.ImgLabeling"
 
     @blocking_import
+    def Named(self):
+        return "org.scijava.Named"
+
+    @blocking_import
     def Util(self):
         return "net.imglib2.util.Util"
 
