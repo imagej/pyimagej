@@ -482,9 +482,13 @@ class ImageJPython:
             return convert.java_to_dataset(self._ij, data)
 
         if images.is_xarraylike(data):
-            return convert.xarray_to_dataset(self._ij, convert._rename_xarray_dims(data, dim_order))
+            return convert.xarray_to_dataset(
+                self._ij, convert._rename_xarray_dims(data, dim_order)
+            )
         if images.is_arraylike(data):
-            return convert.xarray_to_dataset(self._ij, convert.ndarray_to_xarray(data, dim_order))
+            return convert.xarray_to_dataset(
+                self._ij, convert.ndarray_to_xarray(data, dim_order)
+            )
 
         raise TypeError(f"Type not supported: {type(data)}")
 
@@ -504,9 +508,13 @@ class ImageJPython:
             return convert.java_to_img(self._ij, data)
 
         if images.is_xarraylike(data):
-            return convert.xarray_to_img(self._ij, convert._rename_xarray_dims(data, dim_order))
+            return convert.xarray_to_img(
+                self._ij, convert._rename_xarray_dims(data, dim_order)
+            )
         if images.is_arraylike(data):
-            return convert.xarray_to_img(self._ij, convert.ndarray_to_xarray(data, dim_order))
+            return convert.xarray_to_img(
+                self._ij, convert.ndarray_to_xarray(data, dim_order)
+            )
 
         raise TypeError(f"Type not supported: {type(data)}")
 
