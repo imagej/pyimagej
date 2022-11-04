@@ -138,13 +138,7 @@ def copy_rai_into_ndarray(
 
     # Check imglib2 version for fast copy availability.
     imglib2_version = sj.get_version(jc.RandomAccessibleInterval)
-    # TODO: After scyjava 1.6.0 is released, use:
-    # sj.is_version_at_least(imglib2_version, "5.9.0")
-    min_imglib2_version = "5.9.0"
-    if (
-        sj.compare_version(min_imglib2_version, imglib2_version)
-        or imglib2_version == min_imglib2_version
-    ):
+    if sj.is_version_at_least(imglib2_version, "5.9.0"):
         # ImgLib2 is new enough to use net.imglib2.util.ImgUtil.copy.
         ImgUtil = sj.jimport("net.imglib2.util.ImgUtil")
         ImgUtil.copy(rai, sj.to_java(narr))
@@ -152,13 +146,7 @@ def copy_rai_into_ndarray(
 
     # Check imagej-common version for fast copy availability.
     imagej_common_version = sj.get_version(jc.Dataset)
-    # TODO: After scyjava 1.6.0 is released, use:
-    # sj.is_version_at_least(imagej_common_version, "0.30.0")
-    min_imagej_common_version = "0.30.0"
-    if (
-        sj.compare_version(min_imagej_common_version, imagej_common_version)
-        or imagej_common_version == min_imagej_common_version
-    ):
+    if sj.is_version_at_least(imagej_common_version, "0.30.0"):
         # ImageJ Common is new enough to use (deprecated)
         # net.imagej.util.Images.copy.
         Images = sj.jimport("net.imagej.util.Images")
