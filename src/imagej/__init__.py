@@ -466,73 +466,47 @@ class ImageJPython:
         )
         self.sync_image(imp)
 
-    def to_dataset(self, data, **hints):
+    def to_dataset(self, data, dim_order=None):
         """Convert the data into an ImageJ2 Dataset.
 
         Converts a Python image (e.g. xarray or numpy array) or Java image (e.g.
         RandomAccessibleInterval or Img) into a 'net.imagej.Dataset' Java object.
 
         :param data: Image object to be converted to Dataset.
-        :param hints: Optional conversion hints.
-            | "dim_order" : List[str]
+        :param dim_order: List of desired dimensions for the Dataset.
         :return: A 'net.imagej.Dataset'.
         """
-        if hints:
-            if images.is_xarraylike(data):
-                return convert.xarray_to_dataset(
-                    self._ij, convert._rename_xarray_dims(data, **hints)
-                )
-            if images.is_arraylike(data):
-                return convert.xarray_to_dataset(
-                    self._ij, convert.ndarray_to_xarray(data, **hints)
-                )
-        else:
-            if images.is_xarraylike(data):
-                return convert.xarray_to_dataset(self._ij, data)
-            if images.is_arraylike(data):
-                return convert.ndarray_to_dataset(self._ij, data)
-
         if sj.isjava(data):
-            if hints:
-                _logger.warning(
-                    f"Conversion hints are not supported for {type(data)}."
-                )
+            if dim_order:
+                _logger.warning(f"Conversion hints are not supported for {type(data)}.")
             return convert.java_to_dataset(self._ij, data)
+
+        if images.is_xarraylike(data):
+            return convert.xarray_to_dataset(self._ij, convert._rename_xarray_dims(data, dim_order))
+        if images.is_arraylike(data):
+            return convert.xarray_to_dataset(self._ij, convert.ndarray_to_xarray(data, dim_order))
 
         raise TypeError(f"Type not supported: {type(data)}")
 
-    def to_img(self, data, **hints):
+    def to_img(self, data, dim_order=None):
         """Convert the data into an ImgLib2 Img.
 
         Converts a Python image (e.g. xarray or numpy array) or Java image (e.g.
         RandomAccessibleInterval) into a 'net.imglib2.img.Img' Java object.
 
         :param data: Image object to be converted to Img.
-        :param hints: Optional conversion hints.
-            | "dim_order" : List[str]
+        :param dim_order: List of desired dimensions for the Img.
         :return: A 'net.imglib2.img.Img'.
         """
-        if hints:
-            if images.is_xarraylike(data):
-                return convert.xarray_to_img(
-                    self._ij, convert._rename_xarray_dims(data, **hints)
-                )
-            if images.is_arraylike(data):
-                return convert.xarray_to_img(
-                    self._ij, convert.ndarray_to_xarray(data, **hints)
-                )
-        else:
-            if images.is_xarraylike(data):
-                return convert.xarray_to_img(self._ij, data)
-            if images.is_arraylike(data):
-                return convert.ndarray_to_img(self._ij, data)
-
         if sj.isjava(data):
-            if hints:
-                _logger.warning(
-                    f"Conversion hints are not supported for {type(data)}."
-                )
+            if dim_order:
+                _logger.warning(f"Conversion hints are not supported for {type(data)}.")
             return convert.java_to_img(self._ij, data)
+
+        if images.is_xarraylike(data):
+            return convert.xarray_to_img(self._ij, convert._rename_xarray_dims(data, dim_order))
+        if images.is_arraylike(data):
+            return convert.xarray_to_img(self._ij, convert.ndarray_to_xarray(data, dim_order))
 
         raise TypeError(f"Type not supported: {type(data)}")
 
@@ -561,35 +535,28 @@ class ImageJPython:
 
         return sj.to_java(data, **hints)
 
-    def to_xarray(self, data, **hints):
+    def to_xarray(self, data, dim_order=None):
         """Convert the data into an ImgLib2 Img.
 
         Converts a Python image (e.g. xarray or numpy array) or Java image (e.g.
         RandomAccessibleInterval) into a 'xarray.DataArray' Python object.
 
         :param data: Image object to be converted to xarray.DataArray.
-        :param hints: Optional conversion hints.
-            | "dim_order" : List[str]
+        :param dim_order: List of desired dimensions for the xarray.DataArray.
         :return: An xarray.DataArray.
         """
-        if hints:
-            if images.is_xarraylike(data):
-                return convert._rename_xarray_dims(data, **hints)
-            if images.is_arraylike(data):
-                return convert.ndarray_to_xarray(data, **hints)
-        else:
-            if images.is_xarraylike(data):
-                return data
-            if images.is_arraylike(data):
-                return xr.DataArray(data)
-
         if sj.isjava(data):
             if convert.supports_java_to_xarray(self._ij, data):
-                if hints:
+                if dim_order:
                     _logger.warning(
                         f"Conversion hints are not supported for {type(data)}."
                     )
                 return convert.java_to_xarray(self._ij, data)
+
+        if images.is_xarraylike(data):
+            return convert._rename_xarray_dims(data, dim_order)
+        if images.is_arraylike(data):
+            return convert.ndarray_to_xarray(data, dim_order)
 
         return TypeError(f"Type not supported: {type(data)}.")
 
@@ -612,7 +579,9 @@ class ImageJPython:
         sj.add_java_converter(
             sj.Converter(
                 predicate=images.is_xarraylike,
-                converter=self.to_dataset,
+                converter=lambda obj, **hints: self.to_dataset(
+                    obj, convert._dim_order(hints)
+                ),
                 priority=sj.Priority.HIGH + 1,
             )
         )
@@ -633,7 +602,9 @@ class ImageJPython:
         sj.add_java_converter(
             sj.Converter(
                 predicate=images.is_memoryarraylike,
-                converter=self.to_img,
+                converter=lambda obj, **hints: self.to_img(
+                    obj, convert._dim_order(hints)
+                ),
                 priority=sj.Priority.HIGH,
             )
         )

@@ -4,7 +4,7 @@ Utility functions for converting objects between types.
 import ctypes
 import logging
 import os
-from typing import Dict
+from typing import Dict, Sequence
 
 import imglyb
 import numpy as np
@@ -131,17 +131,24 @@ def ndarray_to_img(ij: "jc.ImageJ", narr) -> "jc.Img":
     return java_to_img(ij, rai)
 
 
-def ndarray_to_xarray(narr: np.ndarray, **hints) -> xr.DataArray:
+def ndarray_to_xarray(narr: np.ndarray, dim_order=None) -> xr.DataArray:
     """
     Convert the given NumPy ndarray into an xarray.DataArray. A dict with
     key 'dim_order' and a dimension order in a List[str] is required.
 
     :param narr: The NumPy ndarray
-    :param hints: Dict with 'dim_order' key and List[str] value
+    :param dim_order: List of desired dimensions for the xarray.DataArray.
     :return: The converted xarray.DataArray
     """
     assert images.is_arraylike(narr)
-    return xr.DataArray(narr, dims=hints["dim_order"])
+    if dim_order:
+        # check dim length
+        if narr.ndim != len(dim_order):
+            raise ValueError(
+                f"Expected {narr.ndim} dimensions but got {len(dim_order)}."
+            )
+        return xr.DataArray(narr, dims=dim_order)
+    return xr.DataArray(narr)
 
 
 def xarray_to_dataset(ij: "jc.ImageJ", xarr) -> "jc.Dataset":
@@ -497,9 +504,13 @@ def _permute_rai_to_python(rich_rai: "jc.RandomAccessibleInterval"):
     return permuted_rai
 
 
-def _rename_xarray_dims(xarr, **hints):
+def _rename_xarray_dims(xarr, new_dims: Sequence[str]):
     curr_dims = xarr.dims
-    new_dims = hints["dim_order"]
+    if not new_dims:
+        return xarr
+    # check dim length
+    if xarr.ndim != len(new_dims):
+        raise ValueError(f"Expected {xarr.ndim} dimensions but got {len(new_dims)}.")
     dim_map = {}
     for i in range(xarr.ndim):
         dim_map[curr_dims[i]] = new_dims[i]
@@ -518,3 +529,10 @@ def _delete_labeling_files(filepath):
         os.remove(pth_tif)
     if os.path.exists(pth_json):
         os.remove(pth_json)
+
+
+def _dim_order(hints: Dict):
+    """
+    Extract the dim_order from the hints kwargs.
+    """
+    return hints["dim_order"] if "dim_order" in hints else None
