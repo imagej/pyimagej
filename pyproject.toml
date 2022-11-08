@@ -39,7 +39,6 @@ dependencies = [
     "jgo >= 1.0.3",
     "jpype1 >= 1.3.0",
     "labeling >= 0.1.12",
-    "matplotlib",
     "numpy",
     "scyjava >= 1.6.0",
     "xarray",
@@ -47,6 +46,7 @@ dependencies = [
 
 [project.optional-dependencies]
 # NB: Keep this in sync with dev-environment.yml!
+# Development tools
 dev = [
     "autopep8",
     "black",
@@ -60,6 +60,18 @@ dev = [
     "sphinx",
     "sphinx_rtd_theme",
     "validate-pyproject[all]",
+]
+# Matplotlib display backend
+matplotlib = [
+    "matplotlib",
+]
+# Notebook dependencies
+notebooks = [
+    "ipywidgets",
+    "jupyter_contrib_nbextensions",
+    "notebook",
+    "pooch", # for scikit image
+    "scikit-image",
 ]
 
 [project.scripts]
