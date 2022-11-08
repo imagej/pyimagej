@@ -48,7 +48,7 @@ def get_imgplus():
         # test image parameters
         foo = Axes.get("foo")
         bar = Axes.get("bar")
-        shape = [13, 17, 5, 2, 3, 7, 11]
+        shape = [7, 8, 4, 2, 3, 5, 6]
         axes = [Axes.X, Axes.Y, foo, bar, Axes.CHANNEL, Axes.TIME, Axes.Z]
 
         # create image
