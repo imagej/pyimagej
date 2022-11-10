@@ -655,6 +655,20 @@ class ImageJPython:
                 priority=sj.Priority.HIGH - 2,
             )
         )
+        sj.add_py_converter(
+            sj.Converter(
+                predicate=lambda obj: isinstance(obj, jc.ImageMetadata),
+                converter=lambda obj: convert.image_metadata_to_dict(self._ij, obj),
+                priority=sj.Priority.HIGH - 2,
+            )
+        )
+        sj.add_py_converter(
+            sj.Converter(
+                predicate=lambda obj: isinstance(obj, jc.MetadataWrapper),
+                converter=lambda obj: convert.metadata_wrapper_to_dict(self._ij, obj),
+                priority=sj.Priority.HIGH - 2,
+            )
+        )
 
     def _format_argument(self, key, value, ij1_style):
         if value is True:

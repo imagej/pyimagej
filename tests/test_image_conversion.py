@@ -297,6 +297,53 @@ def test_dataset_converts_to_xarray(ij_fixture, get_xarr):
     assert_inverted_xarr_equal_to_xarr(dataset, ij_fixture, xarr)
 
 
+def test_image_metadata_conversion(ij_fixture):
+    # Create a ImageMetadata
+    DefaultImageMetadata = sj.jimport("io.scif.DefaultImageMetadata")
+    IdentityAxis = sj.jimport("net.imagej.axis.IdentityAxis")
+    metadata = DefaultImageMetadata()
+    lengths = sj.jarray("j", [2])
+    lengths[0] = 4
+    lengths[1] = 2
+    metadata.populate(
+        "test",  # name
+        ij_fixture.py.to_java([IdentityAxis(), IdentityAxis()]),  # axes
+        lengths,
+        4,  # pixelType
+        8,  # bitsPerPixel
+        True,  # orderCertain
+        True,  # littleEndian
+        False,  # indexed
+        False,  # falseColor
+        True,  # metadataComplete
+    )
+    # Some properties are computed on demand - since those computed values
+    # would not be grabbed in the map, let's set them
+    metadata.setThumbSizeX(metadata.getThumbSizeX())
+    metadata.setThumbSizeY(metadata.getThumbSizeY())
+    metadata.setInterleavedAxisCount(metadata.getInterleavedAxisCount())
+    # Convert to python
+    py_data = ij_fixture.py.from_java(metadata)
+    # Assert equality
+    assert py_data["thumbSizeX"] == metadata.getThumbSizeX()
+    assert py_data["thumbSizeY"] == metadata.getThumbSizeY()
+    assert py_data["pixelType"] == metadata.getPixelType()
+    assert py_data["bitsPerPixel"] == metadata.getBitsPerPixel()
+    assert py_data["axes"] == metadata.getAxes()
+    for axis in metadata.getAxes():
+        assert axis.type() in py_data["axisLengths"]
+        assert py_data["axisLengths"][axis.type()] == metadata.getAxisLength(axis)
+    assert py_data["orderCertain"] == metadata.isOrderCertain()
+    assert py_data["littleEndian"] == metadata.isLittleEndian()
+    assert py_data["indexed"] == metadata.isIndexed()
+    assert py_data["interleavedAxisCount"] == metadata.getInterleavedAxisCount()
+    assert py_data["falseColor"] == metadata.isFalseColor()
+    assert py_data["metadataComplete"] == metadata.isMetadataComplete()
+    assert py_data["thumbnail"] == metadata.isThumbnail()
+    assert py_data["rois"] == metadata.getROIs()
+    assert py_data["tables"] == metadata.getTables()
+
+
 def test_rgb_image_maintains_correct_dim_order_on_conversion(ij_fixture, get_xarr):
     xarr = get_xarr()
     dataset = ij_fixture.py.to_java(xarr)

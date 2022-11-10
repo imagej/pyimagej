@@ -234,6 +234,7 @@ def java_to_xarray(ij: "jc.ImageJ", jobj) -> xr.DataArray:
     xr_axes = list(permuted_rai.dim_axes)
     xr_dims = list(permuted_rai.dims)
     xr_attrs = sj.to_python(permuted_rai.getProperties())
+    xr_attrs = {sj.to_python(k): sj.to_python(v) for k, v in xr_attrs.items()}
     # reverse axes and dims to match narr
     xr_axes.reverse()
     xr_dims.reverse()
@@ -459,6 +460,51 @@ def supports_imglabeling_to_labeling(obj):
     :return: True iff conversion to a Python Labeling is possible
     """
     return isinstance(obj, jc.ImgLabeling)
+
+
+#######################
+# Metadata converters #
+#######################
+
+
+def image_metadata_to_dict(ij: "jc.ImageJ", image_meta: "jc.ImageMetadata"):
+    """
+    Converts an io.scif.ImageMetadata to a Python dict.
+    The components should be enough to create a new ImageMetadata.
+
+    :param ij: The ImageJ2 gateway (see imagej.init)
+    :param image_meta: The ImageMetadata to convert
+    :return: A Python dict representing image_meta
+    """
+
+    # We import io.scif.Field here.
+    # This will prevent any conflicts with java.lang.reflect.Field.
+    Field = sj.jimport("io.scif.Field")
+
+    # Convert to a dict - preserve information by copying all SCIFIO fields.
+    #
+    # If info is left out of this dict, make sure that
+    # information is annotated with @Field upstream!
+    return {
+        str(f.getName()): ij.py.from_java(jc.ClassUtils.getValue(f, image_meta))
+        for f in jc.ClassUtils.getAnnotatedFields(image_meta.getClass(), Field)
+    }
+
+
+def metadata_wrapper_to_dict(ij: "jc.ImageJ", metadata_wrapper: "jc.MetadataWrapper"):
+    """
+    Converts a io.scif.filters.MetadataWrapper to a Python Dict.
+    The components should be enough to create a new MetadataWrapper
+
+    :param ij: The ImageJ2 gateway (see imagej.init)
+    :param metadata_wrapper: The MetadataWrapper to convert
+    :return: A Python dict representing metadata_wrapper
+    """
+
+    return dict(
+        impl_cls=type(metadata_wrapper),
+        metadata=metadata_wrapper.unwrap(),
+    )
 
 
 ####################
