@@ -37,6 +37,7 @@ dependencies:
   - ipywidgets
   - jupyter_contrib_nbextensions
   - notebook
+  - pooch # for scikit image
   - scikit-image
   # Developer tools
   - autopep8

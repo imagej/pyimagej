@@ -615,6 +615,38 @@ class TestRAIArraylike(object):
                 for k in range(2):
                     assert transpose[i, j, k] == img[k, j, i]
 
+    def test_addition(self, img):
+        actual = img + img
+        expected = np.multiply(img, 2)
+        for i in range(2):
+            for j in range(3):
+                for k in range(4):
+                    assert expected[i, j, k] == actual[i, j, k]
+
+    def test_subtraction(self, img):
+        actual = img - img
+        expected = np.multiply(img, 0)
+        for i in range(2):
+            for j in range(3):
+                for k in range(4):
+                    assert expected[i, j, k] == actual[i, j, k]
+
+    def test_multiplication(self, img):
+        actual = img * img
+        expected = np.multiply(img, img)
+        for i in range(2):
+            for j in range(3):
+                for k in range(4):
+                    assert expected[i, j, k] == actual[i, j, k]
+
+    def test_division(self, img):
+        actual = img / img
+        expected = np.divide(img, img)
+        for i in range(2):
+            for j in range(3):
+                for k in range(4):
+                    assert expected[i, j, k] == actual[i, j, k]
+
 
 parameters = [
     (ctypes.c_bool, "net.imglib2.type.logic.BoolType", True),

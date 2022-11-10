@@ -791,12 +791,15 @@ class RAIOperators(object):
     https://jpype.readthedocs.io/en/latest/userguide.html#class-customizers
     """
 
+    def _compute(self, other, ifunc):
+        return jc.ImgMath.computeInto(ifunc(self._jargs(self, other)), self.copy())
+
     def __add__(self, other):
         """Return self + value."""
         return (
             self._op.run("math.add", self, other)
             if self._op is not None
-            else jc.ImgMath.add(self._jargs(self, other))
+            else self._compute(other, jc.ImgMath.add)
         )
 
     def __sub__(self, other):
@@ -804,7 +807,7 @@ class RAIOperators(object):
         return (
             self._op.run("math.sub", self, other)
             if self._op is not None
-            else jc.ImgMath.sub(self._jargs(self, other))
+            else self._compute(other, jc.ImgMath.sub)
         )
 
     def __mul__(self, other):
@@ -812,7 +815,7 @@ class RAIOperators(object):
         return (
             self._op.run("math.mul", self, other)
             if self._op is not None
-            else jc.ImgMath.mul(self._jargs(self, other))
+            else self._compute(other, jc.ImgMath.mul)
         )
 
     def __truediv__(self, other):
@@ -820,7 +823,7 @@ class RAIOperators(object):
         return (
             self._op.run("math.div", self, other)
             if self._op is not None
-            else jc.ImgMath.div(self._jargs(self, other))
+            else self._compute(other, jc.ImgMath.div)
         )
 
     def __getitem__(self, key):
