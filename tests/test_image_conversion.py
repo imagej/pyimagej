@@ -5,9 +5,6 @@ import pytest
 import scyjava as sj
 import xarray as xr
 
-# TODO: Change to scyjava.new_jarray once we have that function.
-from jpype import JArray, JInt, JLong
-
 import imagej.dims as dims
 
 # -- Fixtures --
@@ -18,7 +15,9 @@ def get_img(ij_fixture):
     def _get_img():
         # Create img
         CreateNamespace = sj.jimport("net.imagej.ops.create.CreateNamespace")
-        dims = JArray(JLong)([1, 2, 3, 4, 5])
+        dims = sj.jarray("j", [5])
+        for i in range(len(dims)):
+            dims[i] = i + 1
         ns = ij_fixture.op().namespace(CreateNamespace)
         img = ns.img(dims)
 
@@ -77,6 +76,8 @@ def get_nparr():
 
 @pytest.fixture(scope="module")
 def get_xarr():
+    name: str = "test_data_array"
+
     def _get_xarr(option="C"):
         if option == "C":
             xarr = xr.DataArray(
@@ -90,6 +91,7 @@ def get_xarr():
                     "t": list(np.arange(0, 0.05, 0.01)),
                 },
                 attrs={"Hello": "World"},
+                name=name,
             )
         elif option == "F":
             xarr = xr.DataArray(
@@ -102,9 +104,10 @@ def get_xarr():
                     "t": list(np.arange(0, 0.05, 0.01)),
                 },
                 attrs={"Hello": "World"},
+                name=name,
             )
         else:
-            xarr = xr.DataArray(np.random.rand(1, 2, 3, 4, 5))
+            xarr = xr.DataArray(np.random.rand(1, 2, 3, 4, 5), name=name)
 
         return xarr
 
@@ -122,6 +125,7 @@ def assert_inverted_xarr_equal_to_xarr(dataset, ij_fixture, xarr):
     for key in xarr.coords:
         assert (xarr.coords[key] == invert_xarr.coords[key]).all()
     assert xarr.attrs == invert_xarr.attrs
+    assert xarr.name == invert_xarr.name
 
 
 def assert_ndarray_equal_to_ndarray(narr_1, narr_2):
@@ -130,7 +134,7 @@ def assert_ndarray_equal_to_ndarray(narr_1, narr_2):
 
 def assert_ndarray_equal_to_img(img, nparr):
     cursor = img.cursor()
-    arr = JArray(JInt)(5)
+    arr = sj.jarray("i", [5])
     while cursor.hasNext():
         y = cursor.next().get()
         cursor.localize(arr)
@@ -251,6 +255,7 @@ def assert_xarray_equal_to_dataset(ij_fixture, xarr):
 
     assert expected_labels == labels
     assert xarr.attrs == ij_fixture.py.from_java(dataset.getProperties())
+    assert xarr.name == ij_fixture.py.from_java(dataset.getName())
 
 
 def convert_img_and_assert_equality(ij_fixture, img):
@@ -290,6 +295,53 @@ def test_dataset_converts_to_xarray(ij_fixture, get_xarr):
     xarr = get_xarr()
     dataset = ij_fixture.py.to_java(xarr)
     assert_inverted_xarr_equal_to_xarr(dataset, ij_fixture, xarr)
+
+
+def test_image_metadata_conversion(ij_fixture):
+    # Create a ImageMetadata
+    DefaultImageMetadata = sj.jimport("io.scif.DefaultImageMetadata")
+    IdentityAxis = sj.jimport("net.imagej.axis.IdentityAxis")
+    metadata = DefaultImageMetadata()
+    lengths = sj.jarray("j", [2])
+    lengths[0] = 4
+    lengths[1] = 2
+    metadata.populate(
+        "test",  # name
+        ij_fixture.py.to_java([IdentityAxis(), IdentityAxis()]),  # axes
+        lengths,
+        4,  # pixelType
+        8,  # bitsPerPixel
+        True,  # orderCertain
+        True,  # littleEndian
+        False,  # indexed
+        False,  # falseColor
+        True,  # metadataComplete
+    )
+    # Some properties are computed on demand - since those computed values
+    # would not be grabbed in the map, let's set them
+    metadata.setThumbSizeX(metadata.getThumbSizeX())
+    metadata.setThumbSizeY(metadata.getThumbSizeY())
+    metadata.setInterleavedAxisCount(metadata.getInterleavedAxisCount())
+    # Convert to python
+    py_data = ij_fixture.py.from_java(metadata)
+    # Assert equality
+    assert py_data["thumbSizeX"] == metadata.getThumbSizeX()
+    assert py_data["thumbSizeY"] == metadata.getThumbSizeY()
+    assert py_data["pixelType"] == metadata.getPixelType()
+    assert py_data["bitsPerPixel"] == metadata.getBitsPerPixel()
+    assert py_data["axes"] == metadata.getAxes()
+    for axis in metadata.getAxes():
+        assert axis.type() in py_data["axisLengths"]
+        assert py_data["axisLengths"][axis.type()] == metadata.getAxisLength(axis)
+    assert py_data["orderCertain"] == metadata.isOrderCertain()
+    assert py_data["littleEndian"] == metadata.isLittleEndian()
+    assert py_data["indexed"] == metadata.isIndexed()
+    assert py_data["interleavedAxisCount"] == metadata.getInterleavedAxisCount()
+    assert py_data["falseColor"] == metadata.isFalseColor()
+    assert py_data["metadataComplete"] == metadata.isMetadataComplete()
+    assert py_data["thumbnail"] == metadata.isThumbnail()
+    assert py_data["rois"] == metadata.getROIs()
+    assert py_data["tables"] == metadata.getTables()
 
 
 def test_rgb_image_maintains_correct_dim_order_on_conversion(ij_fixture, get_xarr):

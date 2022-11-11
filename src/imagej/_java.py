@@ -67,6 +67,14 @@ class JavaClasses(object):
         return "ij.ImagePlus"
 
     @blocking_import
+    def ImageMetadata(self):
+        return "io.scif.ImageMetadata"
+
+    @blocking_import
+    def MetadataWrapper(self):
+        return "io.scif.filters.MetadataWrapper"
+
+    @blocking_import
     def LabelingIOService(self):
         return "io.scif.labeling.LabelingIOService"
 
@@ -99,6 +107,10 @@ class JavaClasses(object):
         return "net.imagej.axis.CalibratedAxis"
 
     @blocking_import
+    def ClassUtils(self):
+        return "org.scijava.util.ClassUtils"
+
+    @blocking_import
     def Dimensions(self):
         return "net.imglib2.Dimensions"
 
@@ -121,6 +133,10 @@ class JavaClasses(object):
     @blocking_import
     def ImgLabeling(self):
         return "net.imglib2.roi.labeling.ImgLabeling"
+
+    @blocking_import
+    def Named(self):
+        return "org.scijava.Named"
 
     @blocking_import
     def Util(self):
