@@ -108,7 +108,7 @@ It is completely standalone, so alternately, you can run the latest version
 of the doctor by downloading and running it explicitly:
 
 ```shell
-curl -fsLO https://raw.githubusercontent.com/imagej/pyimagej/master/src/imagej/doctor.py
+curl -fsLO https://raw.githubusercontent.com/imagej/pyimagej/main/src/imagej/doctor.py
 python doctor.py
 ```
 

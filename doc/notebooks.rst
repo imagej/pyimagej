@@ -20,4 +20,4 @@ these Jupyter notebooks you can get them from the PyImageJ repository `here`_.
     11 Working with the original ImageJ <11-Working-with-the-original-ImageJ>
     12 Troubleshooting <12-Troubleshooting>
 
-.. _here: https://github.com/imagej/pyimagej/tree/master/doc
+.. _here: https://github.com/imagej/pyimagej/tree/main/doc

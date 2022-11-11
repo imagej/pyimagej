@@ -40,7 +40,7 @@ in other projects.
 
 To add your usage of PyImageJ to this list, please submit a pull request!
 
-.. _PyImageJ repository: https://github.com/imagej/pyimagej/tree/master/doc
+.. _PyImageJ repository: https://github.com/imagej/pyimagej/tree/main/doc
 .. _pyimagej-dextr: https://github.com/imagej/pyimagej-dextr
 .. _PoreSpy: https://github.com/PMEAL/porespy
 .. _LOCI: https://imagej.net/orgs/loci

@@ -810,7 +810,7 @@ class GatewayAddons(object):
             raise ImportError(
                 "The original ImageJ is not available in this environment. "
                 f"{usage_context} See: "
-                "https://github.com/imagej/pyimagej/blob/master/doc/Initialization.md"
+                "https://github.com/imagej/pyimagej/blob/main/doc/Initialization.md"
             )
 
 
