@@ -18,27 +18,10 @@ def rai_slice(rai, imin: Tuple, imax: Tuple, istep: Tuple):
     :return: Sliced ImgLib2 RandomAccessibleInterval.
     """
 
-    # HACK: Avoid importing JLong at global scope.
-    # Otherwise, building the sphinx docs in doc/rtd fails with:
-    #
-    #   Warning, treated as error:
-    #   autodoc: failed to determine imagej.stack.JLong (<java class 'JLong'>) to be
-    #     documented, the following exception was raised:
-    #   Java Virtual Machine is not running
-    #
-    # Which can be reproduced in a REPL like this:
-    #
-    #   >>> from jpype import JLong
-    #   >>> help(JLong)
-    #
-    # So while the import here is unfortunate, it avoids the issue.
-    # TODO: Change to scyjava.new_jarray once we have that function.
-    from jpype import JArray, JLong
-
     Views = sj.jimport("net.imglib2.view.Views")
     shape = rai.shape
-    imin_fix = JArray(JLong)(len(shape))
-    imax_fix = JArray(JLong)(len(shape))
+    imin_fix = sj.jarray("j", [len(shape)])
+    imax_fix = sj.jarray("j", [len(shape)])
     dim_itr = range(len(shape))
 
     for py_dim, j_dim in zip(dim_itr, dim_itr):
@@ -50,7 +33,7 @@ def rai_slice(rai, imin: Tuple, imax: Tuple, istep: Tuple):
             index = imin[py_dim]
             if index < 0:
                 index += shape[j_dim]
-        imin_fix[j_dim] = JLong(index)
+        imin_fix[j_dim] = index
         # Set maximum
         if imax[py_dim] is None:
             index = shape[j_dim] - 1
@@ -58,9 +41,9 @@ def rai_slice(rai, imin: Tuple, imax: Tuple, istep: Tuple):
             index = imax[py_dim]
             if index < 0:
                 index += shape[j_dim]
-        imax_fix[j_dim] = JLong(index)
+        imax_fix[j_dim] = index
 
-    istep_fix = JArray(JLong)(istep)
+    istep_fix = sj.jarray("j", [istep])
 
     if _index_within_range(imin_fix, shape) and _index_within_range(imax_fix, shape):
         intervaled = Views.interval(rai, imin_fix, imax_fix)

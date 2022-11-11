@@ -5,9 +5,6 @@ import pytest
 import scyjava as sj
 import xarray as xr
 
-# TODO: Change to scyjava.new_jarray once we have that function.
-from jpype import JArray, JInt, JLong
-
 import imagej.dims as dims
 
 # -- Fixtures --
@@ -18,7 +15,9 @@ def get_img(ij_fixture):
     def _get_img():
         # Create img
         CreateNamespace = sj.jimport("net.imagej.ops.create.CreateNamespace")
-        dims = JArray(JLong)([1, 2, 3, 4, 5])
+        dims = sj.jarray("j", [5])
+        for i in range(len(dims)):
+            dims[i] = i + 1
         ns = ij_fixture.op().namespace(CreateNamespace)
         img = ns.img(dims)
 
@@ -130,7 +129,7 @@ def assert_ndarray_equal_to_ndarray(narr_1, narr_2):
 
 def assert_ndarray_equal_to_img(img, nparr):
     cursor = img.cursor()
-    arr = JArray(JInt)(5)
+    arr = sj.jarray("i", [5])
     while cursor.hasNext():
         y = cursor.next().get()
         cursor.localize(arr)

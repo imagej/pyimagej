@@ -2,9 +2,6 @@ import numpy as np
 import pytest
 import scyjava as sj
 
-# TODO: Change to scyjava.new_jarray once we have that function.
-from jpype import JArray, JLong
-
 # -- Fixtures --
 
 
@@ -88,7 +85,10 @@ def test_slice_not_enough_dims(img):
 def test_step(img):
     # Create a stepped img via Views
     Views = sj.jimport("net.imglib2.view.Views")
-    steps = JArray(JLong)([1, 1, 2])
+    steps = sj.jarray("j", 3)
+    steps[0] = 1
+    steps[1] = 1
+    steps[2] = 2
     expected = Views.subsample(img, steps)
     # Create a stepped img via slicing notation
     actual = img[:, :, ::2]
@@ -101,7 +101,10 @@ def test_step(img):
 def test_step_not_enough_dims(img):
     # Create a stepped img via Views
     Views = sj.jimport("net.imglib2.view.Views")
-    steps = JArray(JLong)([2, 1, 1])
+    steps = sj.jarray("j", 3)
+    steps[0] = 2
+    steps[1] = 1
+    steps[2] = 1
     expected = Views.subsample(img, steps)
     expected = Views.dropSingletonDimensions(expected)
     # Create a stepped img via slicing notation
@@ -115,7 +118,9 @@ def test_slice_and_step(img):
     # Create a stepped img via Views
     Views = sj.jimport("net.imglib2.view.Views")
     intervaled = Views.hyperSlice(img, 0, 0)
-    steps = JArray(JLong)([1, 2])
+    steps = sj.jarray("j", 2)
+    steps[0] = 1
+    steps[1] = 2
     expected = Views.subsample(intervaled, steps)
     # Create a stepped img via slicing notation
     actual = img[:1, :, ::2]
