@@ -29,7 +29,7 @@ dependencies:
   - labeling >= 0.1.12
   - numpy
   - openjdk=11
-  - scyjava >= 1.6.0
+  - scyjava >= 1.8.0
   - xarray
   # Optional dependencies
   - matplotlib-base

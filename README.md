@@ -50,7 +50,7 @@ PyImageJ requires the following packages:
 * [labeling] >= 0.1.12
 * [matplotlib] \(optional, for `ij.py.show` function only)
 * [NumPy]
-* [scyjava] >= 1.6.0
+* [scyjava] >= 1.8.0
 * [xarray]
 
 PyImageJ will not function properly if dependency versions are too old.
