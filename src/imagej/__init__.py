@@ -109,17 +109,6 @@ class ImageJPython:
         """
         return self._ij.imageDisplay().getActiveDataset()
 
-    def active_image_plus(self, sync=True) -> "jc.ImagePlus":
-        """
-        ij.py.active_image_plus() is deprecated.
-        Use ij.py.active_imageplus() instead.
-        """
-        _logger.warning(
-            "ij.py.active_image_plus() is deprecated. "
-            "Use ij.py.active_imageplus() instead."
-        )
-        return self.active_imageplus(sync)
-
     def active_imageplus(self, sync=True) -> "jc.ImagePlus":
         """Get the active ImagePlus image.
 
@@ -172,24 +161,6 @@ class ImageJPython:
                 if arg is not None:
                     formatted_args.append(arg)
             return " ".join(formatted_args)
-
-    def dims(self, image):
-        """
-        ij.py.dims(image) is deprecated. Use image.shape instead.
-        """
-        _logger.warning("ij.py.dims(image) is deprecated. Use image.shape instead.")
-        if images.is_arraylike(image):
-            return image.shape
-        if not sj.isjava(image):
-            raise TypeError("Unsupported type: " + str(type(image)))
-        if isinstance(image, jc.Dimensions):
-            return list(image.dimensionsAsLongArray())
-        if jc.ImagePlus and isinstance(image, jc.ImagePlus):
-            dims = image.getDimensions()
-            dims.reverse()
-            dims = [dim for dim in dims if dim > 1]
-            return dims
-        raise TypeError("Unsupported Java type: " + str(sj.jclass(image).getName()))
 
     def dtype(self, image_or_type):
         """Get the dtype of the input image as a numpy.dtype object.
@@ -246,21 +217,6 @@ class ImageJPython:
         :return: A Java Object[]
         """
         return JObjectArray()([self.to_java(arg) for arg in args])
-
-    def new_numpy_image(self, image):
-        """
-        ij.py.new_numpy_image() is deprecated.
-        Use ij.py.initialize_numpy_image() instead.
-        """
-        try:
-            dtype_to_use = self.dtype(image)
-        except TypeError:
-            dtype_to_use = np.dtype("float64")
-        _logger.warning(
-            "ij.py.new_numpy_image() is deprecated. "
-            "Use ij.py.initialize_numpy_image() instead."
-        )
-        return np.zeros(self.dims(image), dtype=dtype_to_use)
 
     def rai_to_numpy(
         self, rai: "jc.RandomAccessibleInterval", numpy_array: np.ndarray
@@ -457,15 +413,6 @@ class ImageJPython:
         pixels = imp.getProcessor().getPixels()
         stack.setPixels(pixels, imp.getCurrentSlice())
 
-    def synchronize_ij1_to_ij2(self, imp: "jc.ImagePlus"):
-        """
-        This function is deprecated. Use sync_image instead.
-        """
-        _logger.warning(
-            "The synchronize_ij1_to_ij2 function is deprecated. Use sync_image instead."
-        )
-        self.sync_image(imp)
-
     def to_dataset(self, data, dim_order=None):
         """Convert the data into an ImageJ2 Dataset.
 
@@ -567,6 +514,61 @@ class ImageJPython:
             return convert.ndarray_to_xarray(data, dim_order)
 
         return TypeError(f"Type not supported: {type(data)}.")
+
+    # -- Deprecated methods --
+
+    def active_image_plus(self, sync=True) -> "jc.ImagePlus":
+        """
+        ij.py.active_image_plus() is deprecated.
+        Use ij.py.active_imageplus() instead.
+        """
+        _logger.warning(
+            "ij.py.active_image_plus() is deprecated. "
+            "Use ij.py.active_imageplus() instead."
+        )
+        return self.active_imageplus(sync)
+
+    def dims(self, image):
+        """
+        ij.py.dims(image) is deprecated. Use image.shape instead.
+        """
+        _logger.warning("ij.py.dims(image) is deprecated. Use image.shape instead.")
+        if images.is_arraylike(image):
+            return image.shape
+        if not sj.isjava(image):
+            raise TypeError("Unsupported type: " + str(type(image)))
+        if isinstance(image, jc.Dimensions):
+            return list(image.dimensionsAsLongArray())
+        if jc.ImagePlus and isinstance(image, jc.ImagePlus):
+            dims = image.getDimensions()
+            dims.reverse()
+            dims = [dim for dim in dims if dim > 1]
+            return dims
+        raise TypeError("Unsupported Java type: " + str(sj.jclass(image).getName()))
+
+    def new_numpy_image(self, image):
+        """
+        ij.py.new_numpy_image() is deprecated.
+        Use ij.py.initialize_numpy_image() instead.
+        """
+        try:
+            dtype_to_use = self.dtype(image)
+        except TypeError:
+            dtype_to_use = np.dtype("float64")
+        _logger.warning(
+            "ij.py.new_numpy_image() is deprecated. "
+            "Use ij.py.initialize_numpy_image() instead."
+        )
+        return np.zeros(self.dims(image), dtype=dtype_to_use)
+
+    def synchronize_ij1_to_ij2(self, imp: "jc.ImagePlus"):
+        """
+        This function is deprecated. Use sync_image instead.
+        """
+        _logger.warning(
+            "The synchronize_ij1_to_ij2 function is deprecated. Use sync_image instead."
+        )
+        self.sync_image(imp)
 
     def window_manager(self):
         """
