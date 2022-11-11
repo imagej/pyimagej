@@ -411,17 +411,16 @@ class ImageJPython:
         pixels = imp.getProcessor().getPixels()
         stack.setPixels(pixels, imp.getCurrentSlice())
 
-    def to_dataset(self, data, dim_order=None):
+    def to_dataset(self, data):
         """Convert the data into an ImageJ2 Dataset.
 
         Converts a Python image (e.g. xarray or numpy array) or Java image (e.g.
         RandomAccessibleInterval or Img) into a net.imagej.Dataset Java object.
 
         :param data: Image object to be converted to Dataset.
-        :param dim_order: List of desired dimensions for the Dataset;
-            e.g.: ["row", "col", "ch"] or ["y", "x", "c"]
         :return: A net.imagej.Dataset.
         """
+        dim_order = None
         if sj.isjava(data):
             if dim_order:
                 _logger.warning(
@@ -440,17 +439,16 @@ class ImageJPython:
 
         raise TypeError(f"Type not supported: {type(data)}")
 
-    def to_img(self, data, dim_order=None):
+    def to_img(self, data):
         """Convert the data into an ImgLib2 Img.
 
         Converts a Python image (e.g. xarray or numpy array) or Java image (e.g.
         RandomAccessibleInterval) into a net.imglib2.img.Img Java object.
 
         :param data: Image object to be converted to Img.
-        :param dim_order: List of desired dimensions for the Img;
-            e.g.: ["row", "col", "ch"] or ["y", "x", "c"]
         :return: A net.imglib2.img.Img.
         """
+        dim_order = None
         if sj.isjava(data):
             if dim_order:
                 _logger.warning(
@@ -488,23 +486,22 @@ class ImageJPython:
         equivalents. For numpy arrays, the Java image points to the Python array.
 
         :param data: Python object to be converted into its respective Java counterpart.
-        :param hints: Optional conversion hints; e.g.: dim_order=["y", "x", "c"]
+        :param hints: Optional conversion hints.
         :return: A Java object converted from Python.
         """
 
         return sj.to_java(data, **hints)
 
-    def to_xarray(self, data, dim_order=None):
+    def to_xarray(self, data):
         """Convert the data into an ImgLib2 Img.
 
         Converts a Python image (e.g. xarray or numpy array) or Java image (e.g.
         RandomAccessibleInterval) into an xarray.DataArray Python object.
 
         :param data: Image object to be converted to xarray.DataArray.
-        :param dim_order: List of desired dimensions for the xarray.DataArray;
-            e.g.: ["row", "col", "ch"] or ["y", "x", "c"]
         :return: An xarray.DataArray.
         """
+        dim_order = None
         if sj.isjava(data):
             if convert.supports_java_to_xarray(self._ij, data):
                 if dim_order:
@@ -594,9 +591,7 @@ class ImageJPython:
         sj.add_java_converter(
             sj.Converter(
                 predicate=images.is_xarraylike,
-                converter=lambda obj, **hints: self.to_dataset(
-                    obj, convert._dim_order(hints)
-                ),
+                converter=lambda obj, **hints: self.to_dataset(obj),
                 priority=sj.Priority.HIGH + 1,
             )
         )
@@ -617,9 +612,7 @@ class ImageJPython:
         sj.add_java_converter(
             sj.Converter(
                 predicate=images.is_memoryarraylike,
-                converter=lambda obj, **hints: self.to_img(
-                    obj, convert._dim_order(hints)
-                ),
+                converter=lambda obj, **hints: self.to_img(obj),
                 priority=sj.Priority.HIGH,
             )
         )
