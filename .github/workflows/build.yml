@@ -96,7 +96,7 @@ jobs:
           mamba-version: "*"
       - name: Test pyimagej
         run: |
-          bin/test.sh --cov-report=xml --cov=.
+          bin/test.sh tests --cov-report=xml --cov=.
       # We could do this in its own action, but we'd have to setup the environment again.
       - name: Upload Coverage to Codecov
         uses: codecov/codecov-action@v2
