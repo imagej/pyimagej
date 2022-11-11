@@ -3,19 +3,24 @@
 dir=$(dirname "$0")
 cd "$dir/.."
 
-echo "-------------------------------------"
-echo "| Testing ImageJ2 + original ImageJ |"
-echo "-------------------------------------"
-python -m pytest -p no:faulthandler tests
+modes="
+| Testing ImageJ2 + original ImageJ |--legacy=true
+|    Testing ImageJ2 standalone     |--legacy=false
+|  Testing Fiji Is Just ImageJ(2)   |--ij=sc.fiji:fiji
+"
 
-echo
-echo "-------------------------------------"
-echo "|    Testing ImageJ2 standalone     |"
-echo "-------------------------------------"
-python -m pytest -p no:faulthandler --legacy=false tests
-
-echo
-echo "-------------------------------------"
-echo "|  Testing Fiji Is Just ImageJ(2)   |"
-echo "-------------------------------------"
-python -m pytest -p no:faulthandler --ij=sc.fiji:fiji tests
+echo "$modes" | while read mode
+do
+  test "$mode" || continue
+  msg="${mode%|*}|"
+  flag=${mode##*|}
+  echo "-------------------------------------"
+  echo "$msg"
+  echo "-------------------------------------"
+  if [ $# -gt 0 ]
+  then
+    python -m pytest -p no:faulthandler $flag $@
+  else
+    python -m pytest -p no:faulthandler $flag tests
+  fi
+done

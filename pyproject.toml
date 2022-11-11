@@ -99,3 +99,6 @@ exclude = 'dist|doc'
 [tool.isort]
 profile = "black"
 skip = ["doc"]
+
+[tool.pytest.ini_options]
+addopts = "--ignore=docs"
