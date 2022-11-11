@@ -20,7 +20,7 @@ Here is an example of opening an image using ImageJ2 and displaying it:
     ij = imagej.init()
 
     # Load an image.
-    image_url = 'https://imagej.net/images/clown.png'
+    image_url = "https://imagej.net/images/clown.png"
     jimage = ij.io().open(image_url)
 
     # Convert the image from ImageJ2 to xarray, a package that adds
@@ -28,7 +28,7 @@ Here is an example of opening an image using ImageJ2 and displaying it:
     image = ij.py.from_java(jimage)
 
     # Display the image (backed by matplotlib).
-    ij.py.show(image, cmap='gray')
+    ij.py.show(image, cmap="gray")
 """
 
 import logging
@@ -173,9 +173,9 @@ class ImageJPython:
         :param image_or_type:
             | A NumPy array.
             | OR A NumPy array dtype.
-            | OR An ImgLib2 image ('net.imglib2.Interval').
-            | OR An ImageJ2 Dataset ('net.imagej.Dataset').
-            | OR An ImageJ ImagePlus ('ij.ImagePlus').
+            | OR An ImgLib2 image (net.imglib2.Interval).
+            | OR An ImageJ2 Dataset (net.imagej.Dataset).
+            | OR An ImageJ ImagePlus (ij.ImagePlus).
 
         :return: Input image dtype.
         """
@@ -184,7 +184,7 @@ class ImageJPython:
     def from_java(self, data):
         """Convert supported Java data into Python equivalents.
 
-        Converts Java objects (e.g. 'net.imagej.Dataset') into the Python
+        Converts Java objects (e.g. net.imagej.Dataset) into the Python
         equivalents.
 
         :param data: Java object to be converted into its respective Python counterpart.
@@ -224,10 +224,10 @@ class ImageJPython:
         """Copy a RandomAccessibleInterval into a numpy array.
 
         The input RandomAccessibleInterval is copied into the pre-initialized numpy
-        array with either "fast copy" via 'net.imagej.util.Images.copy' if available or
+        array with either "fast copy" via net.imagej.util.Images.copy if available or
         the slower "copy.rai" method. Note that the input RandomAccessibleInterval and
         numpy array must have reversed dimensions relative to each other
-        (e.g. [t, z, y, x, c] and [c, x, y, z, t]).
+        (e.g. ["t", "z", "y", "x", "c"] and ["c", "x", "y", "z", "t"]).
 
         :param rai: A net.imglib2.RandomAccessibleInterval.
         :param numpy_array: A NumPy array with the same shape as the input
@@ -258,11 +258,11 @@ class ImageJPython:
             output = name + " is " + age " years old."
             \"""
             args = {
-                'name': 'Sean',
-                'age': 26
+                "name": "Sean",
+                "age": 26
             }
             macro_result = ij.py.run_macro(macro, args)
-            print(macro_result.getOutput('output'))
+            print(macro_result.getOutput("output"))
         """
         self._ij._check_legacy_active("Use of original ImageJ macros is not possible.")
 
@@ -297,10 +297,10 @@ class ImageJPython:
         .. highlight:: python
         .. code-block:: python
 
-            plugin = 'Mean'
+            plugin = "Mean"
             args = {
-                'block_radius_x': 10,
-                'block_radius_y': 10
+                "block_radius_x": 10,
+                "block_radius_y": 10
             }
             ij.py.run_plugin(plugin, args)
         """
@@ -332,18 +332,18 @@ class ImageJPython:
         .. highlight:: python
         .. code-block:: python
 
-            language = 'ijm'
+            language = "ijm"
             script = \"""
             #@ String name
             #@ int age
             output = name + " is " + age " years old."
             \"""
             args = {
-                'name': 'Sean',
-                'age': 26
+                "name": "Sean",
+                "age": 26
             }
             script_result = ij.py.run_script(language, script, args)
-            print(script_result.getOutput('output'))
+            print(script_result.getOutput("output"))
         """
         script_lang = self._ij.script().getLanguageByName(language)
         if script_lang is None:
@@ -353,9 +353,7 @@ class ImageJPython:
         exts = script_lang.getExtensions()
         if exts.isEmpty():
             raise ValueError(
-                "Script language '"
-                + script_lang.getLanguageName()
-                + "' has no extensions"
+                f"Script language '{script_lang.getLanguageName()}' has no extensions"
             )
         ext = str(exts.get(0))
         try:
@@ -417,15 +415,18 @@ class ImageJPython:
         """Convert the data into an ImageJ2 Dataset.
 
         Converts a Python image (e.g. xarray or numpy array) or Java image (e.g.
-        RandomAccessibleInterval or Img) into a 'net.imagej.Dataset' Java object.
+        RandomAccessibleInterval or Img) into a net.imagej.Dataset Java object.
 
         :param data: Image object to be converted to Dataset.
-        :param dim_order: List of desired dimensions for the Dataset.
-        :return: A 'net.imagej.Dataset'.
+        :param dim_order: List of desired dimensions for the Dataset;
+            e.g.: ["row", "col", "ch"] or ["y", "x", "c"]
+        :return: A net.imagej.Dataset.
         """
         if sj.isjava(data):
             if dim_order:
-                _logger.warning(f"Conversion hints are not supported for {type(data)}.")
+                _logger.warning(
+                    f"Dimension reordering is not supported for {type(data)}."
+                )
             return convert.java_to_dataset(self._ij, data)
 
         if images.is_xarraylike(data):
@@ -443,15 +444,18 @@ class ImageJPython:
         """Convert the data into an ImgLib2 Img.
 
         Converts a Python image (e.g. xarray or numpy array) or Java image (e.g.
-        RandomAccessibleInterval) into a 'net.imglib2.img.Img' Java object.
+        RandomAccessibleInterval) into a net.imglib2.img.Img Java object.
 
         :param data: Image object to be converted to Img.
-        :param dim_order: List of desired dimensions for the Img.
-        :return: A 'net.imglib2.img.Img'.
+        :param dim_order: List of desired dimensions for the Img;
+            e.g.: ["row", "col", "ch"] or ["y", "x", "c"]
+        :return: A net.imglib2.img.Img.
         """
         if sj.isjava(data):
             if dim_order:
-                _logger.warning(f"Conversion hints are not supported for {type(data)}.")
+                _logger.warning(
+                    f"Dimension reordering is not supported for {type(data)}."
+                )
             return convert.java_to_img(self._ij, data)
 
         if images.is_xarraylike(data):
@@ -469,10 +473,10 @@ class ImageJPython:
         """Convert the data into an ImageJ ImagePlus.
 
         Converts a Python image (e.g. xarray or numpy array) or Java image (e.g.
-        RandomAccessibleInterval or Dataset) into an 'ij.ImagePlus' Java object.
+        RandomAccessibleInterval or Dataset) into an ij.ImagePlus Java object.
 
         :param data: Image object to be converted to ImagePlus.
-        :return: An 'ij.ImagePlus'.
+        :return: An ij.ImagePlus.
         """
         self._ij._check_legacy_active("Conversion to ImagePlus is not supported.")
         return self._ij.convert().convert(self.to_dataset(data), jc.ImagePlus)
@@ -480,11 +484,11 @@ class ImageJPython:
     def to_java(self, data, **hints):
         """Convert supported Python data into Java equivalents.
 
-        Converts Python objects (e.g. 'xarray.DataArray') into the Java
+        Converts Python objects (e.g. xarray.DataArray) into the Java
         equivalents. For numpy arrays, the Java image points to the Python array.
 
         :param data: Python object to be converted into its respective Java counterpart.
-        :param hints: Optional conversion hints.
+        :param hints: Optional conversion hints; e.g.: dim_order=["y", "x", "c"]
         :return: A Java object converted from Python.
         """
 
@@ -494,10 +498,11 @@ class ImageJPython:
         """Convert the data into an ImgLib2 Img.
 
         Converts a Python image (e.g. xarray or numpy array) or Java image (e.g.
-        RandomAccessibleInterval) into a 'xarray.DataArray' Python object.
+        RandomAccessibleInterval) into an xarray.DataArray Python object.
 
         :param data: Image object to be converted to xarray.DataArray.
-        :param dim_order: List of desired dimensions for the xarray.DataArray.
+        :param dim_order: List of desired dimensions for the xarray.DataArray;
+            e.g.: ["row", "col", "ch"] or ["y", "x", "c"]
         :return: An xarray.DataArray.
         """
         if sj.isjava(data):
@@ -717,9 +722,6 @@ class GatewayAddons(object):
     @lru_cache(maxsize=None)
     def py(self):
         """Access the ImageJPython convenience methods.
-
-        Access to the ImageJPython convenience methods through
-        the '.py' attribute.
 
         :return: ImageJPython convenience methods.
         """
@@ -1112,9 +1114,9 @@ def init(
         | OR endpoint of another artifact built on ImageJ2 (e.g. sc.fiji:fiji),
         | OR list of Maven artifacts to include (e.g.
         |   [
-        |       'net.imagej:imagej:2.3.0',
-        |       'net.imagej:imagej-legacy',
-        |       'net.preibisch:BigStitcher',
+        |       "net.imagej:imagej:2.3.0",
+        |       "net.imagej:imagej-legacy",
+        |       "net.preibisch:BigStitcher",
         |   ]
         | ).
         | The default is the latest version of net.imagej:imagej.
@@ -1164,7 +1166,7 @@ def init(
     .. highlight:: python
     .. code-block:: python
 
-        ij = imagej.init('sc.fiji:fiji', mode=imagej.Mode.GUI)
+        ij = imagej.init("sc.fiji:fiji", mode=imagej.Mode.GUI)
     """
     if headless is not None:
         _logger.warning(
@@ -1407,7 +1409,7 @@ def _create_jvm(
                 unmanaged_legacy = True
         if unmanaged_legacy:
             _logger.error(
-                "***Invalid Initialization: you may be using primary endpoint that "
+                "***Invalid Initialization: you may be using a primary endpoint that "
                 "lacks pom-scijava as a parent***\n"
                 "To keep all Java components at compatible versions we recommend using "
                 "a primary endpoint with a pom-scijava parent.\n"
