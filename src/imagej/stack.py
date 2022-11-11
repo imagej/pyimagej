@@ -49,7 +49,7 @@ def rai_slice(rai, imin: Tuple, imax: Tuple, istep: Tuple):
         intervaled = Views.interval(rai, imin_fix, imax_fix)
         stepped = Views.subsample(intervaled, istep_fix)
 
-    # TODO: better mach NumPy squeeze behavior. See pyimagej/#1231
+    # TODO: better match NumPy squeeze behavior. See imagej/pyimagej#1231
     dimension_reduced = Views.dropSingletonDimensions(stepped)
     return dimension_reduced
 
