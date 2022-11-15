@@ -1,117 +1,97 @@
 import random
 
 import numpy as np
-import pytest
 import scyjava as sj
 import xarray as xr
 
 import imagej.dims as dims
 
-# -- Fixtures --
+# -- Image helpers --
 
 
-@pytest.fixture(scope="module")
 def get_img(ij_fixture):
-    def _get_img():
-        # Create img
-        CreateNamespace = sj.jimport("net.imagej.ops.create.CreateNamespace")
-        dims = sj.jarray("j", [5])
-        for i in range(len(dims)):
-            dims[i] = i + 1
-        ns = ij_fixture.op().namespace(CreateNamespace)
-        img = ns.img(dims)
+    # Create img
+    CreateNamespace = sj.jimport("net.imagej.ops.create.CreateNamespace")
+    dims = sj.jarray("j", [5])
+    for i in range(len(dims)):
+        dims[i] = i + 1
+    ns = ij_fixture.op().namespace(CreateNamespace)
+    img = ns.img(dims)
 
-        # Populate img with random data
-        cursor = img.cursor()
-        while cursor.hasNext():
-            val = random.random()
-            cursor.next().set(val)
+    # Populate img with random data
+    cursor = img.cursor()
+    while cursor.hasNext():
+        val = random.random()
+        cursor.next().set(val)
 
-        return img
-
-    return _get_img
+    return img
 
 
-@pytest.fixture(scope="module")
-def get_imgplus():
-    def _get_imgplus(ij_fixture):
-        """Get a 7D ImgPlus."""
-        # get java resources
-        Random = sj.jimport("java.util.Random")
-        Axes = sj.jimport("net.imagej.axis.Axes")
-        UnsignedByteType = sj.jimport(
-            "net.imglib2.type.numeric.integer.UnsignedByteType"
-        )
-        DatasetService = ij_fixture.get("net.imagej.DatasetService")
+def get_imgplus(ij_fixture):
+    """Get a 7D ImgPlus."""
+    # get java resources
+    Random = sj.jimport("java.util.Random")
+    Axes = sj.jimport("net.imagej.axis.Axes")
+    UnsignedByteType = sj.jimport("net.imglib2.type.numeric.integer.UnsignedByteType")
+    DatasetService = ij_fixture.get("net.imagej.DatasetService")
 
-        # test image parameters
-        foo = Axes.get("foo")
-        bar = Axes.get("bar")
-        shape = [7, 8, 4, 2, 3, 5, 6]
-        axes = [Axes.X, Axes.Y, foo, bar, Axes.CHANNEL, Axes.TIME, Axes.Z]
+    # test image parameters
+    foo = Axes.get("foo")
+    bar = Axes.get("bar")
+    shape = [7, 8, 4, 2, 3, 5, 6]
+    axes = [Axes.X, Axes.Y, foo, bar, Axes.CHANNEL, Axes.TIME, Axes.Z]
 
-        # create image
-        dataset = DatasetService.create(UnsignedByteType(), shape, "fabulous7D", axes)
-        imgplus = dataset.typedImg(UnsignedByteType())
+    # create image
+    dataset = DatasetService.create(UnsignedByteType(), shape, "fabulous7D", axes)
+    imgplus = dataset.typedImg(UnsignedByteType())
 
-        # fill the image with noise
-        rng = Random(123456789)
-        t = UnsignedByteType()
+    # fill the image with noise
+    rng = Random(123456789)
+    t = UnsignedByteType()
 
-        for t in imgplus:
-            t.set(rng.nextInt(256))
+    for t in imgplus:
+        t.set(rng.nextInt(256))
 
-        return imgplus
-
-    return _get_imgplus
+    return imgplus
 
 
-@pytest.fixture(scope="module")
 def get_nparr():
-    def _get_nparr():
-        return np.random.rand(1, 2, 3, 4, 5)
-
-    return _get_nparr
+    return np.random.rand(1, 2, 3, 4, 5)
 
 
-@pytest.fixture(scope="module")
-def get_xarr():
+def get_xarr(option="C"):
     name: str = "test_data_array"
+    if option == "C":
+        xarr = xr.DataArray(
+            np.random.rand(5, 4, 6, 12, 3),
+            dims=["t", "pln", "row", "col", "ch"],
+            coords={
+                "col": list(range(12)),
+                "row": list(range(0, 12, 2)),
+                "ch": [0, 1, 2],
+                "pln": list(range(10, 50, 10)),
+                "t": list(np.arange(0, 0.05, 0.01)),
+            },
+            attrs={"Hello": "World"},
+            name=name,
+        )
+    elif option == "F":
+        xarr = xr.DataArray(
+            np.ndarray([5, 4, 3, 6, 12], order="F"),
+            dims=["t", "pln", "ch", "row", "col"],
+            coords={
+                "col": list(range(12)),
+                "row": list(range(0, 12, 2)),
+                "pln": list(range(10, 50, 10)),
+                "t": list(np.arange(0, 0.05, 0.01)),
+            },
+            attrs={"Hello": "World"},
+            name=name,
+        )
+    else:
+        xarr = xr.DataArray(np.random.rand(1, 2, 3, 4, 5), name=name)
 
-    def _get_xarr(option="C"):
-        if option == "C":
-            xarr = xr.DataArray(
-                np.random.rand(5, 4, 6, 12, 3),
-                dims=["t", "pln", "row", "col", "ch"],
-                coords={
-                    "col": list(range(12)),
-                    "row": list(range(0, 12, 2)),
-                    "ch": [0, 1, 2],
-                    "pln": list(range(10, 50, 10)),
-                    "t": list(np.arange(0, 0.05, 0.01)),
-                },
-                attrs={"Hello": "World"},
-                name=name,
-            )
-        elif option == "F":
-            xarr = xr.DataArray(
-                np.ndarray([5, 4, 3, 6, 12], order="F"),
-                dims=["t", "pln", "ch", "row", "col"],
-                coords={
-                    "col": list(range(12)),
-                    "row": list(range(0, 12, 2)),
-                    "pln": list(range(10, 50, 10)),
-                    "t": list(np.arange(0, 0.05, 0.01)),
-                },
-                attrs={"Hello": "World"},
-                name=name,
-            )
-        else:
-            xarr = xr.DataArray(np.random.rand(1, 2, 3, 4, 5), name=name)
-
-        return xarr
-
-    return _get_xarr
+    return xarr
 
 
 # -- Helpers --
@@ -271,27 +251,27 @@ def convert_ndarray_and_assert_equality(ij_fixture, nparr):
 # -- Tests --
 
 
-def test_ndarray_converts_to_img(ij_fixture, get_nparr):
+def test_ndarray_converts_to_img(ij_fixture):
     convert_ndarray_and_assert_equality(ij_fixture, get_nparr())
 
 
-def test_img_converts_to_ndarray(ij_fixture, get_img):
-    convert_img_and_assert_equality(ij_fixture, get_img())
+def test_img_converts_to_ndarray(ij_fixture):
+    convert_img_and_assert_equality(ij_fixture, get_img(ij_fixture))
 
 
-def test_cstyle_array_with_labeled_dims_converts(ij_fixture, get_xarr):
+def test_cstyle_array_with_labeled_dims_converts(ij_fixture):
     assert_xarray_equal_to_dataset(ij_fixture, get_xarr())
 
 
-def test_fstyle_array_with_labeled_dims_converts(ij_fixture, get_xarr):
+def test_fstyle_array_with_labeled_dims_converts(ij_fixture):
     assert_xarray_equal_to_dataset(ij_fixture, get_xarr("F"))
 
 
-def test_7d_rai_to_python_permute(ij_fixture, get_imgplus):
+def test_7d_rai_to_python_permute(ij_fixture):
     assert_permuted_rai_equal_to_source_rai(get_imgplus(ij_fixture))
 
 
-def test_dataset_converts_to_xarray(ij_fixture, get_xarr):
+def test_dataset_converts_to_xarray(ij_fixture):
     xarr = get_xarr()
     dataset = ij_fixture.py.to_java(xarr)
     assert_inverted_xarr_equal_to_xarr(dataset, ij_fixture, xarr)
@@ -344,7 +324,7 @@ def test_image_metadata_conversion(ij_fixture):
     assert py_data["tables"] == metadata.getTables()
 
 
-def test_rgb_image_maintains_correct_dim_order_on_conversion(ij_fixture, get_xarr):
+def test_rgb_image_maintains_correct_dim_order_on_conversion(ij_fixture):
     xarr = get_xarr()
     dataset = ij_fixture.py.to_java(xarr)
 
@@ -360,13 +340,13 @@ def test_rgb_image_maintains_correct_dim_order_on_conversion(ij_fixture, get_xar
     assert_inverted_xarr_equal_to_xarr(dataset, ij_fixture, xarr)
 
 
-def test_no_coords_or_dims_in_xarr(ij_fixture, get_xarr):
+def test_no_coords_or_dims_in_xarr(ij_fixture):
     xarr = get_xarr("NoDims")
     dataset = ij_fixture.py.from_java(xarr)
     assert_inverted_xarr_equal_to_xarr(dataset, ij_fixture, xarr)
 
 
-def test_direct_to_xarray_conversions(ij_fixture, get_imgplus, get_nparr, get_xarr):
+def test_direct_to_xarray_conversions(ij_fixture):
     # fetch test images
     xarr = get_xarr()
     narr = get_nparr()
