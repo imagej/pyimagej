@@ -1214,10 +1214,12 @@ def init(
 
     if mode == Mode.GUI:
         # Show the GUI and block.
+        global gateway
         if macos:
             # NB: This will block the calling (main) thread forever!
             try:
-                setupGuiEnvironment(lambda: _create_gateway().ui().showUI())
+                gateway = _create_gateway()
+                setupGuiEnvironment(lambda: gateway.ui().showUI())
             except ModuleNotFoundError as e:
                 if e.msg == "No module named 'PyObjCTools'":
                     advice = (
@@ -1243,7 +1245,8 @@ def init(
             # TODO: Poll using something better than ui().isVisible().
             while gateway.ui().isVisible():
                 time.sleep(1)
-            return None
+        del gateway
+        return None
     else:
         # HEADLESS or INTERACTIVE mode: create the gateway and return it.
         return _create_gateway()
