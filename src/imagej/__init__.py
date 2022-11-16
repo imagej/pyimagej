@@ -1382,14 +1382,20 @@ def _create_jvm(
         sj.config.endpoints.extend(original_endpoints)
         return False
 
-    if add_legacy:
-        sj.config.endpoints.append("net.imagej:imagej-legacy:MANAGED")
+    if len(sj.config.endpoints) > 0:
+        # NB: Only append MANAGED components when there is at least one
+        # component already on the list. Otherwise, there can be nothing with
+        # the needed dependencyManagement section. In particular, this
+        # situation arises when wrapping a local ImageJ2 installation.
 
-    # Add SciJava logging configuration. Without this, we see the warning:
-    # SLF4J: Failed to load class "org.slf4j.impl.StaticLoggerBinder".
-    # SLF4J: Defaulting to no-operation (NOP) logger implementation
-    # SLF4J: See http://www.slf4j.org/codes.html#StaticLoggerBinder for further details.
-    sj.config.endpoints.append("org.scijava:scijava-config:MANAGED")
+        if add_legacy:
+            sj.config.endpoints.append("net.imagej:imagej-legacy:MANAGED")
+
+        # Add SciJava logging configuration. Without this, we see the warning:
+        # SLF4J: Failed to load class "org.slf4j.impl.StaticLoggerBinder".
+        # SLF4J: Defaulting to no-operation (NOP) logger implementation
+        # SLF4J: See http://www.slf4j.org/codes.html#StaticLoggerBinder for further details.
+        sj.config.endpoints.append("org.scijava:scijava-config:MANAGED")
 
     # Add additional ImageJ endpoints specific to PyImageJ.
     sj.config.endpoints.append("io.scif:scifio-labeling:0.3.1")
