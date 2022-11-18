@@ -1,6 +1,7 @@
 import random
 
 import numpy as np
+import pytest
 import scyjava as sj
 import xarray as xr
 
@@ -378,3 +379,73 @@ def test_direct_to_xarray_conversions(ij_fixture):
     assert_ndarray_equal_to_ndarray(
         xarr_from_imgplus.data, ij_fixture.py.from_java(imgplus).data
     )
+
+
+dataset_conversion_parameters = [
+    (
+        get_img,
+        "java",
+        ["a", "b", "c", "d", "e"],
+        ("X", "Y", "Unknown", "Unknown", "Unknown"),
+        (1, 2, 3, 4, 5),
+    ),
+    (
+        get_imgplus,
+        "java",
+        ["a", "b", "c", "d", "e", "f", "g"],
+        ("X", "Y", "foo", "bar", "Channel", "Time", "Z"),
+        (7, 8, 4, 2, 3, 5, 6),
+    ),
+    (
+        get_nparr,
+        "python",
+        ["t", "pln", "row", "col", "ch"],
+        ("X", "Y", "Z", "Time", "Channel"),
+        (4, 3, 2, 1, 5),
+    ),
+    (
+        get_xarr,
+        "python",
+        ["t", "z", "y", "x", "c"],
+        ("X", "Y", "Z", "Time", "Channel"),
+        (12, 6, 4, 5, 3),
+    ),
+]
+img_conversion_parameters = [
+    (get_img, "java", ["a", "b", "c", "d", "e"], (1, 2, 3, 4, 5)),
+    (get_imgplus, "java", ["a", "b", "c", "d", "e", "f", "g"], (7, 8, 4, 2, 3, 5, 6)),
+    (get_nparr, "python", ["t", "pln", "row", "col", "ch"], (4, 3, 2, 1, 5)),
+    (get_xarr, "python", ["t", "z", "y", "x", "c"], (12, 6, 4, 5, 3)),
+]
+
+
+@pytest.mark.parametrize(
+    argnames="im_req,obj_type,new_dims,exp_dims,exp_shape",
+    argvalues=dataset_conversion_parameters,
+)
+def test_direct_to_dataset_conversions(
+    ij_fixture, im_req, obj_type, new_dims, exp_dims, exp_shape
+):
+    # get image data
+    if obj_type == "java":
+        im_data = im_req(ij_fixture)
+    else:
+        im_data = im_req()
+    # convert the image data to net.image.Dataset
+    ds_out = ij_fixture.py.to_dataset(im_data, dim_order=new_dims)
+    assert ds_out.dims == exp_dims
+    assert ds_out.shape == exp_shape
+
+
+@pytest.mark.parametrize(
+    argnames="im_req,obj_type,new_dims,exp_shape", argvalues=img_conversion_parameters
+)
+def test_direct_to_img_conversions(ij_fixture, im_req, obj_type, new_dims, exp_shape):
+    # get image data
+    if obj_type == "java":
+        im_data = im_req(ij_fixture)
+    else:
+        im_data = im_req()
+    # convert the image data to Img
+    img_out = ij_fixture.py.to_img(im_data, dim_order=new_dims)
+    assert img_out.shape == exp_shape
