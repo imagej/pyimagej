@@ -520,7 +520,7 @@ class ImageJPython:
         if images.is_arraylike(data):
             return convert.ndarray_to_xarray(data, dim_order)
 
-        return TypeError(f"Type not supported: {type(data)}.")
+        raise TypeError(f"Type not supported: {type(data)}.")
 
     # -- Deprecated methods --
 
