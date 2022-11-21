@@ -508,12 +508,14 @@ class ImageJPython:
         :return: An xarray.DataArray.
         """
         if sj.isjava(data):
+            if dim_order:
+                _logger.warning(f"Conversion hints are not supported for {type(data)}.")
             if convert.supports_java_to_xarray(self._ij, data):
-                if dim_order:
-                    _logger.warning(
-                        f"Conversion hints are not supported for {type(data)}."
-                    )
                 return convert.java_to_xarray(self._ij, data)
+            if convert.supports_java_to_ndarray(self._ij, data):
+                return convert.ndarray_to_xarray(
+                    convert.java_to_ndarray(self._ij, data)
+                )
 
         if images.is_xarraylike(data):
             return convert._rename_xarray_dims(data, dim_order)
