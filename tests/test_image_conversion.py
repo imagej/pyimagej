@@ -347,40 +347,6 @@ def test_no_coords_or_dims_in_xarr(ij_fixture):
     assert_inverted_xarr_equal_to_xarr(dataset, ij_fixture, xarr)
 
 
-def test_direct_to_xarray_conversions(ij_fixture):
-    # fetch test images
-    xarr = get_xarr()
-    narr = get_nparr()
-    imgplus = get_imgplus(ij_fixture)
-
-    # to_xarray conversions
-    xarr_same = ij_fixture.py.to_xarray(xarr)
-    # xarr_rename = ij_fixture.py.to_xarray(
-    #     xarr, dim_order=["Time", "Z", "Y", "X", "Channel"]
-    # )
-    # xarr_from_narr = ij_fixture.py.to_xarray(
-    #     narr, dim_order=["t", "pln", "row", "col", "ch"]
-    # )
-    xarr_no_dims = ij_fixture.py.to_xarray(narr)
-    xarr_from_imgplus = ij_fixture.py.to_xarray(imgplus)
-
-    # check for expected dims
-    assert xarr_same.dims == ("t", "pln", "row", "col", "ch")
-    # assert xarr_rename.dims == ("Time", "Z", "Y", "X", "Channel")
-    # assert xarr_from_narr.dims == ("t", "pln", "row", "col", "ch")
-    assert xarr_no_dims.dims == ("dim_0", "dim_1", "dim_2", "dim_3", "dim_4")
-    assert xarr_from_imgplus.dims == ("bar", "foo", "t", "pln", "row", "col", "ch")
-
-    # check for same data
-    assert_ndarray_equal_to_ndarray(xarr_same.data, xarr.data)
-    # assert_ndarray_equal_to_ndarray(xarr_rename.data, xarr.data)
-    # assert_ndarray_equal_to_ndarray(xarr_from_narr.data, narr)
-    assert_ndarray_equal_to_ndarray(xarr_no_dims.data, narr)
-    assert_ndarray_equal_to_ndarray(
-        xarr_from_imgplus.data, ij_fixture.py.from_java(imgplus).data
-    )
-
-
 dataset_conversion_parameters = [
     (
         get_img,
@@ -417,6 +383,36 @@ img_conversion_parameters = [
     (get_nparr, "python", ["t", "pln", "row", "col", "ch"], (4, 3, 2, 1, 5)),
     (get_xarr, "python", ["t", "z", "y", "x", "c"], (12, 6, 4, 5, 3)),
 ]
+xarr_conversion_parameters = [
+    (
+        get_img,
+        "java",
+        ["a", "b", "c", "d", "e"],
+        ("dim_0", "dim_1", "dim_2", "dim_3", "dim_4"),
+        (5, 4, 3, 2, 1),
+    ),
+    (
+        get_imgplus,
+        "java",
+        ["a", "b", "c", "d", "e"],
+        ("bar", "foo", "t", "pln", "row", "col", "ch"),
+        (2, 4, 5, 6, 8, 7, 3),
+    ),
+    (
+        get_nparr,
+        "python",
+        ["t", "pln", "row", "col", "ch"],
+        ("t", "pln", "row", "col", "ch"),
+        (1, 2, 3, 4, 5),
+    ),
+    (
+        get_xarr,
+        "python",
+        ["t", "z", "y", "x", "c"],
+        ("t", "z", "y", "x", "c"),
+        (5, 4, 6, 12, 3),
+    ),
+]
 
 
 @pytest.mark.parametrize(
@@ -449,3 +445,21 @@ def test_direct_to_img_conversions(ij_fixture, im_req, obj_type, new_dims, exp_s
     # convert the image data to Img
     img_out = ij_fixture.py.to_img(im_data, dim_order=new_dims)
     assert img_out.shape == exp_shape
+
+
+@pytest.mark.parametrize(
+    argnames="im_req,obj_type,new_dims,exp_dims,exp_shape",
+    argvalues=xarr_conversion_parameters,
+)
+def test_direct_to_xarray_conversion(
+    ij_fixture, im_req, obj_type, new_dims, exp_dims, exp_shape
+):
+    # get image data
+    if obj_type == "java":
+        im_data = im_req(ij_fixture)
+    else:
+        im_data = im_req()
+    # convert the image data to xarray
+    xarr_out = ij_fixture.py.to_xarray(im_data, dim_order=new_dims)
+    assert xarr_out.dims == exp_dims
+    assert xarr_out.shape == exp_shape
