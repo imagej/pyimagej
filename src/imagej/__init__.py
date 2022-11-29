@@ -279,7 +279,9 @@ class ImageJPython:
             _log_exception(_logger, exc)
             raise exc
 
-    def run_plugin(self, plugin: str, args=None, ij1_style=True, imp=None):
+    def run_plugin(
+        self, plugin: str, args=None, ij1_style: bool = True, imp: "jc.ImagePlus" = None
+    ):
         """Run an ImageJ 1.x plugin.
 
         Run an ImageJ 1.x plugin by specifying the plugin name as a string,
@@ -291,6 +293,7 @@ class ImageJPython:
         :param args: A dictionary of plugin arguments in key: value pairs.
         :param ij1_style: Boolean to set which implicit boolean style to use
             (ImageJ or ImageJ2).
+        :param imp: Optionally: the image to pass to the plugin execution.
 
         :example:
 
