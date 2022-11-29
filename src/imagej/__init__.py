@@ -109,7 +109,7 @@ class ImageJPython:
         """
         return self._ij.imageDisplay().getActiveDataset()
 
-    def active_imageplus(self, sync=True) -> "jc.ImagePlus":
+    def active_imageplus(self, sync: bool = True) -> "jc.ImagePlus":
         """Get the active ImagePlus image.
 
         Get the active image as an ImagePlus, optionally synchronizing from ImageJ
