@@ -391,13 +391,14 @@ class ImageJPython:
         pyplot.imshow(self.from_java(image), interpolation="nearest", cmap=cmap)
         pyplot.show()
 
-    def sync_image(self, imp: "jc.ImagePlus"):
+    def sync_image(self, imp: "jc.ImagePlus" = None):
         """Synchronize data between ImageJ and ImageJ2.
 
         Synchronize between a Dataset or ImageDisplay linked to an
         ImagePlus by accepting the ImagePlus data as true.
 
-        :param imp: The ImagePlus that needs to be synchronized.
+        :param imp: The ImagePlus that needs to be synchronized,
+                    or None to synchronize ImageJ's active image.
         """
         # This code is necessary because an ImagePlus can sometimes be modified without
         # modifying the linked Dataset/ImageDisplay. This happens when someone uses
@@ -410,6 +411,10 @@ class ImageJPython:
         # such, we only need to make sure that the current 2D image slice is up to
         # date. We do this by manually setting the stack to be the same as the
         # imageprocessor.
+        if imp is None and self._ij.legacy and self._ij.legacy.isActive():
+            imp = self._ij.WindowManager.getCurrentImage()
+        if imp is None:
+            return
         stack = imp.getStack()
         pixels = imp.getProcessor().getPixels()
         stack.setPixels(pixels, imp.getCurrentSlice())

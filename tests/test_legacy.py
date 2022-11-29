@@ -120,7 +120,5 @@ def test_window_to_numpy_converts_active_image_to_xarray(ij_fixture, arr):
 def test_functions_throw_warning_if_legacy_not_enabled(ij_fixture):
     ensure_legacy_disabled(ij_fixture)
 
-    with pytest.raises(AttributeError):
-        ij_fixture.py.sync_image(None)
     with pytest.raises(ImportError):
         ij_fixture.py.active_imageplus()
