@@ -99,5 +99,57 @@ for an example.
 
 It is possible to dynamically install PyImageJ on
 [Google Colab](https://colab.research.google.com/).
-See [this thread](https://forum.image.sc/t/pyimagej-on-google-colab/32804)
-for guidance. A major advantage of Google Colab is free GPU in the cloud.
+A major advantage of Google Colab is free GPU in the cloud.
+
+Here is an example set of notebook cells to run PyImageJ
+on Google Colab with a wrapped local Fiji installation:
+
+1.  Install [condacolab](https://pypi.org/project/condacolab/):
+    ```python
+    !pip install -q condacolab
+    import condacolab
+    condacolab.install()
+    ```
+
+2.  Verify that the installation is functional:
+    ```python
+    import condacolab
+    condacolab.check()
+    ```
+
+3.  Install PyImageJ:
+    ```python
+    !mamba install pyimagej openjdk=8
+    ```
+    You can also install other deps here as well (scikit-image, opencv, etc).
+
+4.  Download and install Fiji, and optionally custom plugins as well:
+    ```python
+    !wget https://downloads.imagej.net/fiji/latest/fiji-linux64.zip > /dev/null && unzip fiji-linux64.zip > /dev/null
+    !rm fiji-linux64.zip
+    !wget https://imagej.nih.gov/ij/plugins/download/Filter_Rank.class > /dev/null
+    !mv Filter_Rank.class Fiji.app/plugins
+    ```
+
+5.  Set `JAVA_HOME`:
+    ```python
+    import os
+    os.environ['JAVA_HOME']='/usr/local'
+    ```
+    We need to do this so that the openjdk installed by mamba gets used,
+    since a conda env is not actually active in this scenario.
+
+6.  Start PyImageJ wrapping the local Fiji:
+    ```python
+    import imagej
+    ij = imagej.init("/content/Fiji.app")
+    print(ij.getVersion())
+    ```
+
+7.  Start running plugins, even custom plugins:
+    ```python
+    imp = IJ.openImage("http://imagej.nih.gov/ij/images/blobs.gif")
+    ij.py.run_plugin("Filter Rank", {"window": 3, "randomise": True}, imp=imp)
+    IJ.resetMinAndMax(imp)
+    ij.py.run_plugin("Enhance Contrast", {"saturated": 0.35}, imp=imp)
+    ```
