@@ -148,8 +148,8 @@ on Google Colab with a wrapped local Fiji installation:
 
 7.  Start running plugins, even custom plugins:
     ```python
-    imp = IJ.openImage("http://imagej.nih.gov/ij/images/blobs.gif")
+    imp = IJ.openImage("http://imagej.net/images/blobs.gif")
     ij.py.run_plugin("Filter Rank", {"window": 3, "randomise": True}, imp=imp)
-    IJ.resetMinAndMax(imp)
+    ij.IJ.resetMinAndMax(imp)
     ij.py.run_plugin("Enhance Contrast", {"saturated": 0.35}, imp=imp)
     ```
