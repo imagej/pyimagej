@@ -143,10 +143,7 @@ def ndarray_to_xarray(narr: np.ndarray, dim_order=None) -> xr.DataArray:
     assert images.is_arraylike(narr)
     if dim_order:
         # check dim length
-        if narr.ndim != len(dim_order):
-            raise ValueError(
-                f"Expected {narr.ndim} dimensions but got {len(dim_order)}."
-            )
+        dim_order = dims._validate_dim_order(dim_order, narr.shape)
         return xr.DataArray(narr, dims=dim_order)
     return xr.DataArray(narr)
 
@@ -557,8 +554,7 @@ def _rename_xarray_dims(xarr, new_dims: Sequence[str]):
     if not new_dims:
         return xarr
     # check dim length
-    if xarr.ndim != len(new_dims):
-        raise ValueError(f"Expected {xarr.ndim} dimensions but got {len(new_dims)}.")
+    new_dims = dims._validate_dim_order(new_dims, xarr.shape)
     dim_map = {}
     for i in range(xarr.ndim):
         dim_map[curr_dims[i]] = new_dims[i]

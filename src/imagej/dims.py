@@ -397,6 +397,27 @@ def _convert_dims(dimensions: List[str], direction: str) -> List[str]:
         return dimensions
 
 
+def _validate_dim_order(dim_order: List[str], shape: tuple) -> List[str]:
+    """
+    Validate a List of dimensions. If the dimension list is smaller
+    fill the rest of the list with "dim_n" (following xarrray convention).
+
+    :param dim_order: List of dimensions (e.g. X, Y, Channel, Z, Time)
+    :param shape: Shape image for the dimension order.
+    :return: List with "dim_n" dimensions added to match shape length.
+    """
+    dim_len = len(dim_order)
+    shape_len = len(shape)
+    if dim_len < shape_len:
+        d = shape_len - dim_len
+        for i in range(d):
+            dim_order.append(f"dim_{i}")
+        return dim_order
+    if dim_len > shape_len:
+        raise ValueError(f"Expected {shape_len} dimensions but got {dim_len}.")
+    return dim_order
+
+
 def _has_axis(rai: "jc.RandomAccessibleInterval"):
     """Check if a RandomAccessibleInterval has axes."""
     if sj.isjava(rai):
