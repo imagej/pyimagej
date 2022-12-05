@@ -98,6 +98,17 @@ def get_xarr(option="C"):
 # -- Helpers --
 
 
+def assert_xarray_coords_equal_to_rai_coords(xarr, rai):
+    rai_axes = list(rai.dim_axes)
+    rai_dims = list(rai.dims)
+    axes_coords = dims._get_axes_coords(rai_axes, rai_dims, rai.shape)
+    for dim in xarr.dims:
+        xarr_dim_coords = xarr.coords[dim].to_numpy()
+        rai_dim_coords = axes_coords[dims._to_ijdim(dim)]
+        for i in range(len(xarr_dim_coords)):
+            assert xarr_dim_coords[i] == rai_dim_coords[i]
+
+
 def assert_inverted_xarr_equal_to_xarr(dataset, ij_fixture, xarr):
     # Reversing back to xarray yields original results
     invert_xarr = ij_fixture.py.from_java(dataset)
@@ -431,6 +442,8 @@ def test_direct_to_dataset_conversions(
     ds_out = ij_fixture.py.to_dataset(im_data, dim_order=new_dims)
     assert ds_out.dims == exp_dims
     assert ds_out.shape == exp_shape
+    if hasattr(im_data, "coords") and obj_type == "python":
+        assert_xarray_coords_equal_to_rai_coords(im_data, ds_out)
 
 
 @pytest.mark.parametrize(
@@ -463,3 +476,5 @@ def test_direct_to_xarray_conversion(
     xarr_out = ij_fixture.py.to_xarray(im_data, dim_order=new_dims)
     assert xarr_out.dims == exp_dims
     assert xarr_out.shape == exp_shape
+    if hasattr(im_data, "dim_axes") and obj_type == "java":
+        assert_xarray_coords_equal_to_rai_coords(xarr_out, im_data)
