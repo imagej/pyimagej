@@ -6,6 +6,7 @@ import scyjava as sj
 import xarray as xr
 
 import imagej.dims as dims
+import imagej.images as images
 
 # -- Image helpers --
 
@@ -126,7 +127,7 @@ def assert_ndarray_equal_to_ndarray(narr_1, narr_2):
 
 def assert_ndarray_equal_to_img(img, nparr):
     cursor = img.cursor()
-    arr = sj.jarray("i", [5])
+    arr = sj.jarray("i", [nparr.ndim])
     while cursor.hasNext():
         y = cursor.next().get()
         cursor.localize(arr)
@@ -228,7 +229,7 @@ def assert_permuted_rai_equal_to_source_rai(imgplus):
                                 ), sample_name
 
 
-def assert_xarray_equal_to_dataset(ij_fixture, xarr):
+def assert_xarray_equal_to_dataset(ij_fixture, xarr, dataset):
     dataset = ij_fixture.py.to_java(xarr)
     axes = [dataset.axis(axnum) for axnum in range(5)]
     labels = [axis.type().getLabel() for axis in axes]
@@ -272,11 +273,13 @@ def test_img_converts_to_ndarray(ij_fixture):
 
 
 def test_cstyle_array_with_labeled_dims_converts(ij_fixture):
-    assert_xarray_equal_to_dataset(ij_fixture, get_xarr())
+    xarr = get_xarr()
+    assert_xarray_equal_to_dataset(ij_fixture, xarr, ij_fixture.py.to_java(xarr))
 
 
 def test_fstyle_array_with_labeled_dims_converts(ij_fixture):
-    assert_xarray_equal_to_dataset(ij_fixture, get_xarr("F"))
+    xarr = get_xarr("F")
+    assert_xarray_equal_to_dataset(ij_fixture, xarr, ij_fixture.py.to_java(xarr))
 
 
 def test_7d_rai_to_python_permute(ij_fixture):
@@ -444,6 +447,10 @@ def test_direct_to_dataset_conversions(
     assert ds_out.shape == exp_shape
     if hasattr(im_data, "coords") and obj_type == "python":
         assert_xarray_coords_equal_to_rai_coords(im_data, ds_out)
+    if images.is_xarraylike(im_data):
+        assert_xarray_equal_to_dataset(ij_fixture, im_data, ds_out)
+    if (images.is_arraylike is True) and (images.is_xarraylike is False):
+        assert_ndarray_equal_to_img(ds_out, im_data)
 
 
 @pytest.mark.parametrize(
@@ -458,6 +465,12 @@ def test_direct_to_img_conversions(ij_fixture, im_req, obj_type, new_dims, exp_s
     # convert the image data to Img
     img_out = ij_fixture.py.to_img(im_data, dim_order=new_dims)
     assert img_out.shape == exp_shape
+    if images.is_xarraylike(im_data):
+        assert_ndarray_equal_to_img(
+            img_out, im_data.transpose("ch", "t", "pln", "row", "col").data
+        )
+    if (images.is_arraylike is True) and (images.is_xarraylike is False):
+        assert_ndarray_equal_to_img(img_out, im_data)
 
 
 @pytest.mark.parametrize(
@@ -478,3 +491,11 @@ def test_direct_to_xarray_conversion(
     assert xarr_out.shape == exp_shape
     if hasattr(im_data, "dim_axes") and obj_type == "java":
         assert_xarray_coords_equal_to_rai_coords(xarr_out, im_data)
+    if sj.isjava(im_data):
+        if len(im_data.shape) <= 5:
+            assert_ndarray_equal_to_img(im_data, xarr_out)
+        else:
+            assert_ndarray_equal_to_img(
+                im_data,
+                xarr_out.transpose("pln", "t", "ch", "bar", "foo", "row", "col").data,
+            )
