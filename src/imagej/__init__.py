@@ -510,6 +510,8 @@ class ImageJPython:
         if sj.isjava(data):
             if dim_order:
                 _logger.warning(f"Conversion hints are not supported for {type(data)}.")
+            if isinstance(data, jc.ImagePlus):
+                data = convert.imageplus_to_imgplus(self._ij, data)
             if convert.supports_java_to_xarray(self._ij, data):
                 return convert.java_to_xarray(self._ij, data)
             if convert.supports_java_to_ndarray(self._ij, data):
