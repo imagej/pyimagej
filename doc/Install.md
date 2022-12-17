@@ -148,8 +148,39 @@ on Google Colab with a wrapped local Fiji installation:
 
 7.  Start running plugins, even custom plugins:
     ```python
-    imp = IJ.openImage("http://imagej.net/images/blobs.gif")
+    imp = ij.IJ.openImage("http://imagej.net/images/blobs.gif")
     ij.py.run_plugin("Filter Rank", {"window": 3, "randomise": True}, imp=imp)
     ij.IJ.resetMinAndMax(imp)
     ij.py.run_plugin("Enhance Contrast", {"saturated": 0.35}, imp=imp)
     ```
+## Install pyimagej in Docker
+We leverage [Micromamba-docker](https://github.com/mamba-org/micromamba-docker) since `conda activate` will not work. Note that running Python scripts during build is extremely slow.
+```dockerfile
+# Micromamba-docker @ https://github.com/mamba-org/micromamba-docker
+FROM mambaorg/micromamba:1.0.0
+
+# Retrieve dependencies
+USER root
+RUN apt-get update
+RUN apt-get install -y wget unzip > /dev/null && rm -rf /var/lib/apt/lists/* > /dev/null
+RUN micromamba install -y -n base -c conda-forge \
+        python=3.8\
+        pyimagej  \
+        openjdk=8 && \
+    micromamba clean --all --yes
+ENV JAVA_HOME="/usr/local"
+# Set MAMVA_DOCKERFILE_ACTIVATE (otherwise python will not be found)
+ARG MAMBA_DOCKERFILE_ACTIVATE=1  
+# Retrieve ImageJ and source code
+RUN wget https://downloads.imagej.net/fiji/latest/fiji-linux64.zip &> /dev/null
+RUN unzip fiji-linux64.zip > /dev/null
+RUN rm fiji-linux64.zip
+# test: note that "Filter Rank" is not added yet, below is just an example.
+RUN python -c "import imagej; \
+    ij = imagej.init('/tmp/Fiji.app', mode='headless'); \
+    print(ij.getVersion()); \
+    imp = ij.IJ.openImage('http://imagej.net/images/blobs.gif'); \
+    ij.py.run_plugin('Filter Rank', {'window': 3, 'randomise': True}, imp=imp); \
+    ij.IJ.resetMinAndMax(imp); \
+    ij.py.run_plugin('Enhance Contrast', {'saturated': 0.35}, imp=imp);"
+```
