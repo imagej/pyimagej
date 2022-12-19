@@ -13,12 +13,10 @@ import imagej.images as images
 
 def get_img(ij_fixture):
     # Create img
-    CreateNamespace = sj.jimport("net.imagej.ops.create.CreateNamespace")
     dims = sj.jarray("j", [5])
     for i in range(len(dims)):
         dims[i] = i + 1
-    ns = ij_fixture.op().namespace(CreateNamespace)
-    img = ns.img(dims)
+    img = ij_fixture.op().run("create.img", dims)
 
     # Populate img with random data
     cursor = img.cursor()
