@@ -51,6 +51,14 @@ class MyJavaClasses(JavaClasses):
         return "io.scif.labeling.LabelingIOService"
 
     @JavaClasses.java_import
+    def DefaultLinearAxis(self):
+        return "net.imagej.axis.DefaultLinearAxis"
+
+    @JavaClasses.java_import
+    def EnumeratedAxis(self):
+        return "net.imagej.axis.EnumeratedAxis"
+
+    @JavaClasses.java_import
     def Dataset(self):
         return "net.imagej.Dataset"
 
