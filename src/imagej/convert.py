@@ -4,7 +4,7 @@ Utility functions for converting objects between types.
 import ctypes
 import logging
 import os
-from typing import Dict, Sequence
+from typing import Dict, Sequence, Union
 
 import imglyb
 import numpy as np
@@ -232,6 +232,7 @@ def java_to_xarray(ij: "jc.ImageJ", jobj) -> xr.DataArray:
     xr_dims = list(permuted_rai.dims)
     xr_attrs = sj.to_python(permuted_rai.getProperties())
     xr_attrs = {sj.to_python(k): sj.to_python(v) for k, v in xr_attrs.items()}
+    xr_attrs["imagej"] = _create_imagej_metadata(xr_axes, xr_dims)
     # reverse axes and dims to match narr
     xr_axes.reverse()
     xr_dims.reverse()
@@ -560,6 +561,28 @@ def _rename_xarray_dims(xarr, new_dims: Sequence[str]):
         dim_map[curr_dims[i]] = new_dims[i]
 
     return xarr.rename(dim_map)
+
+
+def _create_imagej_metadata(
+    axes: Sequence[Union["jc.DefaultLinearAxis", "jc.EnumeratedAxis"]],
+    dim_seq: Sequence[str],
+) -> dict:
+    """
+    Create the ImageJ metadata attribute dictionary for xarray's global attributes.
+    """
+    ij_metadata = {}
+
+    # store axis scale type
+    assert len(axes) == len(dim_seq)
+    for i in range(len(axes)):
+        if isinstance(axes[i], jc.DefaultLinearAxis):
+            ij_metadata[dims._to_ijdim(dim_seq[i]) + "_axis_scale"] = "linear"
+        elif isinstance(axes[i], jc.EnumeratedAxis):
+            ij_metadata[dims._to_ijdim(dim_seq[i]) + "_axis_scale"] = "enumerated"
+        else:
+            ij_metadata[dims._to_ijdim(dim_seq[i]) + "_axis_scale"] = None
+
+    return ij_metadata
 
 
 def _delete_labeling_files(filepath):
