@@ -2,7 +2,7 @@
 Utility functions for querying and manipulating dimensional axis metadata.
 """
 import logging
-from typing import List, Tuple
+from typing import List, Tuple, Union
 
 import numpy as np
 import scyjava as sj
@@ -177,49 +177,55 @@ def prioritize_rai_axes_order(
     return permute_order
 
 
-def _assign_axes(xarr: xr.DataArray):
+def _assign_axes(
+    xarr: xr.DataArray,
+) -> List[Union["jc.DefaultLinearAxis", "jc.EnumeratedAxis"]]:
     """
-    Obtain xarray axes names, origin, and scale and convert into ImageJ Axis;
-    currently supports EnumeratedAxis
-    :param xarr: xarray that holds the units
-    :return: A list of ImageJ Axis with the specified origin and scale
+    Obtain xarray axes names, origin, scale and convert into ImageJ Axis. Supports both
+    DefaultLinearAxis and the newer EnumeratedAxis.
+    :param xarr: xarray that holds the data.
+    :return: A list of ImageJ Axis with the specified origin and scale.
     """
-    Double = sj.jimport("java.lang.Double")
-
-    axes = [""] * len(xarr.dims)
-
-    # try to get EnumeratedAxis, if not then default to LinearAxis in the loop
-    try:
-        EnumeratedAxis = _get_enumerated_axis()
-    except (JException, TypeError):
-        EnumeratedAxis = None
-
+    axes = [""] * xarr.ndim
     for dim in xarr.dims:
-        axis_str = _convert_dim(dim, direction="java")
+        axis_str = _convert_dim(dim, "java")
         ax_type = jc.Axes.get(axis_str)
         ax_num = _get_axis_num(xarr, dim)
-        scale = _get_scale(xarr.coords[dim])
+        coords_arr = xarr.coords[dim].to_numpy()
 
-        if scale is None:
+        # check if coords/scale is numeric
+        if _is_numeric_scale(coords_arr):
+            doub_coords = [jc.Double(np.double(x)) for x in xarr.coords[dim]]
+        else:
             _logger.warning(
                 f"The {ax_type.label} axis is non-numeric and is translated "
                 "to a linear index."
             )
             doub_coords = [
-                Double(np.double(x)) for x in np.arange(len(xarr.coords[dim]))
+                jc.Double(np.double(x)) for x in np.arrange(len(xarr.coords[dim]))
             ]
-        else:
-            doub_coords = [Double(np.double(x)) for x in xarr.coords[dim]]
 
-        # EnumeratedAxis is a new axis made for xarray, so is only present in
-        # ImageJ versions that are released later than March 2020.
-        # This actually returns a LinearAxis if using an earlier version.
-        if EnumeratedAxis is not None:
-            java_axis = EnumeratedAxis(ax_type, sj.to_java(doub_coords))
+        # assign axis scale type -- checks for imagej metadata
+        if "imagej" in xarr.attrs.keys():
+            ij_dim = _convert_dim(dim, "java")
+            if ij_dim + "_axis_scale" in xarr.attrs["imagej"].keys():
+                scale_type = xarr.attrs["imagej"][ij_dim + "_axis_scale"]
+                if scale_type == "linear":
+                    jaxis = _get_linear_axis(ax_type, sj.to_java(doub_coords))
+                if scale_type == "enumerated":
+                    try:
+                        EnumeratedAxis = _get_enumerated_axis()
+                    except (JException, TypeError):
+                        EnumeratedAxis = None
+                    if EnumeratedAxis is not None:
+                        jaxis = EnumeratedAxis(ax_type, sj.to_java(doub_coords))
+                    else:
+                        jaxis = _get_linear_axis(ax_type, sj.to_java(doub_coords))
         else:
-            java_axis = _get_linear_axis(ax_type, sj.to_java(doub_coords))
+            # default to DefaultLinearAxis always if no `scale_type` key in attr
+            jaxis = _get_linear_axis(ax_type, sj.to_java(doub_coords))
 
-        axes[ax_num] = java_axis
+        axes[ax_num] = jaxis
 
     return axes
 
@@ -293,6 +299,16 @@ def _get_scale(axis):
             return axis.values[1] - axis.values[0]
     except TypeError:
         return None
+
+
+def _is_numeric_scale(coords_array: np.ndarray) -> bool:
+    """
+    Checks if the coordinates array of the given axis is numeric.
+
+    :param coords_array: A 1D NumPy array.
+    :return: bool
+    """
+    return np.issubdtype(coords_array.dtype, np.number)
 
 
 def _get_enumerated_axis():
