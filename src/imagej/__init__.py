@@ -60,7 +60,7 @@ __author__ = "ImageJ2 developers"
 __version__ = sj.get_version("pyimagej")
 
 _logger = logging.getLogger(__name__)
-rai_lock = threading.Lock()
+_rai_lock = threading.Lock()
 
 # Enable debug logging if DEBUG environment variable is set.
 try:
@@ -1007,14 +1007,14 @@ class RAIOperators(object):
     def _ra(self):
         threadLocal = getattr(self, "_threadLocal", None)
         if threadLocal is None:
-            with rai_lock:
+            with _rai_lock:
                 threadLocal = getattr(self, "_threadLocal", None)
                 if threadLocal is None:
                     threadLocal = threading.local()
                     self._threadLocal = threadLocal
         ra = getattr(threadLocal, "ra", None)
         if ra is None:
-            with rai_lock:
+            with _rai_lock:
                 ra = getattr(threadLocal, "ra", None)
                 if ra is None:
                     ra = self.randomAccess()
