@@ -31,6 +31,10 @@ class MyJavaClasses(JavaClasses):
     """
 
     @JavaClasses.java_import
+    def Double(self):
+        return "java.lang.Double"
+
+    @JavaClasses.java_import
     def Throwable(self):
         return "java.lang.Throwable"
 
