@@ -318,16 +318,6 @@ def _is_numeric_scale(coords_array: np.ndarray) -> bool:
     return np.issubdtype(coords_array.dtype, np.number)
 
 
-def _get_enumerated_axis():
-    """Get EnumeratedAxis.
-
-    EnumeratedAxis is only in releases later than March 2020. If using
-    an older version of ImageJ without EnumeratedAxis, use
-    _get_linear_axis() instead.
-    """
-    return sj.jimport("net.imagej.axis.EnumeratedAxis")
-
-
 def _get_fallback_linear_axis(axis_type: "jc.AxisType", values):
     """
     Get a DefaultLinearAxis manually when all other axes
@@ -338,19 +328,6 @@ def _get_fallback_linear_axis(axis_type: "jc.AxisType", values):
         values[1] - values[0]
     )  # TODO: replace with _compute_scale() in dim-order-kwargs-test branch
     return jc.DefaultLinearAxis(axis_type, scale, origin)
-
-
-def _get_linear_axis(axis_type: "jc.AxisType", values):
-    """Get linear axis.
-
-    This is used if no EnumeratedAxis is found. If EnumeratedAxis
-    is available, use _get_enumerated_axis() instead.
-    """
-    DefaultLinearAxis = sj.jimport("net.imagej.axis.DefaultLinearAxis")
-    origin = values[0]
-    scale = values[1] - values[0]
-    axis = DefaultLinearAxis(axis_type, scale, origin)
-    return axis
 
 
 def _dataset_to_imgplus(rai: "jc.RandomAccessibleInterval") -> "jc.ImgPlus":
