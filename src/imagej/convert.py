@@ -571,16 +571,18 @@ def _create_imagej_metadata(
     Create the ImageJ metadata attribute dictionary for xarray's global attributes.
     """
     ij_metadata = {}
-
-    # store axis scale type
     assert len(axes) == len(dim_seq)
     for i in range(len(axes)):
+        # get CalibratedAxis type as string (e.g. "EnumeratedAxis")
+        ij_metadata[
+            dims._to_ijdim(dim_seq[i]) + "_cal_axis_type"
+        ] = dims._cal_axis_type_to_str(axes[i])
+        # get scale and origin for DefaultLinearAxis
         if isinstance(axes[i], jc.DefaultLinearAxis):
-            ij_metadata[dims._to_ijdim(dim_seq[i]) + "_axis_scale"] = "linear"
-        elif isinstance(axes[i], jc.EnumeratedAxis):
-            ij_metadata[dims._to_ijdim(dim_seq[i]) + "_axis_scale"] = "enumerated"
-        else:
-            ij_metadata[dims._to_ijdim(dim_seq[i]) + "_axis_scale"] = None
+            ij_metadata[dims._to_ijdim(dim_seq[i]) + "_scale"] = float(axes[i].scale())
+            ij_metadata[dims._to_ijdim(dim_seq[i]) + "_origin"] = float(
+                axes[i].origin()
+            )
 
     return ij_metadata
 

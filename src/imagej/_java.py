@@ -55,12 +55,60 @@ class MyJavaClasses(JavaClasses):
         return "io.scif.labeling.LabelingIOService"
 
     @JavaClasses.java_import
+    def ChapmanRichardsAxis(self):
+        return "net.imagej.axis.ChapmanRichardsAxis"
+
+    @JavaClasses.java_import
     def DefaultLinearAxis(self):
         return "net.imagej.axis.DefaultLinearAxis"
 
     @JavaClasses.java_import
     def EnumeratedAxis(self):
         return "net.imagej.axis.EnumeratedAxis"
+
+    @JavaClasses.java_import
+    def ExponentialAxis(self):
+        return "net.imagej.axis.ExponentialAxis"
+
+    @JavaClasses.java_import
+    def ExponentialRecoveryAxis(self):
+        return "net.imagej.axis.ExponentialRecoveryAxis"
+
+    @JavaClasses.java_import
+    def GammaVariateAxis(self):
+        return "net.imagej.axis.GammaVariateAxis"
+
+    @JavaClasses.java_import
+    def GaussianAxis(self):
+        return "net.imagej.axis.GaussianAxis"
+
+    @JavaClasses.java_import
+    def IdentityAxis(self):
+        return "net.imagej.axis.IdentityAxis"
+
+    @JavaClasses.java_import
+    def InverseRodbardAxis(self):
+        return "net.imagej.axis.InverseRodbardAxis"
+
+    @JavaClasses.java_import
+    def LogLinearAxis(self):
+        return "net.imagej.axis.LogLinearAxis"
+
+    @JavaClasses.java_import
+    def PolynomialAxis(self):
+        return "net.imagej.axis.PolynomialAxis"
+
+    @JavaClasses.java_import
+    def PowerAxis(self):
+        return "net.imagej.axis.PowerAxis"
+
+    @JavaClasses.java_import
+    def RodbardAxis(self):
+        return "net.imagej.axis.RodbardAxis"
+
+    @JavaClasses.java_import
+    def VariableAxis(self):
+        return "net.iamgej.axis.VariableAxis"
 
     @JavaClasses.java_import
     def Dataset(self):
