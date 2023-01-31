@@ -205,11 +205,11 @@ def _assign_axes(
                 jc.Double(np.double(x)) for x in np.arrange(len(xarr.coords[dim]))
             ]
 
-        # assign axis scale type -- checks for imagej metadata
+        # assign calibrated axis type -- checks for imagej metadata
         if "imagej" in xarr.attrs.keys():
             ij_dim = _convert_dim(dim, "java")
-            if ij_dim + "_axis_scale" in xarr.attrs["imagej"].keys():
-                scale_type = xarr.attrs["imagej"][ij_dim + "_axis_scale"]
+            if ij_dim + "_cal_axis_type" in xarr.attrs["imagej"].keys():
+                scale_type = xarr.attrs["imagej"][ij_dim + "_cal_axis_type"]
                 if scale_type == "linear":
                     jaxis = _get_linear_axis(ax_type, sj.to_java(doub_coords))
                 if scale_type == "enumerated":
@@ -483,3 +483,30 @@ def _to_ijdim(key: str) -> str:
         return ijdims[key]
     else:
         return key
+
+
+def _cal_axis_type_to_str(key) -> str:
+    """
+    Convert a CalibratedAxis type (e.g. net.imagej.axis.DefaultLinearAxis) to
+    a string.
+    """
+    cal_axis_types = {
+        jc.ChapmanRichardsAxis: "ChapmanRichardsAxis",
+        jc.DefaultLinearAxis: "DefaultLinearAxis",
+        jc.EnumeratedAxis: "EnumeratedAxis",
+        jc.ExponentialAxis: "ExponentialAxis",
+        jc.ExponentialRecoveryAxis: "ExponentialRecoveryAxis",
+        jc.GammaVariateAxis: "GammaVariateAxis",
+        jc.GaussianAxis: "GaussianAxis",
+        jc.IdentityAxis: "IdentityAxis",
+        jc.InverseRodbardAxis: "InverseRodbardAxis",
+        jc.LogLinearAxis: "LogLinearAxis",
+        jc.PolynomialAxis: "PolynomialAxis",
+        jc.PowerAxis: "PowerAxis",
+        jc.RodbardAxis: "RodbardAxis",
+    }
+
+    if key.__class__ in cal_axis_types:
+        return cal_axis_types[key.__class__]
+    else:
+        return "unknown"
