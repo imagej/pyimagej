@@ -60,6 +60,7 @@ __author__ = "ImageJ2 developers"
 __version__ = sj.get_version("pyimagej")
 
 _logger = logging.getLogger(__name__)
+_init_callbacks = []
 _rai_lock = threading.Lock()
 
 # Enable debug logging if DEBUG environment variable is set.
@@ -1212,14 +1213,25 @@ def init(
         if not success:
             raise RuntimeError("Failed to create a JVM with the requested environment.")
 
+    def run_callbacks(ij):
+        # invoke registered callback functions
+        for callback in _init_callbacks:
+            callback(ij)
+        return ij
+
     if mode == Mode.GUI:
         # Show the GUI and block.
         global gateway
+
+        def show_gui_and_run_callbacks(ij):
+            ij.ui().showUI()
+            run_callbacks(ij)
+
         if macos:
             # NB: This will block the calling (main) thread forever!
             try:
                 gateway = _create_gateway()
-                setupGuiEnvironment(lambda: gateway.ui().showUI())
+                setupGuiEnvironment(lambda: show_gui_and_run_callbacks(gateway))
             except ModuleNotFoundError as e:
                 if e.msg == "No module named 'PyObjCTools'":
                     advice = (
@@ -1240,16 +1252,34 @@ def init(
         else:
             # Create and show the application.
             gateway = _create_gateway()
-            gateway.ui().showUI()
+            show_gui_and_run_callbacks(gateway)
             # We are responsible for our own blocking.
             # TODO: Poll using something better than ui().isVisible().
             while gateway.ui().isVisible():
                 time.sleep(1)
+
         del gateway
         return None
-    else:
-        # HEADLESS or INTERACTIVE mode: create the gateway and return it.
-        return _create_gateway()
+
+    # HEADLESS or INTERACTIVE mode: create the gateway and return it.
+    return run_callbacks(_create_gateway())
+
+
+def when_imagej_starts(f) -> None:
+    """
+    Registers a function to be called immediately after ImageJ2 starts.
+    This is useful especially with GUI mode, to perform additional
+    configuration and operations following initialization of ImageJ2,
+    because the use of GUI mode blocks the calling thread indefinitely.
+
+    :param f: Single-argument function to invoke during imagej.init().
+        The function will be passed the newly created ImageJ2 Gateway
+        as its sole argument, and called as the final action of the
+        init function before it returns or blocks.
+    """
+    # Add function to the list of callbacks to invoke upon start_jvm().
+    global _init_callbacks
+    _init_callbacks.append(f)
 
 
 def imagej_main():
