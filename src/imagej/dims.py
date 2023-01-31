@@ -205,25 +205,32 @@ def _assign_axes(
                 jc.Double(np.double(x)) for x in np.arrange(len(xarr.coords[dim]))
             ]
 
-        # assign calibrated axis type -- checks for imagej metadata
+        # assign calibrated axis type -- checks xarray for imagej metadata
+        jaxis = None
         if "imagej" in xarr.attrs.keys():
             ij_dim = _convert_dim(dim, "java")
             if ij_dim + "_cal_axis_type" in xarr.attrs["imagej"].keys():
-                scale_type = xarr.attrs["imagej"][ij_dim + "_cal_axis_type"]
-                if scale_type == "linear":
-                    jaxis = _get_linear_axis(ax_type, sj.to_java(doub_coords))
-                if scale_type == "enumerated":
+                cal_axis_type = xarr.attrs["imagej"][ij_dim + "_cal_axis_type"]
+                # get scale from metadata if axis type is DefaultLinearAxis
+                if cal_axis_type == "DefaultLinearAxis":
+                    origin = xarr.attrs["imagej"][ij_dim + "_origin"]
+                    scale = xarr.attrs["imagej"][ij_dim + "_scale"]
+                    jaxis = _str_to_cal_axis(cal_axis_type)(
+                        ax_type, scale, origin
+                    )  # EE: Might need to case scale and origin as jc.Double
+                else:
                     try:
-                        EnumeratedAxis = _get_enumerated_axis()
+                        jaxis = _str_to_cal_axis(cal_axis_type)(
+                            ax_type, sj.to_java(doub_coords)
+                        )
                     except (JException, TypeError):
-                        EnumeratedAxis = None
-                    if EnumeratedAxis is not None:
-                        jaxis = EnumeratedAxis(ax_type, sj.to_java(doub_coords))
-                    else:
-                        jaxis = _get_linear_axis(ax_type, sj.to_java(doub_coords))
+                        jaxis = _get_fallback_linear_axis(
+                            ax_type, sj.to_java(doub_coords)
+                        )
+            else:
+                jaxis = _get_fallback_linear_axis(ax_type, sj.to_java(doub_coords))
         else:
-            # default to DefaultLinearAxis always if no `scale_type` key in attr
-            jaxis = _get_linear_axis(ax_type, sj.to_java(doub_coords))
+            jaxis = _get_fallback_linear_axis(ax_type, sj.to_java(doub_coords))
 
         axes[ax_num] = jaxis
 
@@ -319,6 +326,18 @@ def _get_enumerated_axis():
     _get_linear_axis() instead.
     """
     return sj.jimport("net.imagej.axis.EnumeratedAxis")
+
+
+def _get_fallback_linear_axis(axis_type: "jc.AxisType", values):
+    """
+    Get a DefaultLinearAxis manually when all other axes
+    resources are unavailable.
+    """
+    origin = values[0]
+    scale = (
+        values[1] - values[0]
+    )  # TODO: replace with _compute_scale() in dim-order-kwargs-test branch
+    return jc.DefaultLinearAxis(axis_type, scale, origin)
 
 
 def _get_linear_axis(axis_type: "jc.AxisType", values):
@@ -485,12 +504,12 @@ def _to_ijdim(key: str) -> str:
         return key
 
 
-def _cal_axis_type_to_str(key) -> str:
+def _cal_axis_to_str(key) -> str:
     """
-    Convert a CalibratedAxis type (e.g. net.imagej.axis.DefaultLinearAxis) to
+    Convert a CalibratedAxis class (e.g. net.imagej.axis.DefaultLinearAxis) to
     a string.
     """
-    cal_axis_types = {
+    cal_axis_to_str = {
         jc.ChapmanRichardsAxis: "ChapmanRichardsAxis",
         jc.DefaultLinearAxis: "DefaultLinearAxis",
         jc.EnumeratedAxis: "EnumeratedAxis",
@@ -506,7 +525,33 @@ def _cal_axis_type_to_str(key) -> str:
         jc.RodbardAxis: "RodbardAxis",
     }
 
-    if key.__class__ in cal_axis_types:
-        return cal_axis_types[key.__class__]
+    if key.__class__ in cal_axis_to_str:
+        return cal_axis_to_str[key.__class__]
     else:
         return "unknown"
+
+
+def _str_to_cal_axis(key: str):
+    """
+    Convert a string (e.g. "DefaultLinearAxis") to a CalibratedAxis class.
+    """
+    str_to_cal_axis = {
+        "ChapmanRichardsAxis": jc.ChapmanRichardsAxis,
+        "DefaultLinearAxis": jc.DefaultLinearAxis,
+        "EnumeratedAxis": jc.EnumeratedAxis,
+        "ExponentialAxis": jc.ExponentialAxis,
+        "ExponentialRecoveryAxis": jc.ExponentialRecoveryAxis,
+        "GammaVariateAxis": jc.GammaVariateAxis,
+        "GaussianAxis": jc.GaussianAxis,
+        "IdentityAxis": jc.IdentityAxis,
+        "InverseRodbardAxis": jc.InverseRodbardAxis,
+        "LogLinearAxis": jc.LogLinearAxis,
+        "PolynomialAxis": jc.PolynomialAxis,
+        "PowerAxis": jc.PowerAxis,
+        "RodbardAxis": jc.RodbardAxis,
+    }
+
+    if key in str_to_cal_axis:
+        return str_to_cal_axis[key]
+    else:
+        return None

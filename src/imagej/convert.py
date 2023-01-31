@@ -576,7 +576,7 @@ def _create_imagej_metadata(
         # get CalibratedAxis type as string (e.g. "EnumeratedAxis")
         ij_metadata[
             dims._to_ijdim(dim_seq[i]) + "_cal_axis_type"
-        ] = dims._cal_axis_type_to_str(axes[i])
+        ] = dims._cal_axis_to_str(axes[i])
         # get scale and origin for DefaultLinearAxis
         if isinstance(axes[i], jc.DefaultLinearAxis):
             ij_metadata[dims._to_ijdim(dim_seq[i]) + "_scale"] = float(axes[i].scale())
