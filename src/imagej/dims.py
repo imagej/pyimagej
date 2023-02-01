@@ -284,7 +284,13 @@ def _get_scale(axis):
     :return: The scale for this axis or None if it is a non-numeric scale.
     """
     try:
-        return axis.values[1] - axis.values[0]
+        # HACK: This axis length check is a work around for singleton dimensions.
+        # You can't calculate the slope of a singleton dimension.
+        # This section will be removed when axis-scale-logic is merged.
+        if len(axis) <= 1:
+            return 1
+        else:
+            return axis.values[1] - axis.values[0]
     except TypeError:
         return None
 
