@@ -32,7 +32,6 @@ def py_labeling():
 
 @pytest.fixture(scope="module")
 def java_labeling(ij_fixture):
-
     img = np.zeros((4, 4), dtype=np.int32)
     img[:2, :2] = 6
     img[:2, 2:] = 3
