@@ -215,22 +215,16 @@ def _assign_axes(
                 if cal_axis_type == "DefaultLinearAxis":
                     origin = xarr.attrs["imagej"][ij_dim + "_origin"]
                     scale = xarr.attrs["imagej"][ij_dim + "_scale"]
-                    jaxis = _str_to_cal_axis(cal_axis_type)(
-                        ax_type, scale, origin
-                    )  # EE: Might need to case scale and origin as jc.Double
+                    jaxis = _str_to_cal_axis(cal_axis_type)(ax_type, scale, origin)
                 else:
                     try:
-                        jaxis = _str_to_cal_axis(cal_axis_type)(
-                            ax_type, sj.to_java(doub_coords)
-                        )
+                        jaxis = _str_to_cal_axis(cal_axis_type)(ax_type, doub_coords)
                     except (JException, TypeError):
-                        jaxis = _get_fallback_linear_axis(
-                            ax_type, sj.to_java(doub_coords)
-                        )
+                        jaxis = _get_fallback_linear_axis(ax_type, doub_coords)
             else:
-                jaxis = _get_fallback_linear_axis(ax_type, sj.to_java(doub_coords))
+                jaxis = _get_fallback_linear_axis(ax_type, doub_coords)
         else:
-            jaxis = _get_fallback_linear_axis(ax_type, sj.to_java(doub_coords))
+            jaxis = _get_fallback_linear_axis(ax_type, doub_coords)
 
         axes[ax_num] = jaxis
 
