@@ -324,9 +324,11 @@ def _get_fallback_linear_axis(axis_type: "jc.AxisType", values):
     resources are unavailable.
     """
     origin = values[0]
-    scale = (
-        values[1] - values[0]
-    )  # TODO: replace with _compute_scale() in dim-order-kwargs-test branch
+    # calculate the slope using the values/coord array
+    if len(values) <= 1:
+        scale = 1
+    else:
+        scale = values[1] - values[0]
     return jc.DefaultLinearAxis(axis_type, scale, origin)
 
 
