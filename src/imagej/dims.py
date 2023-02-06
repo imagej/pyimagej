@@ -284,7 +284,13 @@ def _get_scale(axis):
     :return: The scale for this axis or None if it is a non-numeric scale.
     """
     try:
-        return axis.values[1] - axis.values[0]
+        # HACK: This axis length check is a work around for singleton dimensions.
+        # You can't calculate the slope of a singleton dimension.
+        # This section will be removed when axis-scale-logic is merged.
+        if len(axis) <= 1:
+            return 1
+        else:
+            return axis.values[1] - axis.values[0]
     except TypeError:
         return None
 
@@ -395,6 +401,27 @@ def _convert_dims(dimensions: List[str], direction: str) -> List[str]:
         return new_dims
     else:
         return dimensions
+
+
+def _validate_dim_order(dim_order: List[str], shape: tuple) -> List[str]:
+    """
+    Validate a List of dimensions. If the dimension list is smaller
+    fill the rest of the list with "dim_n" (following xarrray convention).
+
+    :param dim_order: List of dimensions (e.g. X, Y, Channel, Z, Time)
+    :param shape: Shape image for the dimension order.
+    :return: List with "dim_n" dimensions added to match shape length.
+    """
+    dim_len = len(dim_order)
+    shape_len = len(shape)
+    if dim_len < shape_len:
+        d = shape_len - dim_len
+        for i in range(d):
+            dim_order.append(f"dim_{i}")
+        return dim_order
+    if dim_len > shape_len:
+        raise ValueError(f"Expected {shape_len} dimensions but got {dim_len}.")
+    return dim_order
 
 
 def _has_axis(rai: "jc.RandomAccessibleInterval"):

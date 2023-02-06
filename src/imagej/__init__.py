@@ -419,7 +419,7 @@ class ImageJPython:
         pixels = imp.getProcessor().getPixels()
         stack.setPixels(pixels, imp.getCurrentSlice())
 
-    def to_dataset(self, data):
+    def to_dataset(self, data, dim_order=None):
         """Convert the data into an ImageJ2 Dataset.
 
         Converts a Python image (e.g. xarray or numpy array) or Java image (e.g.
@@ -428,7 +428,6 @@ class ImageJPython:
         :param data: Image object to be converted to Dataset.
         :return: A net.imagej.Dataset.
         """
-        dim_order = None
         if sj.isjava(data):
             if dim_order:
                 _logger.warning(
@@ -447,7 +446,7 @@ class ImageJPython:
 
         raise TypeError(f"Type not supported: {type(data)}")
 
-    def to_img(self, data):
+    def to_img(self, data, dim_order=None):
         """Convert the data into an ImgLib2 Img.
 
         Converts a Python image (e.g. xarray or numpy array) or Java image (e.g.
@@ -456,7 +455,6 @@ class ImageJPython:
         :param data: Image object to be converted to Img.
         :return: A net.imglib2.img.Img.
         """
-        dim_order = None
         if sj.isjava(data):
             if dim_order:
                 _logger.warning(
@@ -500,7 +498,7 @@ class ImageJPython:
 
         return sj.to_java(data, **hints)
 
-    def to_xarray(self, data):
+    def to_xarray(self, data, dim_order=None):
         """Convert the data into an ImgLib2 Img.
 
         Converts a Python image (e.g. xarray or numpy array) or Java image (e.g.
@@ -509,21 +507,24 @@ class ImageJPython:
         :param data: Image object to be converted to xarray.DataArray.
         :return: An xarray.DataArray.
         """
-        dim_order = None
         if sj.isjava(data):
+            if dim_order:
+                _logger.warning(f"Conversion hints are not supported for {type(data)}.")
+            if isinstance(data, jc.ImagePlus):
+                data = convert.imageplus_to_imgplus(self._ij, data)
             if convert.supports_java_to_xarray(self._ij, data):
-                if dim_order:
-                    _logger.warning(
-                        f"Conversion hints are not supported for {type(data)}."
-                    )
                 return convert.java_to_xarray(self._ij, data)
+            if convert.supports_java_to_ndarray(self._ij, data):
+                return convert.ndarray_to_xarray(
+                    convert.java_to_ndarray(self._ij, data)
+                )
 
         if images.is_xarraylike(data):
             return convert._rename_xarray_dims(data, dim_order)
         if images.is_arraylike(data):
             return convert.ndarray_to_xarray(data, dim_order)
 
-        return TypeError(f"Type not supported: {type(data)}.")
+        raise TypeError(f"Type not supported: {type(data)}.")
 
     # -- Deprecated methods --
 

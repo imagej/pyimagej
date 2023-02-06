@@ -25,7 +25,6 @@ def rai_slice(rai, imin: Tuple, imax: Tuple, istep: Tuple):
     dim_itr = range(len(shape))
 
     for py_dim, j_dim in zip(dim_itr, dim_itr):
-
         # Set minimum
         if imin[py_dim] is None:
             index = 0
