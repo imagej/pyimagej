@@ -4,7 +4,7 @@ Utility functions for converting objects between types.
 import ctypes
 import logging
 import os
-from typing import Dict, Sequence, Union
+from typing import Dict, Sequence
 
 import imglyb
 import numpy as np
@@ -564,7 +564,7 @@ def _rename_xarray_dims(xarr, new_dims: Sequence[str]):
 
 
 def _create_imagej_metadata(
-    axes: Sequence[Union["jc.DefaultLinearAxis", "jc.EnumeratedAxis"]],
+    axes: Sequence["jc.CalibratedAxis"],
     dim_seq: Sequence[str],
 ) -> dict:
     """
