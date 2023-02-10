@@ -108,7 +108,7 @@ class MyJavaClasses(JavaClasses):
 
     @JavaClasses.java_import
     def VariableAxis(self):
-        return "net.iamgej.axis.VariableAxis"
+        return "net.imagej.axis.VariableAxis"
 
     @JavaClasses.java_import
     def Dataset(self):
