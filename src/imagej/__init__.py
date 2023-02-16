@@ -1284,6 +1284,11 @@ def _create_gateway():
     ij.py._outputMapper = JavaOutputListener()
     ij.console().addOutputListener(ij.py._outputMapper)
 
+    # Register a Python-side script runner object, used by the
+    # org.scijava:scripting-python script language plugin.
+    if callable(getattr(sj, "enable_python_scripting", None)):
+        sj.enable_python_scripting(ij.context())
+
     sj.when_jvm_stops(lambda: ij.dispose())
 
     return ij
