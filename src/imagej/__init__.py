@@ -1339,7 +1339,9 @@ def _create_jvm(
         _logger.debug(
             "List of Maven coordinates given: %s", ij_dir_or_version_or_endpoint
         )
-        if _includes_imagej_legacy(ij_dir_or_version_or_endpoint):
+        if _includes_imagej_legacy(
+            ij_dir_or_version_or_endpoint
+        ) or _includes_imagej_legacy(original_endpoints):
             add_legacy = False
         sj.config.endpoints.extend(ij_dir_or_version_or_endpoint)
 
@@ -1375,7 +1377,9 @@ def _create_jvm(
         _logger.debug("Maven coordinate given: %s", ij_dir_or_version_or_endpoint)
         # Strip whitespace and split concatenated endpoints.
         endpoints = re.sub("\\s*", "", ij_dir_or_version_or_endpoint).split("+")
-        if _includes_imagej_legacy(endpoints):
+        if _includes_imagej_legacy(endpoints) or _includes_imagej_legacy(
+            original_endpoints
+        ):
             add_legacy = False
         sj.config.endpoints.extend(endpoints)
 
