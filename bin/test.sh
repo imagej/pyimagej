@@ -23,4 +23,18 @@ do
   else
     python -m pytest -p no:faulthandler $flag tests
   fi
+  code=$?
+  if [ $code -ne 0 ]
+  then
+    # HACK: `while read` creates a subshell, which can't modify the parent
+    # shell's variables. So we save the failure code to a temporary file.
+    echo $code >exitCode.tmp
+  fi
 done
+exitCode=0
+if [ -f exitCode.tmp ]
+then
+  exitCode=$(cat exitCode.tmp)
+  rm -f exitCode.tmp
+fi
+exit "$exitCode"
