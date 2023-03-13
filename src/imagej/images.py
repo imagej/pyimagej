@@ -13,7 +13,7 @@ _logger = logging.getLogger(__name__)
 
 # fmt: off
 _imglib2_types = {
-    # "net.imglib2.type.logic.BitType":                               "bool",
+    "net.imglib2.type.logic.NativeBoolType":                          "bool_",
     "net.imglib2.type.numeric.integer.ByteType":                      "int8",
     "net.imglib2.type.numeric.integer.ByteLongAccessType":            "int8",
     "net.imglib2.type.numeric.integer.ShortType":                     "int16",
