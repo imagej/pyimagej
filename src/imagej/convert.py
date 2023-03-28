@@ -571,7 +571,12 @@ def _create_imagej_metadata(
     Create the ImageJ metadata attribute dictionary for xarray's global attributes.
     """
     ij_metadata = {}
-    assert len(axes) == len(dim_seq)
+    if len(axes) != len(dim_seq):
+        raise ValueError(
+            f"Axes length ({len(axes)}) does not match \
+                dimension length ({len(dim_seq)})."
+        )
+
     for i in range(len(axes)):
         # get CalibratedAxis type as string (e.g. "EnumeratedAxis")
         ij_metadata[
