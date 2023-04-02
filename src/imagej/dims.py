@@ -9,6 +9,7 @@ import scyjava as sj
 import xarray as xr
 from jpype import JException, JObject
 
+import imagej.metadata as metadata
 from imagej._java import jc
 from imagej.images import is_arraylike as _is_arraylike
 from imagej.images import is_xarraylike as _is_xarraylike
@@ -215,10 +216,14 @@ def _assign_axes(
                 if cal_axis_type == "DefaultLinearAxis":
                     origin = xarr.attrs["imagej"][ij_dim + "_origin"]
                     scale = xarr.attrs["imagej"][ij_dim + "_scale"]
-                    jaxis = _str_to_cal_axis(cal_axis_type)(ax_type, scale, origin)
+                    jaxis = metadata.Axis._str_to_cal_axis(cal_axis_type)(
+                        ax_type, scale, origin
+                    )
                 else:
                     try:
-                        jaxis = _str_to_cal_axis(cal_axis_type)(ax_type, doub_coords)
+                        jaxis = metadata.Axis._str_to_cal_axis(cal_axis_type)(
+                            ax_type, doub_coords
+                        )
                     except (JException, TypeError):
                         jaxis = _get_fallback_linear_axis(ax_type, doub_coords)
             else:
@@ -475,56 +480,3 @@ def _to_ijdim(key: str) -> str:
         return ijdims[key]
     else:
         return key
-
-
-def _cal_axis_to_str(key) -> str:
-    """
-    Convert a CalibratedAxis class (e.g. net.imagej.axis.DefaultLinearAxis) to
-    a string.
-    """
-    cal_axis_to_str = {
-        jc.ChapmanRichardsAxis: "ChapmanRichardsAxis",
-        jc.DefaultLinearAxis: "DefaultLinearAxis",
-        jc.EnumeratedAxis: "EnumeratedAxis",
-        jc.ExponentialAxis: "ExponentialAxis",
-        jc.ExponentialRecoveryAxis: "ExponentialRecoveryAxis",
-        jc.GammaVariateAxis: "GammaVariateAxis",
-        jc.GaussianAxis: "GaussianAxis",
-        jc.IdentityAxis: "IdentityAxis",
-        jc.InverseRodbardAxis: "InverseRodbardAxis",
-        jc.LogLinearAxis: "LogLinearAxis",
-        jc.PolynomialAxis: "PolynomialAxis",
-        jc.PowerAxis: "PowerAxis",
-        jc.RodbardAxis: "RodbardAxis",
-    }
-
-    if key.__class__ in cal_axis_to_str:
-        return cal_axis_to_str[key.__class__]
-    else:
-        return "unknown"
-
-
-def _str_to_cal_axis(key: str):
-    """
-    Convert a string (e.g. "DefaultLinearAxis") to a CalibratedAxis class.
-    """
-    str_to_cal_axis = {
-        "ChapmanRichardsAxis": jc.ChapmanRichardsAxis,
-        "DefaultLinearAxis": jc.DefaultLinearAxis,
-        "EnumeratedAxis": jc.EnumeratedAxis,
-        "ExponentialAxis": jc.ExponentialAxis,
-        "ExponentialRecoveryAxis": jc.ExponentialRecoveryAxis,
-        "GammaVariateAxis": jc.GammaVariateAxis,
-        "GaussianAxis": jc.GaussianAxis,
-        "IdentityAxis": jc.IdentityAxis,
-        "InverseRodbardAxis": jc.InverseRodbardAxis,
-        "LogLinearAxis": jc.LogLinearAxis,
-        "PolynomialAxis": jc.PolynomialAxis,
-        "PowerAxis": jc.PowerAxis,
-        "RodbardAxis": jc.RodbardAxis,
-    }
-
-    if key in str_to_cal_axis:
-        return str_to_cal_axis[key]
-    else:
-        return None
