@@ -29,10 +29,7 @@ class Axis:
         if not isinstance(axis, JClass):
             axis = axis.__class__
 
-        if axis in cls._calibrated_axis_types.keys():
-            return cls._calibrated_axis_types[axis]
-        else:
-            return "unknown"
+        return cls._calibrated_axis_types.get(axis, "unknown")
 
     @classmethod
     def _str_to_cal_axis(cls, axis: str) -> "jc.CalibratedAxis":
