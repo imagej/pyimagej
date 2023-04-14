@@ -233,7 +233,7 @@ def java_to_xarray(ij: "jc.ImageJ", jobj) -> xr.DataArray:
     xr_dims = list(permuted_rai.dims)
     xr_attrs = sj.to_python(permuted_rai.getProperties())
     xr_attrs = {sj.to_python(k): sj.to_python(v) for k, v in xr_attrs.items()}
-    xr_attrs["imagej"] = metadata.ImageMetadata.create_imagej_metadata(xr_axes, xr_dims)
+    xr_attrs["imagej"] = metadata.create_imagej_metadata(xr_axes, xr_dims)
     # reverse axes and dims to match narr
     xr_axes.reverse()
     xr_dims.reverse()
