@@ -464,6 +464,24 @@ def supports_imglabeling_to_labeling(obj):
 ##########################
 
 
+def roi_dendron_to_roi_tree(roi_dendron: rois.ROIDendron) -> "jc.ROITree":
+    """
+    Convert a Python ROIDendron to an ImageJ ROITree.
+
+    :param roi_dendron: An input ROIDendron containing ROIs.
+    :return: A ROITree with ImageJ ROIs.
+    """
+    # initialize a ROITree to store ImageJ ROIs
+    roi_tree = jc.DefaultROITree()
+    ij_rois = []
+    for i in range(roi_dendron.count):
+        ij_rois.append(python_roi_to_imagej_roi(roi_dendron.rois[i]))
+
+    roi_tree.addROIs(jc.ArrayList(ij_rois))
+
+    return roi_tree
+
+
 def roi_tree_to_roi_dendron(roi_tree: "jc.ROITree") -> rois.ROIDendron:
     """
     Convert an ImageJ ROITree to a Python ROIDendron.
@@ -499,6 +517,17 @@ def imagej_roi_to_python_roi(roi: "jc.MaskPredicate") -> rois.ROI:
             data[1, i] = roi.semiAxisLength(i)
 
         return rois.Ellipsoid(data)
+
+
+def python_roi_to_imagej_roi(roi: rois.ROI) -> "jc.MaskPredicate":
+    """
+    Convert a Python ROI into an ImgLib2 ROI.
+
+    :param roi: A Python ROI.
+    :param: An ImageJ ROI
+    """
+    if isinstance(roi, rois.Ellipsoid):
+        return jc.ClosedWritableEllipsoid(roi.get_center(), roi.get_semi_axis_length())
 
 
 #######################

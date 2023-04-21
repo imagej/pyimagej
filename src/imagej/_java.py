@@ -103,12 +103,20 @@ class MyJavaClasses(JavaClasses):
         return "net.imglib2.img.ImgView"
 
     @JavaClasses.java_import
+    def ClosedWritableEllipsoid(self):
+        return "net.imglib2.roi.geom.real.ClosedWritableEllipsoid"
+
+    @JavaClasses.java_import
     def ImgLabeling(self):
         return "net.imglib2.roi.labeling.ImgLabeling"
 
     @JavaClasses.java_import
     def MaskPredicate(self):
         return "net.imglib2.roi.MaskPredicate"
+
+    @JavaClasses.java_import
+    def DefaultROITree(self):
+        return "net.imagej.roi.DefaultROITree"
 
     @JavaClasses.java_import
     def ROITree(self):
@@ -129,6 +137,10 @@ class MyJavaClasses(JavaClasses):
     @JavaClasses.java_import
     def Views(self):
         return "net.imglib2.view.Views"
+
+    @JavaClasses.java_import
+    def ArrayList(self):
+        return "java.util.ArrayList"
 
 
 jc = MyJavaClasses()
