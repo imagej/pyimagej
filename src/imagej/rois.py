@@ -92,6 +92,40 @@ class Ellipsoid(ROI):
         return self._semi_axis_length.tolist()[0]
 
 
+class Rectangle(ROI):
+    """
+    Initializes a Rectangle ROI instance with the provided data.
+
+    :param data: A 2D numpy array, typically with shape (2, 2),
+        where row index 0 defines the minimum dimension values and
+        row index 1 defines the maximum dimension value of the rectangle.
+    """
+
+    def __init__(self, data: np.ndarray):
+        super().__init__()
+        self._data = data
+        self._mv = memoryview(self._data)
+        self.ndim = data.shape[1]
+        self._min = self._mv[:1]
+        self._max = self._mv[1:]
+
+    def get_min_values(self) -> List[float]:
+        """
+        Get the minimum dimension values of the rectangle.
+
+        :return: List of minimum dimension values.
+        """
+        return self._min.tolist()[0]
+
+    def get_max_values(self) -> List[float]:
+        """
+        Get the maximum dimension values of the rectangle.
+
+        :return: List of maximum dimension values.
+        """
+        return self._max.tolist()[0]
+
+
 class Polygon(ROI):
     """
     Initializes a Polygon ROI instance with the provided data.

@@ -107,6 +107,14 @@ class MyJavaClasses(JavaClasses):
         return "net.imglib2.RealPoint"
 
     @JavaClasses.java_import
+    def Box(self):
+        return "net.imglib2.roi.geom.real.Box"
+
+    @JavaClasses.java_import
+    def ClosedWritableBox(self):
+        return "net.imglib2.roi.geom.real.ClosedWritableBox"
+
+    @JavaClasses.java_import
     def ClosedWritableEllipsoid(self):
         return "net.imglib2.roi.geom.real.ClosedWritableEllipsoid"
 

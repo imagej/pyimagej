@@ -508,6 +508,8 @@ def imagej_roi_to_python_roi(roi: "jc.MaskPredicate") -> rois.ROI:
     """
     if isinstance(roi, jc.SuperEllipsoid):
         return _ellipsoid_ij_roi_to_py_roi(roi)
+    if isinstance(roi, jc.Box):
+        return _rectangle_ij_roi_to_py_roi(roi)
     if isinstance(roi, jc.Polygon2D):
         return _polygon_ij_roi_to_py_roi(roi)
 
@@ -521,6 +523,8 @@ def python_roi_to_imagej_roi(roi: rois.ROI) -> "jc.MaskPredicate":
     """
     if isinstance(roi, rois.Ellipsoid):
         return jc.ClosedWritableEllipsoid(roi.get_center(), roi.get_semi_axis_length())
+    if isinstance(roi, rois.Rectangle):
+        return jc.ClosedWritableBox(roi.get_min_values(), roi.get_max_values())
     if isinstance(roi, rois.Polygon):
         arr = [JDouble[:] @ coords for coords in roi.get_vertices().tolist()]
         return jc.ClosedWritablePolygon2D(jc.ArrayList([jc.RealPoint(p) for p in arr]))
@@ -659,6 +663,17 @@ def _ellipsoid_ij_roi_to_py_roi(roi: "jc.MaskPredicate") -> rois.ROI:
         data[1, i] = roi.semiAxisLength(i)
 
     return rois.Ellipsoid(data)
+
+
+def _rectangle_ij_roi_to_py_roi(roi: "jc.MaskPredicate") -> rois.ROI:
+    min = roi.minAsDoubleArray()
+    max = roi.maxAsDoubleArray()
+    data = np.empty((2, roi.numDimensions()))
+    for i in range(roi.numDimensions()):
+        data[0, i] = min[i]
+        data[1, i] = max[i]
+
+    return rois.Rectangle(data)
 
 
 def _polygon_ij_roi_to_py_roi(roi: "jc.MaskPredicate") -> rois.ROI:
