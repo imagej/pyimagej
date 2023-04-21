@@ -18,9 +18,12 @@ class ROIDendron:
 
         :param roi: An instance of the ROI class.
         """
-        roi.set_dendron(self)
-        self.rois.append(roi)
-        self._update_roi_count()
+        if roi is not None:
+            roi.set_dendron(self)
+            self.rois.append(roi)
+            self._update_roi_count()
+        else:
+            return None
 
     def remove_roi(self, index: int):
         """
