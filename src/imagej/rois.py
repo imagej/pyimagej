@@ -74,7 +74,7 @@ class Ellipsoid(ROI):
 
     def get_center(self) -> List[float]:
         """
-        Get center position of the ellipsoid
+        Get center position of the ellipsoid.
 
         :return: List of center position: [x, y].
         """
@@ -87,3 +87,25 @@ class Ellipsoid(ROI):
         :return: List of semi axis length: [x, y].
         """
         return self._semi_axis_length.tolist()[0]
+
+
+class Polygon(ROI):
+    """
+    Initializes a Polygon ROI instance with the provided data.
+
+    :param data: A numpy array with shape [1, D], where D
+        are the number of dimensions.
+    """
+
+    def __init__(self, data: np.ndarray):
+        super().__init__()
+        self._data = data
+        self.ndim = data.shape[1]
+
+    def get_vertices(self):
+        """
+        Get the vertices of the polygon.
+
+        :return: [1, D] numpy array containing coordinates.
+        """
+        return self._data

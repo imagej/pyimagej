@@ -10,7 +10,7 @@ import imglyb
 import numpy as np
 import scyjava as sj
 import xarray as xr
-from jpype import JByte, JException, JFloat, JLong, JObject, JShort
+from jpype import JByte, JDouble, JException, JFloat, JLong, JObject, JShort
 from labeling import Labeling
 
 import imagej.dims as dims
@@ -507,15 +507,9 @@ def imagej_roi_to_python_roi(roi: "jc.MaskPredicate") -> rois.ROI:
     :return: A Python ROI.
     """
     if isinstance(roi, jc.SuperEllipsoid):
-        # pre-allocate a 2D array for roi data
-        data = np.empty((2, roi.numDimensions()))
-        # store center values in first row and radii on the second
-        center = roi.center().positionAsDoubleArray()
-        for i in range(roi.numDimensions()):
-            data[0, i] = center[i]
-            data[1, i] = roi.semiAxisLength(i)
-
-        return rois.Ellipsoid(data)
+        return _ellipsoid_ij_roi_to_py_roi(roi)
+    if isinstance(roi, jc.Polygon2D):
+        return _polygon_ij_roi_to_py_roi(roi)
 
 
 def python_roi_to_imagej_roi(roi: rois.ROI) -> "jc.MaskPredicate":
@@ -527,6 +521,9 @@ def python_roi_to_imagej_roi(roi: rois.ROI) -> "jc.MaskPredicate":
     """
     if isinstance(roi, rois.Ellipsoid):
         return jc.ClosedWritableEllipsoid(roi.get_center(), roi.get_semi_axis_length())
+    if isinstance(roi, rois.Polygon):
+        arr = [JDouble[:] @ coords for coords in roi.get_vertices().tolist()]
+        return jc.ClosedWritablePolygon2D(jc.ArrayList([jc.RealPoint(p) for p in arr]))
 
 
 #######################
@@ -650,3 +647,29 @@ def _dim_order(hints: Dict):
     Extract the dim_order from the hints kwargs.
     """
     return hints["dim_order"] if "dim_order" in hints else None
+
+
+def _ellipsoid_ij_roi_to_py_roi(roi: "jc.MaskPredicate") -> rois.ROI:
+    # pre-allocate a 2D array for roi data
+    data = np.empty((2, roi.numDimensions()))
+    # store center values in first row and radii on the second
+    center = roi.center().positionAsDoubleArray()
+    for i in range(roi.numDimensions()):
+        data[0, i] = center[i]
+        data[1, i] = roi.semiAxisLength(i)
+
+    return rois.Ellipsoid(data)
+
+
+def _polygon_ij_roi_to_py_roi(roi: "jc.MaskPredicate") -> rois.ROI:
+    vertices = roi.vertices()
+    num_vertices = len(vertices)
+    num_dims = roi.numDimensions()
+    jarr = JDouble[num_dims]
+    # pre-allocate a [1, D] array for roi data
+    data = np.empty((num_vertices, num_dims))
+    for i in range(num_vertices):
+        vertices.get(i).localize(jarr)
+        data[i, :] = jarr
+
+    return rois.Polygon(data)

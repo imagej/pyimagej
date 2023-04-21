@@ -103,8 +103,16 @@ class MyJavaClasses(JavaClasses):
         return "net.imglib2.img.ImgView"
 
     @JavaClasses.java_import
+    def RealPoint(self):
+        return "net.imglib2.RealPoint"
+
+    @JavaClasses.java_import
     def ClosedWritableEllipsoid(self):
         return "net.imglib2.roi.geom.real.ClosedWritableEllipsoid"
+
+    @JavaClasses.java_import
+    def ClosedWritablePolygon2D(self):
+        return "net.imglib2.roi.geom.real.ClosedWritablePolygon2D"
 
     @JavaClasses.java_import
     def ImgLabeling(self):
@@ -125,6 +133,10 @@ class MyJavaClasses(JavaClasses):
     @JavaClasses.java_import
     def SuperEllipsoid(self):
         return "net.imglib2.roi.geom.real.SuperEllipsoid"
+
+    @JavaClasses.java_import
+    def Polygon2D(self):
+        return "net.imglib2.roi.geom.real.Polygon2D"
 
     @JavaClasses.java_import
     def Named(self):
