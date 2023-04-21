@@ -482,7 +482,7 @@ def from_roi_tree(roi_tree: "jc.ROITree") -> rois.ROIDendron:
     return dendron
 
 
-def imagej_roi_to_python_roi(roi: "jc.RealMaskRealInterval") -> rois.ROI:
+def imagej_roi_to_python_roi(roi: "jc.MaskPredicate") -> rois.ROI:
     """
     Convert an ImgLib2 ROI into a Python ROI.
 

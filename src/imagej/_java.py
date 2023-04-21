@@ -107,8 +107,8 @@ class MyJavaClasses(JavaClasses):
         return "net.imglib2.roi.labeling.ImgLabeling"
 
     @JavaClasses.java_import
-    def RealMaskRealInterval(self):
-        return "net.imglib2.roi.RealMaskRealInterval"
+    def MaskPredicate(self):
+        return "net.imglib2.roi.MaskPredicate"
 
     @JavaClasses.java_import
     def ROITree(self):
