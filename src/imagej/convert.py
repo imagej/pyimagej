@@ -464,14 +464,14 @@ def supports_imglabeling_to_labeling(obj):
 ##########################
 
 
-def from_roi_tree(roi_tree: "jc.ROITree") -> rois.ROIDendron:
+def roi_tree_to_roi_dendron(roi_tree: "jc.ROITree") -> rois.ROIDendron:
     """
     Convert an ImageJ ROITree to a Python ROIDendron.
 
     :param roi_tree: An input net.imagej.roi.ROITree containing ROIs.
     :return: A ROIDendron with Python ROIs.
     """
-    # initialize a ROIDendron to store Python ROIs.
+    # initialize a ROIDendron to store Python ROIs
     dendron = rois.ROIDendron()
     for i in range(len(roi_tree.children())):
         # extract ImageJ ROIs and conver to Python ROIs
@@ -486,7 +486,7 @@ def imagej_roi_to_python_roi(roi: "jc.MaskPredicate") -> rois.ROI:
     """
     Convert an ImgLib2 ROI into a Python ROI.
 
-    :param roi: A net.imglib2.roi.RealMaskRealInterval (i.e. an ImageJ ROI).
+    :param roi: ImageJ ROI.
     :return: A Python ROI.
     """
     if isinstance(roi, jc.SuperEllipsoid):
