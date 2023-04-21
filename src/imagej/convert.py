@@ -15,6 +15,7 @@ from labeling import Labeling
 
 import imagej.dims as dims
 import imagej.images as images
+import imagej.rois as rois
 from imagej._java import jc
 from imagej._java import log_exception as _log_exception
 
@@ -456,6 +457,48 @@ def supports_imglabeling_to_labeling(obj):
     :return: True iff conversion to a Python Labeling is possible
     """
     return isinstance(obj, jc.ImgLabeling)
+
+
+##########################
+# ROITree <-> ROIDendron #
+##########################
+
+
+def from_roi_tree(roi_tree: "jc.ROITree") -> rois.ROIDendron:
+    """
+    Convert an ImageJ ROITree to a Python ROIDendron.
+
+    :param roi_tree: An input net.imagej.roi.ROITree containing ROIs.
+    :return: A ROIDendron with Python ROIs.
+    """
+    # initialize a ROIDendron to store Python ROIs.
+    dendron = rois.ROIDendron()
+    for i in range(len(roi_tree.children())):
+        # extract ImageJ ROIs and conver to Python ROIs
+        ij_roi = roi_tree.children().get(i).data()
+        py_roi = imagej_roi_to_python_roi(ij_roi)
+        dendron.add_roi(py_roi)
+
+    return dendron
+
+
+def imagej_roi_to_python_roi(roi: "jc.RealMaskRealInterval") -> rois.ROI:
+    """
+    Convert an ImgLib2 ROI into a Python ROI.
+
+    :param roi: A net.imglib2.roi.RealMaskRealInterval (i.e. an ImageJ ROI).
+    :return: A Python ROI.
+    """
+    if isinstance(roi, jc.SuperEllipsoid):
+        # pre-allocate a 2D array for roi data
+        data = np.empty((2, roi.numDimensions()))
+        # store center values in first row and radii on the second
+        center = roi.center().positionAsDoubleArray()
+        for i in range(roi.numDimensions()):
+            data[0, i] = center[i]
+            data[1, i] = roi.semiAxisLength(i)
+
+        return rois.Ellipsoid(data)
 
 
 #######################

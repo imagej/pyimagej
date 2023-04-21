@@ -107,6 +107,18 @@ class MyJavaClasses(JavaClasses):
         return "net.imglib2.roi.labeling.ImgLabeling"
 
     @JavaClasses.java_import
+    def RealMaskRealInterval(self):
+        return "net.imglib2.roi.RealMaskRealInterval"
+
+    @JavaClasses.java_import
+    def ROITree(self):
+        return "net.imagej.roi.ROITree"
+
+    @JavaClasses.java_import
+    def SuperEllipsoid(self):
+        return "net.imglib2.roi.geom.real.SuperEllipsoid"
+
+    @JavaClasses.java_import
     def Named(self):
         return "org.scijava.Named"
 
