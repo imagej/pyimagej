@@ -92,6 +92,40 @@ class Ellipsoid(ROI):
         return self._semi_axis_length.tolist()[0]
 
 
+class Line(ROI):
+    """
+    Initializes a Line ROI instance with the provided data.
+
+    :param data: A 2D numpy array, typically with shape (2, 2),
+        where row index 0 defines endpoint one of the line and
+        row index 1 defines endpoint two of the line.
+    """
+
+    def __init__(self, data: np.ndarray):
+        super().__init__()
+        self._data = data
+        self.ndim = data.shape[1]
+        self._mv = memoryview(self._data)
+        self._endpoint_one = self._mv[:1]
+        self._endpoint_two = self._mv[1:]
+
+    def get_endpoint_one(self) -> List[float]:
+        """
+        Get endpoint one of the line.
+
+        :return: List of endpoint one coordinates.
+        """
+        return self._endpoint_one.tolist()[0]
+
+    def get_endpoint_two(self) -> List[float]:
+        """
+        Get endpoint two of the line.
+
+        :return: List of endpoint two coordinates.
+        """
+        return self._endpoint_two.tolist()[0]
+
+
 class Rectangle(ROI):
     """
     Initializes a Rectangle ROI instance with the provided data.

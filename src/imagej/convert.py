@@ -512,6 +512,8 @@ def imagej_roi_to_python_roi(roi: "jc.MaskPredicate") -> rois.ROI:
         return _rectangle_ij_roi_to_py_roi(roi)
     if isinstance(roi, jc.Polygon2D):
         return _polygon_ij_roi_to_py_roi(roi)
+    if isinstance(roi, jc.Line):
+        return _line_ij_roi_to_py_roi(roi)
 
 
 def python_roi_to_imagej_roi(roi: rois.ROI) -> "jc.MaskPredicate":
@@ -528,6 +530,10 @@ def python_roi_to_imagej_roi(roi: rois.ROI) -> "jc.MaskPredicate":
     if isinstance(roi, rois.Polygon):
         arr = [JDouble[:] @ coords for coords in roi.get_vertices().tolist()]
         return jc.ClosedWritablePolygon2D(jc.ArrayList([jc.RealPoint(p) for p in arr]))
+    if isinstance(roi, rois.Line):
+        point_1 = jc.RealPoint(JDouble[:] @ roi.get_endpoint_one())
+        point_2 = jc.RealPoint(JDouble[:] @ roi.get_endpoint_two())
+        return jc.DefaultWritableLine(point_1, point_2)
 
 
 #######################
@@ -663,6 +669,19 @@ def _ellipsoid_ij_roi_to_py_roi(roi: "jc.MaskPredicate") -> rois.ROI:
         data[1, i] = roi.semiAxisLength(i)
 
     return rois.Ellipsoid(data)
+
+
+def _line_ij_roi_to_py_roi(roi: "jc.MaskPredicate") -> rois.ROI:
+    num_dims = roi.numDimensions()
+    jarr = JDouble[num_dims]
+    # pre-allocate a 2D array for roi data
+    data = np.empty((2, num_dims))
+    # extract first and second point
+    roi.endpointOne().localize(jarr)
+    data[0, :] = jarr
+    roi.endpointTwo().localize(jarr)
+    data[1, :] = jarr
+    return rois.Line(data)
 
 
 def _rectangle_ij_roi_to_py_roi(roi: "jc.MaskPredicate") -> rois.ROI:

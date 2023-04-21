@@ -111,6 +111,10 @@ class MyJavaClasses(JavaClasses):
         return "net.imglib2.roi.geom.real.Box"
 
     @JavaClasses.java_import
+    def DefaultWritableLine(self):
+        return "net.imglib2.roi.geom.real.DefaultWritableLine"
+
+    @JavaClasses.java_import
     def ClosedWritableBox(self):
         return "net.imglib2.roi.geom.real.ClosedWritableBox"
 
@@ -121,6 +125,10 @@ class MyJavaClasses(JavaClasses):
     @JavaClasses.java_import
     def ClosedWritablePolygon2D(self):
         return "net.imglib2.roi.geom.real.ClosedWritablePolygon2D"
+
+    @JavaClasses.java_import
+    def Line(self):
+        return "net.imglib2.roi.geom.real.Line"
 
     @JavaClasses.java_import
     def ImgLabeling(self):
