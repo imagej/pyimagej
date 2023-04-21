@@ -102,7 +102,7 @@ class Polygon(ROI):
         self._data = data
         self.ndim = data.shape[1]
 
-    def get_vertices(self):
+    def get_vertices(self) -> np.ndarray:
         """
         Get the vertices of the polygon.
 
