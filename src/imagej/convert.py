@@ -493,9 +493,8 @@ def roi_tree_to_roi_dendron(roi_tree: "jc.ROITree") -> rois.ROIDendron:
     dendron = rois.ROIDendron()
     for i in range(len(roi_tree.children())):
         # extract ImageJ ROIs and conver to Python ROIs
-        ij_roi = roi_tree.children().get(i).data()
-        py_roi = imagej_roi_to_python_roi(ij_roi)
-        dendron.add_roi(py_roi)
+        roi = imagej_roi_to_python_roi(roi_tree.children().get(i).data())
+        dendron.add_roi(roi)
 
     return dendron
 
