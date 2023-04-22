@@ -524,15 +524,15 @@ def python_roi_to_imagej_roi(roi: rois.ROI) -> "jc.MaskPredicate":
     :param: An ImageJ ROI
     """
     if isinstance(roi, rois.Ellipsoid):
-        return jc.ClosedWritableEllipsoid(roi.get_center(), roi.get_semi_axis_length())
+        return jc.ClosedWritableEllipsoid(roi.center, roi.semi_axis_length)
     if isinstance(roi, rois.Rectangle):
-        return jc.ClosedWritableBox(roi.get_min_values(), roi.get_max_values())
+        return jc.ClosedWritableBox(roi.min_values, roi.max_values)
     if isinstance(roi, rois.Polygon):
-        arr = [JDouble[:] @ coords for coords in roi.get_vertices().tolist()]
+        arr = [JDouble[:] @ coords for coords in roi.vertices]
         return jc.ClosedWritablePolygon2D(jc.ArrayList([jc.RealPoint(p) for p in arr]))
     if isinstance(roi, rois.Line):
-        point_1 = jc.RealPoint(JDouble[:] @ roi.get_endpoint_one())
-        point_2 = jc.RealPoint(JDouble[:] @ roi.get_endpoint_two())
+        point_1 = jc.RealPoint(JDouble[:] @ roi.endpoint_one)
+        point_2 = jc.RealPoint(JDouble[:] @ roi.endpoint_two)
         return jc.DefaultWritableLine(point_1, point_2)
 
 

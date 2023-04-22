@@ -1,5 +1,3 @@
-from typing import List
-
 import numpy as np
 
 
@@ -47,7 +45,7 @@ class ROI:
 
     def __init__(self):
         self.dendron = None
-        self._data = None
+        self.data = None
 
     def set_dendron(self, dendron: "ROIDendron"):
         """
@@ -69,26 +67,10 @@ class Ellipsoid(ROI):
 
     def __init__(self, data: np.ndarray):
         super().__init__()
-        self._data = data
+        self.data = data
         self.ndim = data.shape[1]
-        self._center = self._data[0, :]
-        self._semi_axis_length = self._data[1, :]
-
-    def get_center(self) -> List[float]:
-        """
-        Get center position of the ellipsoid.
-
-        :return: List of center position: [x, y].
-        """
-        return self._center.tolist()
-
-    def get_semi_axis_length(self) -> List[float]:
-        """
-        Get semi axis length (i.e. radii) of the ellipsoid.
-
-        :return: List of semi axis length: [x, y].
-        """
-        return self._semi_axis_length.tolist()
+        self.center = self.data[0, :]
+        self.semi_axis_length = self.data[1, :]
 
 
 class Line(ROI):
@@ -102,26 +84,10 @@ class Line(ROI):
 
     def __init__(self, data: np.ndarray):
         super().__init__()
-        self._data = data
+        self.data = data
         self.ndim = data.shape[1]
-        self._endpoint_one = self._data[0, :]
-        self._endpoint_two = self._data[1, :]
-
-    def get_endpoint_one(self) -> List[float]:
-        """
-        Get endpoint one of the line.
-
-        :return: List of endpoint one coordinates.
-        """
-        return self._endpoint_one.tolist()
-
-    def get_endpoint_two(self) -> List[float]:
-        """
-        Get endpoint two of the line.
-
-        :return: List of endpoint two coordinates.
-        """
-        return self._endpoint_two.tolist()
+        self.endpoint_one = self.data[0, :]
+        self.endpoint_two = self.data[1, :]
 
 
 class Rectangle(ROI):
@@ -135,26 +101,10 @@ class Rectangle(ROI):
 
     def __init__(self, data: np.ndarray):
         super().__init__()
-        self._data = data
+        self.data = data
         self.ndim = data.shape[1]
-        self._min = self._data[0, :]
-        self._max = self._data[1, :]
-
-    def get_min_values(self) -> List[float]:
-        """
-        Get the minimum dimension values of the rectangle.
-
-        :return: List of minimum dimension values.
-        """
-        return self._min.tolist()
-
-    def get_max_values(self) -> List[float]:
-        """
-        Get the maximum dimension values of the rectangle.
-
-        :return: List of maximum dimension values.
-        """
-        return self._max.tolist()
+        self.min_values = self.data[0, :]
+        self.max_values = self.data[1, :]
 
 
 class Polygon(ROI):
@@ -167,13 +117,6 @@ class Polygon(ROI):
 
     def __init__(self, data: np.ndarray):
         super().__init__()
-        self._data = data
+        self.data = data
         self.ndim = data.shape[1]
-
-    def get_vertices(self) -> np.ndarray:
-        """
-        Get the vertices of the polygon.
-
-        :return: [1, D] numpy array containing coordinates.
-        """
-        return self._data
+        self.vertices = self.data
