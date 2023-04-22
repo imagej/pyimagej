@@ -70,10 +70,9 @@ class Ellipsoid(ROI):
     def __init__(self, data: np.ndarray):
         super().__init__()
         self._data = data
-        self._mv = memoryview(self._data)
         self.ndim = data.shape[1]
-        self._center = self._mv[:1]
-        self._semi_axis_length = self._mv[1:]
+        self._center = self._data[0, :]
+        self._semi_axis_length = self._data[1, :]
 
     def get_center(self) -> List[float]:
         """
@@ -81,7 +80,7 @@ class Ellipsoid(ROI):
 
         :return: List of center position: [x, y].
         """
-        return self._center.tolist()[0]
+        return self._center.tolist()
 
     def get_semi_axis_length(self) -> List[float]:
         """
@@ -89,7 +88,7 @@ class Ellipsoid(ROI):
 
         :return: List of semi axis length: [x, y].
         """
-        return self._semi_axis_length.tolist()[0]
+        return self._semi_axis_length.tolist()
 
 
 class Line(ROI):
@@ -105,9 +104,8 @@ class Line(ROI):
         super().__init__()
         self._data = data
         self.ndim = data.shape[1]
-        self._mv = memoryview(self._data)
-        self._endpoint_one = self._mv[:1]
-        self._endpoint_two = self._mv[1:]
+        self._endpoint_one = self._data[0, :]
+        self._endpoint_two = self._data[1, :]
 
     def get_endpoint_one(self) -> List[float]:
         """
@@ -115,7 +113,7 @@ class Line(ROI):
 
         :return: List of endpoint one coordinates.
         """
-        return self._endpoint_one.tolist()[0]
+        return self._endpoint_one.tolist()
 
     def get_endpoint_two(self) -> List[float]:
         """
@@ -123,7 +121,7 @@ class Line(ROI):
 
         :return: List of endpoint two coordinates.
         """
-        return self._endpoint_two.tolist()[0]
+        return self._endpoint_two.tolist()
 
 
 class Rectangle(ROI):
@@ -138,10 +136,9 @@ class Rectangle(ROI):
     def __init__(self, data: np.ndarray):
         super().__init__()
         self._data = data
-        self._mv = memoryview(self._data)
         self.ndim = data.shape[1]
-        self._min = self._mv[:1]
-        self._max = self._mv[1:]
+        self._min = self._data[0, :]
+        self._max = self._data[1, :]
 
     def get_min_values(self) -> List[float]:
         """
@@ -149,7 +146,7 @@ class Rectangle(ROI):
 
         :return: List of minimum dimension values.
         """
-        return self._min.tolist()[0]
+        return self._min.tolist()
 
     def get_max_values(self) -> List[float]:
         """
@@ -157,7 +154,7 @@ class Rectangle(ROI):
 
         :return: List of maximum dimension values.
         """
-        return self._max.tolist()[0]
+        return self._max.tolist()
 
 
 class Polygon(ROI):
