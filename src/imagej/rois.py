@@ -107,6 +107,19 @@ class Rectangle(ROI):
         self.max_values = self.data[1, :]
 
 
+class Points(ROI):
+    """
+    Initializes a Points ROI instance with the provided data.
+
+    :param data: A numpy array with shape [x, y].
+    """
+
+    def __init__(self, data: np.ndarray):
+        super().__init__()
+        self.data = data
+        self.ndim = data.shape[1]
+
+
 class Polygon(ROI):
     """
     Initializes a Polygon ROI instance with the provided data.

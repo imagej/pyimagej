@@ -131,6 +131,14 @@ class MyJavaClasses(JavaClasses):
         return "net.imglib2.roi.geom.real.Line"
 
     @JavaClasses.java_import
+    def Polyline(self):
+        return "net.imglib2.roi.geom.real.Polyline"
+
+    @JavaClasses.java_import
+    def RealPointCollection(self):
+        return "net.imglib2.roi.geom.real.RealPointCollection"
+
+    @JavaClasses.java_import
     def ImgLabeling(self):
         return "net.imglib2.roi.labeling.ImgLabeling"
 

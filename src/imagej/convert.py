@@ -514,6 +514,8 @@ def imagej_roi_to_python_roi(roi: "jc.MaskPredicate") -> rois.ROI:
         return _polygon_ij_roi_to_py_roi(roi)
     if isinstance(roi, jc.Line):
         return _line_ij_roi_to_py_roi(roi)
+    if isinstance(roi, jc.RealPointCollection):
+        return _point_ij_roi_to_py_roi(roi)
 
 
 def python_roi_to_imagej_roi(roi: rois.ROI) -> "jc.MaskPredicate":
@@ -693,6 +695,17 @@ def _rectangle_ij_roi_to_py_roi(roi: "jc.MaskPredicate") -> rois.ROI:
         data[1, i] = max[i]
 
     return rois.Rectangle(data)
+
+
+def _point_ij_roi_to_py_roi(roi: "jc.MaskPredicate") -> rois.ROI:
+    num_dims = roi.numDimensions()
+    data = np.empty((roi.size(), num_dims))
+    jarr = JDouble[num_dims]
+    for i, p in enumerate(roi.points()):
+        p.localize(jarr)
+        data[i, :] = jarr
+
+    return rois.Points(data)
 
 
 def _polygon_ij_roi_to_py_roi(roi: "jc.MaskPredicate") -> rois.ROI:
