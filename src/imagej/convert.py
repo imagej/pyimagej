@@ -536,6 +536,9 @@ def python_roi_to_imagej_roi(roi: rois.ROI) -> "jc.MaskPredicate":
         point_1 = jc.RealPoint(JDouble[:] @ roi.endpoint_one)
         point_2 = jc.RealPoint(JDouble[:] @ roi.endpoint_two)
         return jc.DefaultWritableLine(point_1, point_2)
+    if isinstance(roi, rois.Points):
+        arr = [JDouble[:] @ coords for coords in roi.points]
+        return jc.DefaultWritableRealPointCollection(jc.ArrayList([jc.RealPoint(p) for p in arr]))
 
 
 #######################

@@ -118,6 +118,7 @@ class Points(ROI):
         super().__init__()
         self.data = data
         self.ndim = data.shape[1]
+        self.points = self.data
 
 
 class Polygon(ROI):
