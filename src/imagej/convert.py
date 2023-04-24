@@ -516,6 +516,8 @@ def imagej_roi_to_python_roi(roi: "jc.MaskPredicate") -> rois.ROI:
         return _line_ij_roi_to_py_roi(roi)
     if isinstance(roi, jc.RealPointCollection):
         return _point_ij_roi_to_py_roi(roi)
+    if isinstance(roi, jc.Polyline):
+        return _polyline_ij_roi_to_py_roi(roi)
 
 
 def python_roi_to_imagej_roi(roi: rois.ROI) -> "jc.MaskPredicate":
@@ -538,7 +540,12 @@ def python_roi_to_imagej_roi(roi: rois.ROI) -> "jc.MaskPredicate":
         return jc.DefaultWritableLine(point_1, point_2)
     if isinstance(roi, rois.Points):
         arr = [JDouble[:] @ coords for coords in roi.points]
-        return jc.DefaultWritableRealPointCollection(jc.ArrayList([jc.RealPoint(p) for p in arr]))
+        return jc.DefaultWritableRealPointCollection(
+            jc.ArrayList([jc.RealPoint(p) for p in arr])
+        )
+    if isinstance(roi, rois.Polyline):
+        arr = [JDouble[:] @ coords for coords in roi.points]
+        return jc.DefaultWritablePolyline(jc.ArrayList([jc.RealPoint(p) for p in arr]))
 
 
 #######################
@@ -712,6 +719,14 @@ def _point_ij_roi_to_py_roi(roi: "jc.MaskPredicate") -> rois.ROI:
 
 
 def _polygon_ij_roi_to_py_roi(roi: "jc.MaskPredicate") -> rois.ROI:
+    return rois.Polygon(_polyshape_ij_roi_to_py_roi(roi))
+
+
+def _polyline_ij_roi_to_py_roi(roi: "jc.MaskPredicate") -> rois.ROI:
+    return rois.Polyline(_polyshape_ij_roi_to_py_roi(roi))
+
+
+def _polyshape_ij_roi_to_py_roi(roi: "jc.MaskPredicate") -> rois.ROI:
     vertices = roi.vertices()
     num_vertices = len(vertices)
     num_dims = roi.numDimensions()
@@ -722,4 +737,4 @@ def _polygon_ij_roi_to_py_roi(roi: "jc.MaskPredicate") -> rois.ROI:
         vertices.get(i).localize(jarr)
         data[i, :] = jarr
 
-    return rois.Polygon(data)
+    return data

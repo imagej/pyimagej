@@ -134,3 +134,18 @@ class Polygon(ROI):
         self.data = data
         self.ndim = data.shape[1]
         self.vertices = self.data
+
+
+class Polyline(ROI):
+    """
+    Initializes a Polyline ROI instance with the provided data.
+
+    :param data: A numpy array with shape [1, D] where D
+        are the number of dimensions.
+    """
+
+    def __init__(self, data: np.ndarray):
+        super().__init__()
+        self.data
+        self.ndim = data.shape[1]
+        self.points = self.data

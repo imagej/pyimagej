@@ -115,6 +115,10 @@ class MyJavaClasses(JavaClasses):
         return "net.imglib2.roi.geom.real.DefaultWritableLine"
 
     @JavaClasses.java_import
+    def DefaultWritablePolyline(self):
+        return "net.imglib2.roi.geom.real.DefaultWritablePolyline"
+
+    @JavaClasses.java_import
     def DefaultWritableRealPointCollection(self):
         return "net.imglib2.roi.geom.real.DefaultWritableRealPointCollection"
 
