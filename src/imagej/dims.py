@@ -2,13 +2,14 @@
 Utility functions for querying and manipulating dimensional axis metadata.
 """
 import logging
-from typing import List, Tuple
+from typing import List, Tuple, Union
 
 import numpy as np
 import scyjava as sj
 import xarray as xr
 from jpype import JException, JObject
 
+import imagej.metadata as metadata
 from imagej._java import jc
 from imagej.images import is_arraylike as _is_arraylike
 from imagej.images import is_xarraylike as _is_xarraylike
@@ -177,49 +178,59 @@ def prioritize_rai_axes_order(
     return permute_order
 
 
-def _assign_axes(xarr: xr.DataArray):
+def _assign_axes(
+    xarr: xr.DataArray,
+) -> List[Union["jc.DefaultLinearAxis", "jc.EnumeratedAxis"]]:
     """
-    Obtain xarray axes names, origin, and scale and convert into ImageJ Axis;
-    currently supports EnumeratedAxis
-    :param xarr: xarray that holds the units
-    :return: A list of ImageJ Axis with the specified origin and scale
+    Obtain xarray axes names, origin, scale and convert into ImageJ Axis. Supports both
+    DefaultLinearAxis and the newer EnumeratedAxis.
+    :param xarr: xarray that holds the data.
+    :return: A list of ImageJ Axis with the specified origin and scale.
     """
-    Double = sj.jimport("java.lang.Double")
-
-    axes = [""] * len(xarr.dims)
-
-    # try to get EnumeratedAxis, if not then default to LinearAxis in the loop
-    try:
-        EnumeratedAxis = _get_enumerated_axis()
-    except (JException, TypeError):
-        EnumeratedAxis = None
-
-    for dim in xarr.dims:
-        axis_str = _convert_dim(dim, direction="java")
+    axes = [""] * xarr.ndim
+    for i in range(xarr.ndim):
+        dim = xarr.dims[i]
+        axis_str = _convert_dim(dim, "java")
         ax_type = jc.Axes.get(axis_str)
         ax_num = _get_axis_num(xarr, dim)
-        scale = _get_scale(xarr.coords[dim])
+        coords_arr = xarr.coords[dim].to_numpy()
 
-        if scale is None:
+        # check if coords/scale is numeric
+        if _is_numeric_scale(coords_arr):
+            doub_coords = [jc.Double(np.double(x)) for x in xarr.coords[dim]]
+        else:
             _logger.warning(
                 f"The {ax_type.label} axis is non-numeric and is translated "
                 "to a linear index."
             )
             doub_coords = [
-                Double(np.double(x)) for x in np.arange(len(xarr.coords[dim]))
+                jc.Double(np.double(x)) for x in np.arrange(len(xarr.coords[dim]))
             ]
-        else:
-            doub_coords = [Double(np.double(x)) for x in xarr.coords[dim]]
 
-        # EnumeratedAxis is a new axis made for xarray, so is only present in
-        # ImageJ versions that are released later than March 2020.
-        # This actually returns a LinearAxis if using an earlier version.
-        if EnumeratedAxis is not None:
-            java_axis = EnumeratedAxis(ax_type, sj.to_java(doub_coords))
+        # assign calibrated axis type -- checks xarray for imagej metadata
+        jaxis = None
+        if "imagej" in xarr.attrs.keys():
+            if "axis" in xarr.attrs["imagej"].keys():
+                ax = xarr.attrs["imagej"]["axis"][i]
+                cal_type = ax["CalibratedAxis"].split(".")[3]
+                # case logic for various CalibratedAxis
+                if cal_type == "DefaultLinearAxis":
+                    jaxis = metadata.axis.str_to_calibrated_axis(ax["CalibratedAxis"])(
+                        ax_type, ax["scale"], ax["origin"]
+                    )
+                else:
+                    try:
+                        jaxis = metadata.axis.str_to_calibrated_axis(cal_type)(
+                            ax_type, doub_coords
+                        )
+                    except (JException, TypeError):
+                        jaxis = _get_fallback_linear_axis(ax_type, doub_coords)
+            else:
+                jaxis = _get_fallback_linear_axis(ax_type, doub_coords)
         else:
-            java_axis = _get_linear_axis(ax_type, sj.to_java(doub_coords))
+            jaxis = _get_fallback_linear_axis(ax_type, doub_coords)
 
-        axes[ax_num] = java_axis
+        axes[ax_num] = jaxis
 
     return axes
 
@@ -295,27 +306,28 @@ def _get_scale(axis):
         return None
 
 
-def _get_enumerated_axis():
-    """Get EnumeratedAxis.
-
-    EnumeratedAxis is only in releases later than March 2020. If using
-    an older version of ImageJ without EnumeratedAxis, use
-    _get_linear_axis() instead.
+def _is_numeric_scale(coords_array: np.ndarray) -> bool:
     """
-    return sj.jimport("net.imagej.axis.EnumeratedAxis")
+    Checks if the coordinates array of the given axis is numeric.
 
-
-def _get_linear_axis(axis_type: "jc.AxisType", values):
-    """Get linear axis.
-
-    This is used if no EnumeratedAxis is found. If EnumeratedAxis
-    is available, use _get_enumerated_axis() instead.
+    :param coords_array: A 1D NumPy array.
+    :return: bool
     """
-    DefaultLinearAxis = sj.jimport("net.imagej.axis.DefaultLinearAxis")
+    return np.issubdtype(coords_array.dtype, np.number)
+
+
+def _get_fallback_linear_axis(axis_type: "jc.AxisType", values):
+    """
+    Get a DefaultLinearAxis manually when all other axes
+    resources are unavailable.
+    """
     origin = values[0]
-    scale = values[1] - values[0]
-    axis = DefaultLinearAxis(axis_type, scale, origin)
-    return axis
+    # calculate the slope using the values/coord array
+    if len(values) <= 1:
+        scale = 1
+    else:
+        scale = values[1] - values[0]
+    return jc.DefaultLinearAxis(axis_type, scale, origin)
 
 
 def _dataset_to_imgplus(rai: "jc.RandomAccessibleInterval") -> "jc.ImgPlus":

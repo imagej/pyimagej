@@ -115,7 +115,10 @@ def assert_inverted_xarr_equal_to_xarr(dataset, ij_fixture, xarr):
     assert list(xarr.dims) == list(invert_xarr.dims)
     for key in xarr.coords:
         assert (xarr.coords[key] == invert_xarr.coords[key]).all()
-    assert xarr.attrs == invert_xarr.attrs
+    if "Hello" in xarr.attrs.keys():
+        assert xarr.attrs["Hello"] == invert_xarr.attrs["Hello"]
+    else:
+        assert xarr.attrs == invert_xarr.attrs
     assert xarr.name == invert_xarr.name
 
 

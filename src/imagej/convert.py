@@ -15,6 +15,7 @@ from labeling import Labeling
 
 import imagej.dims as dims
 import imagej.images as images
+import imagej.metadata as metadata
 from imagej._java import jc
 from imagej._java import log_exception as _log_exception
 
@@ -232,6 +233,7 @@ def java_to_xarray(ij: "jc.ImageJ", jobj) -> xr.DataArray:
     xr_dims = list(permuted_rai.dims)
     xr_attrs = sj.to_python(permuted_rai.getProperties())
     xr_attrs = {sj.to_python(k): sj.to_python(v) for k, v in xr_attrs.items()}
+    xr_attrs["imagej"] = metadata.create_imagej_metadata(permuted_rai)
     # reverse axes and dims to match narr
     xr_axes.reverse()
     xr_dims.reverse()
