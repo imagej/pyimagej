@@ -52,6 +52,7 @@ from scyjava.config import find_jars
 import imagej.convert as convert
 import imagej.dims as dims
 import imagej.images as images
+import imagej.rois as rois
 import imagej.stack as stack
 from imagej._java import JObjectArray, jc
 from imagej._java import log_exception as _log_exception
@@ -625,6 +626,20 @@ class ImageJPython:
                 priority=sj.Priority.HIGH,
             )
         )
+        sj.add_java_converter(
+            sj.Converter(
+                predicate=lambda obj: isinstance(obj, rois.ROI),
+                converter=lambda obj: convert.python_roi_to_imagej_roi(obj),
+                priority=sj.Priority.NORMAL,
+            )
+        )
+        sj.add_java_converter(
+            sj.Converter(
+                predicate=lambda obj: isinstance(obj, rois.ROIDendron),
+                converter=lambda obj: convert.roi_dendron_to_roi_tree(obj),
+                priority=sj.Priority.NORMAL,
+            )
+        )
 
         # Java to Python
         sj.add_py_converter(
@@ -676,6 +691,20 @@ class ImageJPython:
                 predicate=lambda obj: isinstance(obj, jc.MetadataWrapper),
                 converter=lambda obj: convert.metadata_wrapper_to_dict(self._ij, obj),
                 priority=sj.Priority.HIGH - 2,
+            )
+        )
+        sj.add_py_converter(
+            sj.Converter(
+                predicate=lambda obj: isinstance(obj, jc.MaskPredicate),
+                converter=lambda obj: convert.imagej_roi_to_python_roi(obj),
+                priority=sj.Priority.NORMAL,
+            )
+        )
+        sj.add_py_converter(
+            sj.Converter(
+                predicate=lambda obj: isinstance(obj, jc.ROITree),
+                converter=lambda obj: convert.roi_tree_to_roi_dendron(obj),
+                priority=sj.Priority.NORMAL,
             )
         )
 
