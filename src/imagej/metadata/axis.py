@@ -22,8 +22,9 @@ _calibrated_axes = [
 def calibrated_axis_to_str(axis: "jc.CalibratedAxis") -> str:
     """
     Convert a CalibratedAxis class to a String.
-    :param axis: CalibratedAxis type (e.g. net.imagej.axis.DefaultLinearAxis).
-    :return: String of CalibratedAxis typeb(e.g. "DefaultLinearAxis").
+    :param axis: Java class of CalibratedAxis type.
+    :return: String of CalibratedAxis type
+        (e.g. "net.imagej.axis.DefaultLinearAxis").
     """
     if not isinstance(axis, JClass):
         axis = axis.__class__
@@ -34,9 +35,9 @@ def calibrated_axis_to_str(axis: "jc.CalibratedAxis") -> str:
 def str_to_calibrated_axis(axis: str) -> "jc.CalibratedAxis":
     """
     Convert a String to CalibratedAxis class.
-    :param axis: String of calibratedAxis type (e.g. "DefaultLinearAxis").
-    :return: Java class of CalibratedAxis type
-        (e.g. net.imagej.axis.DefaultLinearAxis).
+    :param axis: String of calibratedAxis type
+        (e.g. "net.imagej.axis.DefaultLinearAxis").
+    :return: Java class of CalibratedAxis type.
     """
     if not isinstance(axis, str):
         raise TypeError(f"Axis {type(axis)} is not a String.")
