@@ -188,7 +188,8 @@ def _assign_axes(
     :return: A list of ImageJ Axis with the specified origin and scale.
     """
     axes = [""] * xarr.ndim
-    for dim in xarr.dims:
+    for i in range(xarr.ndim):
+        dim = xarr.dims[i]
         axis_str = _convert_dim(dim, "java")
         ax_type = jc.Axes.get(axis_str)
         ax_num = _get_axis_num(xarr, dim)
@@ -209,19 +210,17 @@ def _assign_axes(
         # assign calibrated axis type -- checks xarray for imagej metadata
         jaxis = None
         if "imagej" in xarr.attrs.keys():
-            ij_dim = _convert_dim(dim, "java")
-            if ij_dim + "_cal_axis_type" in xarr.attrs["imagej"].keys():
-                cal_axis_type = xarr.attrs["imagej"][ij_dim + "_cal_axis_type"]
-                # get scale from metadata if axis type is DefaultLinearAxis
-                if cal_axis_type == "DefaultLinearAxis":
-                    origin = xarr.attrs["imagej"][ij_dim + "_origin"]
-                    scale = xarr.attrs["imagej"][ij_dim + "_scale"]
-                    jaxis = metadata.axis.str_to_calibrated_axis(cal_axis_type)(
-                        ax_type, scale, origin
+            if "axis" in xarr.attrs["imagej"].keys():
+                ax = xarr.attrs["imagej"]["axis"][i]
+                cal_type = ax["CalibratedAxis"].split(".")[3]
+                # case logic for various CalibratedAxis
+                if cal_type == "DefaultLinearAxis":
+                    jaxis = metadata.axis.str_to_calibrated_axis(ax["CalibratedAxis"])(
+                        ax_type, ax["scale"], ax["origin"]
                     )
                 else:
                     try:
-                        jaxis = metadata.axis.str_to_calibrated_axis(cal_axis_type)(
+                        jaxis = metadata.axis.str_to_calibrated_axis(cal_type)(
                             ax_type, doub_coords
                         )
                     except (JException, TypeError):
