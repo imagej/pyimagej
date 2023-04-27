@@ -15,9 +15,18 @@ from labeling import Labeling
 
 import imagej.dims as dims
 import imagej.images as images
-import imagej.rois as rois
 from imagej._java import jc
 from imagej._java import log_exception as _log_exception
+from imagej.roi import (
+    ROI,
+    Ellipsoid,
+    Line,
+    Points,
+    Polygon,
+    Polyline,
+    Rectangle,
+    ROIDendron,
+)
 
 _logger = logging.getLogger(__name__)
 
@@ -464,7 +473,7 @@ def supports_imglabeling_to_labeling(obj):
 ##########################
 
 
-def roi_dendron_to_roi_tree(roi_dendron: rois.ROIDendron) -> "jc.ROITree":
+def roi_dendron_to_roi_tree(roi_dendron: ROIDendron) -> "jc.ROITree":
     """
     Convert a Python ROIDendron to an ImageJ ROITree.
 
@@ -482,7 +491,7 @@ def roi_dendron_to_roi_tree(roi_dendron: rois.ROIDendron) -> "jc.ROITree":
     return roi_tree
 
 
-def roi_tree_to_roi_dendron(roi_tree: "jc.ROITree") -> rois.ROIDendron:
+def roi_tree_to_roi_dendron(roi_tree: "jc.ROITree") -> ROIDendron:
     """
     Convert an ImageJ ROITree to a Python ROIDendron.
 
@@ -490,7 +499,7 @@ def roi_tree_to_roi_dendron(roi_tree: "jc.ROITree") -> rois.ROIDendron:
     :return: A ROIDendron with Python ROIs.
     """
     # initialize a ROIDendron to store Python ROIs
-    dendron = rois.ROIDendron()
+    dendron = ROIDendron()
     for i in range(len(roi_tree.children())):
         # extract ImageJ ROIs and conver to Python ROIs
         roi = imagej_roi_to_python_roi(roi_tree.children().get(i).data())
@@ -499,7 +508,7 @@ def roi_tree_to_roi_dendron(roi_tree: "jc.ROITree") -> rois.ROIDendron:
     return dendron
 
 
-def imagej_roi_to_python_roi(roi: "jc.MaskPredicate") -> rois.ROI:
+def imagej_roi_to_python_roi(roi: "jc.MaskPredicate") -> ROI:
     """
     Convert an ImgLib2 ROI into a Python ROI.
 
@@ -520,30 +529,30 @@ def imagej_roi_to_python_roi(roi: "jc.MaskPredicate") -> rois.ROI:
         return _polyline_ij_roi_to_py_roi(roi)
 
 
-def python_roi_to_imagej_roi(roi: rois.ROI) -> "jc.MaskPredicate":
+def python_roi_to_imagej_roi(roi: ROI) -> "jc.MaskPredicate":
     """
     Convert a Python ROI into an ImgLib2 ROI.
 
     :param roi: A Python ROI.
     :param: An ImageJ ROI
     """
-    if isinstance(roi, rois.Ellipsoid):
+    if isinstance(roi, Ellipsoid):
         return jc.ClosedWritableEllipsoid(roi.center, roi.semi_axis_length)
-    if isinstance(roi, rois.Rectangle):
+    if isinstance(roi, Rectangle):
         return jc.ClosedWritableBox(roi.min_values, roi.max_values)
-    if isinstance(roi, rois.Polygon):
+    if isinstance(roi, Polygon):
         arr = [JDouble[:] @ coords for coords in roi.vertices]
         return jc.ClosedWritablePolygon2D(jc.ArrayList([jc.RealPoint(p) for p in arr]))
-    if isinstance(roi, rois.Line):
+    if isinstance(roi, Line):
         point_1 = jc.RealPoint(JDouble[:] @ roi.endpoint_one)
         point_2 = jc.RealPoint(JDouble[:] @ roi.endpoint_two)
         return jc.DefaultWritableLine(point_1, point_2)
-    if isinstance(roi, rois.Points):
+    if isinstance(roi, Points):
         arr = [JDouble[:] @ coords for coords in roi.points]
         return jc.DefaultWritableRealPointCollection(
             jc.ArrayList([jc.RealPoint(p) for p in arr])
         )
-    if isinstance(roi, rois.Polyline):
+    if isinstance(roi, Polyline):
         arr = [JDouble[:] @ coords for coords in roi.points]
         return jc.DefaultWritablePolyline(jc.ArrayList([jc.RealPoint(p) for p in arr]))
 
@@ -671,7 +680,7 @@ def _dim_order(hints: Dict):
     return hints["dim_order"] if "dim_order" in hints else None
 
 
-def _ellipsoid_ij_roi_to_py_roi(roi: "jc.MaskPredicate") -> rois.ROI:
+def _ellipsoid_ij_roi_to_py_roi(roi: "jc.MaskPredicate") -> ROI:
     # pre-allocate a 2D array for roi data
     data = np.empty((2, roi.numDimensions()))
     # store center values in first row and radii on the second
@@ -680,10 +689,10 @@ def _ellipsoid_ij_roi_to_py_roi(roi: "jc.MaskPredicate") -> rois.ROI:
         data[0, i] = center[i]
         data[1, i] = roi.semiAxisLength(i)
 
-    return rois.Ellipsoid(data)
+    return Ellipsoid(data)
 
 
-def _line_ij_roi_to_py_roi(roi: "jc.MaskPredicate") -> rois.ROI:
+def _line_ij_roi_to_py_roi(roi: "jc.MaskPredicate") -> ROI:
     num_dims = roi.numDimensions()
     jarr = JDouble[num_dims]
     # pre-allocate a 2D array for roi data
@@ -693,10 +702,10 @@ def _line_ij_roi_to_py_roi(roi: "jc.MaskPredicate") -> rois.ROI:
     data[0, :] = jarr
     roi.endpointTwo().localize(jarr)
     data[1, :] = jarr
-    return rois.Line(data)
+    return Line(data)
 
 
-def _rectangle_ij_roi_to_py_roi(roi: "jc.MaskPredicate") -> rois.ROI:
+def _rectangle_ij_roi_to_py_roi(roi: "jc.MaskPredicate") -> ROI:
     min = roi.minAsDoubleArray()
     max = roi.maxAsDoubleArray()
     data = np.empty((2, roi.numDimensions()))
@@ -704,10 +713,10 @@ def _rectangle_ij_roi_to_py_roi(roi: "jc.MaskPredicate") -> rois.ROI:
         data[0, i] = min[i]
         data[1, i] = max[i]
 
-    return rois.Rectangle(data)
+    return Rectangle(data)
 
 
-def _point_ij_roi_to_py_roi(roi: "jc.MaskPredicate") -> rois.ROI:
+def _point_ij_roi_to_py_roi(roi: "jc.MaskPredicate") -> ROI:
     num_dims = roi.numDimensions()
     data = np.empty((roi.size(), num_dims))
     jarr = JDouble[num_dims]
@@ -715,18 +724,18 @@ def _point_ij_roi_to_py_roi(roi: "jc.MaskPredicate") -> rois.ROI:
         p.localize(jarr)
         data[i, :] = jarr
 
-    return rois.Points(data)
+    return Points(data)
 
 
-def _polygon_ij_roi_to_py_roi(roi: "jc.MaskPredicate") -> rois.ROI:
-    return rois.Polygon(_polyshape_ij_roi_to_py_roi(roi))
+def _polygon_ij_roi_to_py_roi(roi: "jc.MaskPredicate") -> ROI:
+    return Polygon(_polyshape_ij_roi_to_py_roi(roi))
 
 
-def _polyline_ij_roi_to_py_roi(roi: "jc.MaskPredicate") -> rois.ROI:
-    return rois.Polyline(_polyshape_ij_roi_to_py_roi(roi))
+def _polyline_ij_roi_to_py_roi(roi: "jc.MaskPredicate") -> ROI:
+    return Polyline(_polyshape_ij_roi_to_py_roi(roi))
 
 
-def _polyshape_ij_roi_to_py_roi(roi: "jc.MaskPredicate") -> rois.ROI:
+def _polyshape_ij_roi_to_py_roi(roi: "jc.MaskPredicate") -> ROI:
     vertices = roi.vertices()
     num_vertices = len(vertices)
     num_dims = roi.numDimensions()

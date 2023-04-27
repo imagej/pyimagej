@@ -52,10 +52,10 @@ from scyjava.config import find_jars
 import imagej.convert as convert
 import imagej.dims as dims
 import imagej.images as images
-import imagej.rois as rois
 import imagej.stack as stack
 from imagej._java import JObjectArray, jc
 from imagej._java import log_exception as _log_exception
+from imagej.roi import ROI, ROIDendron
 
 __author__ = "ImageJ2 developers"
 __version__ = sj.get_version("pyimagej")
@@ -628,14 +628,14 @@ class ImageJPython:
         )
         sj.add_java_converter(
             sj.Converter(
-                predicate=lambda obj: isinstance(obj, rois.ROI),
+                predicate=lambda obj: isinstance(obj, ROI),
                 converter=lambda obj: convert.python_roi_to_imagej_roi(obj),
                 priority=sj.Priority.NORMAL,
             )
         )
         sj.add_java_converter(
             sj.Converter(
-                predicate=lambda obj: isinstance(obj, rois.ROIDendron),
+                predicate=lambda obj: isinstance(obj, ROIDendron),
                 converter=lambda obj: convert.roi_dendron_to_roi_tree(obj),
                 priority=sj.Priority.NORMAL,
             )
