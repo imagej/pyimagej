@@ -409,7 +409,7 @@ class ImageJPython:
             else:
                 ui.show()
 
-        self._ij.thread().queue(show_or_raise_ui)
+        ij.thread().queue(show_or_raise_ui)
 
     def sync_image(self, imp: "jc.ImagePlus" = None):
         """Synchronize data between ImageJ and ImageJ2.
