@@ -391,6 +391,26 @@ class ImageJPython:
         pyplot.imshow(self.from_java(image), interpolation="nearest", cmap=cmap)
         pyplot.show()
 
+    def show_ui(self, name: str = None) -> None:
+        """Display the ImageJ2 user interface.
+
+        :param name: The name of the ImageJ2 UI to show, or None for the
+                     default interface, which is "legacy" (the original ImageJ
+                     UI) when the add_legacy initialization flag is set, and
+                     "swing" (the "pure ImageJ2" UI) otherwise.
+        """
+
+        ij = self._ij
+
+        def show_or_raise_ui():
+            ui = ij.ui().getDefaultUI() if name is None else ij.ui().getUI(name)
+            if ui.isVisible():
+                ui.getApplicationFrame().setVisible(True)
+            else:
+                ui.show()
+
+        self._ij.thread().queue(show_or_raise_ui)
+
     def sync_image(self, imp: "jc.ImagePlus" = None):
         """Synchronize data between ImageJ and ImageJ2.
 
