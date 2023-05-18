@@ -1,4 +1,5 @@
 import xarray as xr
+from scyjava import _convert
 
 
 @xr.register_dataarray_accessor("img")
@@ -59,7 +60,7 @@ class MetadataAccessor:
             else:
                 connector = "├──"
             print(indent + connector + prefix + " " + str(key))
-            if isinstance(value, dict):
+            if isinstance(value, (dict, _convert.JavaMap)):
                 if idx == len(dictionary) - 1:
                     self._print_dict_tree(value, indent + "    ", prefix="── ")
                 else:
