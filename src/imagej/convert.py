@@ -13,7 +13,7 @@ import xarray as xr
 from jpype import JByte, JException, JFloat, JLong, JObject, JShort
 from labeling import Labeling
 
-import imagej.array  # need to import to setup the accessor
+import imagej.array  # noqa:F401
 import imagej.dims as dims
 import imagej.images as images
 from imagej._java import jc
