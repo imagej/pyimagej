@@ -20,3 +20,19 @@ class MetadataAccessor:
     @property
     def axes(self):
         return
+
+    def set(self, metadata: dict):
+        """
+        Set the metadata of the parent xarray.DataArray.
+
+        :param metadata: A Python dict representing the image metadata.
+        """
+        self._metadata = metadata
+
+    def get(self):
+        """
+        Get the metadata dict of the the parent xarray.DataArray.
+
+        :return: A Python dict representing the image metadata.
+        """
+        return self._metadata
