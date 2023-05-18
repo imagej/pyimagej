@@ -17,6 +17,34 @@ def _python_metadata_to_imgplus_metadata(py_metadata: dict):
     return sj.to_java(py_metadata['imagej'])
 
 
+def is_rgb_merged(img: "jc.ImgPlus") -> bool:
+    """
+    Check if the ImgPlus is RGB merged.
+
+    :param img: An input net.imagej.ImgPlus
+    :return: bool
+    """
+    e = img.firstElement()
+    # check if signed
+    if e.getMinValue() < 0:
+        return False
+    # check if integer type
+    if not isinstance(e, jc.IntegerType):
+        return False
+    # check if bits per pixel is 8
+    if e.getBitsPerPixel() != 8:
+        return False
+    # check for channel dimension (returns -1 if missing)
+    ch_index = img.dimensionIndex(jc.Axes.CHANNEL)
+    if ch_index < 0:
+        return False
+    # check if channel dimension is size 3 (RGB)
+    if img.dimension(ch_index) != 3:
+        return False
+
+    return True
+
+
 def create_xarray_metadata(img: "jc.ImgPlus") -> dict:
     """
     Create the ImageJ xarray.DataArray metadata.

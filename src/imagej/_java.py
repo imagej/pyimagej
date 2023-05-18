@@ -167,6 +167,10 @@ class MyJavaClasses(JavaClasses):
         return "net.imglib2.roi.labeling.ImgLabeling"
 
     @JavaClasses.java_import
+    def IntegerType(self):
+        return "net.imglib2.type.numeric.IntegerType"
+
+    @JavaClasses.java_import
     def Named(self):
         return "org.scijava.Named"
 
