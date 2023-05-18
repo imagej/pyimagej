@@ -45,3 +45,22 @@ class MetadataAccessor:
         :return: A Python dict representing the image metadata.
         """
         return self._metadata
+
+    def tree(self):
+        """
+        Print a tree of the metadata of the parent xarray.DataArray.
+        """
+        self._print_dict_tree(self._metadata)
+
+    def _print_dict_tree(self, dictionary, indent="", prefix=""):
+        for idx, (key, value) in enumerate(dictionary.items()):
+            if idx == len(dictionary) - 1:
+                connector = "└──"
+            else:
+                connector = "├──"
+            print(indent + connector + prefix + " " + str(key))
+            if isinstance(value, dict):
+                if idx == len(dictionary) - 1:
+                    self._print_dict_tree(value, indent + "    ", prefix="── ")
+                else:
+                    self._print_dict_tree(value, indent + "│   ", prefix="── ")
