@@ -231,9 +231,8 @@ def java_to_xarray(ij: "jc.ImageJ", jobj) -> xr.DataArray:
     assert hasattr(permuted_rai, "dim_axes")
     xr_axes = list(permuted_rai.dim_axes)
     xr_dims = list(permuted_rai.dims)
-    xr_attrs = sj.to_python(permuted_rai.getProperties())
-    xr_attrs = {sj.to_python(k): sj.to_python(v) for k, v in xr_attrs.items()}
-    xr_attrs["imagej"] = metadata.create_imagej_metadata(permuted_rai)
+    xr_attrs = {}
+    xr_attrs["imagej"] = metadata.create_xarray_metadata(permuted_rai)
     # reverse axes and dims to match narr
     xr_axes.reverse()
     xr_dims.reverse()
@@ -511,12 +510,12 @@ def metadata_wrapper_to_dict(ij: "jc.ImageJ", metadata_wrapper: "jc.MetadataWrap
 ####################
 
 
-def _assign_dataset_metadata(dataset: "jc.Dataset", attrs):
+def _assign_dataset_metadata(dataset: "jc.Dataset", attrs: dict):
     """
     :param dataset: ImageJ2 Dataset
     :param attrs: Dictionary containing metadata
     """
-    dataset.getProperties().putAll(sj.to_java(attrs))
+    dataset.getProperties().putAll(metadata._python_metadata_to_imgplus_metadata(attrs))
 
 
 def _permute_rai_to_python(rich_rai: "jc.RandomAccessibleInterval"):
