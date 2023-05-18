@@ -1,5 +1,5 @@
-from typing import Sequence
 import scyjava as sj
+
 from imagej._java import jc
 
 
@@ -14,7 +14,7 @@ def _imgplus_metadata_to_python_metadata(img_metadata, py_metadata: dict = None)
 
 
 def _python_metadata_to_imgplus_metadata(py_metadata: dict):
-    return sj.to_java(py_metadata['imagej'])
+    return sj.to_java(py_metadata["imagej"])
 
 
 def is_rgb_merged(img: "jc.ImgPlus") -> bool:
@@ -66,7 +66,6 @@ def create_xarray_metadata(img: "jc.ImgPlus") -> dict:
         py_metadata = _imgplus_metadata_to_python_metadata(img_metadata, py_metadata)
 
     # add additional metadata
-    py_metadata['RGB'] = is_rgb_merged(img)
+    py_metadata["RGB"] = is_rgb_merged(img)
 
     return py_metadata
-
