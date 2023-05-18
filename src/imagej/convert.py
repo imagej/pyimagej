@@ -13,9 +13,9 @@ import xarray as xr
 from jpype import JByte, JException, JFloat, JLong, JObject, JShort
 from labeling import Labeling
 
+import imagej.array  # need to import to setup the accessor
 import imagej.dims as dims
 import imagej.images as images
-import imagej.metadata as metadata
 from imagej._java import jc
 from imagej._java import log_exception as _log_exception
 
@@ -167,7 +167,10 @@ def xarray_to_dataset(ij: "jc.ImageJ", xarr) -> "jc.Dataset":
     axes = dims._assign_axes(xarr)
     dataset.setAxes(axes)
     dataset.setName(xarr.name)
-    _assign_dataset_metadata(dataset, xarr.attrs)
+    if hasattr(xarr, "metadata"):
+        _assign_dataset_metadata(dataset, xarr.metadata.get())
+    else:
+        _assign_dataset_metadata(dataset, xarr.attrs)
 
     return dataset
 
@@ -231,15 +234,16 @@ def java_to_xarray(ij: "jc.ImageJ", jobj) -> xr.DataArray:
     assert hasattr(permuted_rai, "dim_axes")
     xr_axes = list(permuted_rai.dim_axes)
     xr_dims = list(permuted_rai.dims)
-    xr_attrs = {}
-    xr_attrs["imagej"] = metadata.create_xarray_metadata(permuted_rai)
     # reverse axes and dims to match narr
     xr_axes.reverse()
     xr_dims.reverse()
     xr_dims = dims._convert_dims(xr_dims, direction="python")
     xr_coords = dims._get_axes_coords(xr_axes, xr_dims, narr.shape)
     name = jobj.getName() if isinstance(jobj, jc.Named) else None
-    return xr.DataArray(narr, dims=xr_dims, coords=xr_coords, attrs=xr_attrs, name=name)
+    # use the MetadataAccessor to add metadata to the xarray
+    xarr = xr.DataArray(narr, dims=xr_dims, coords=xr_coords, name=name)
+    xarr.metadata.set(dict(sj.to_python(permuted_rai.getProperties())))
+    return xarr
 
 
 def supports_java_to_ndarray(ij: "jc.ImageJ", obj) -> bool:
@@ -515,7 +519,7 @@ def _assign_dataset_metadata(dataset: "jc.Dataset", attrs: dict):
     :param dataset: ImageJ2 Dataset
     :param attrs: Dictionary containing metadata
     """
-    dataset.getProperties().putAll(metadata._python_metadata_to_imgplus_metadata(attrs))
+    dataset.getProperties().putAll(sj.to_java(attrs))
 
 
 def _permute_rai_to_python(rich_rai: "jc.RandomAccessibleInterval"):
