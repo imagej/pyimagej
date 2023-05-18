@@ -19,7 +19,16 @@ class MetadataAccessor:
 
     @property
     def axes(self):
-        return
+        """
+        Returns a tuple of the ImageJ axes.
+
+        :return: A Python tuple of the ImageJ axes.
+        """
+        return (
+            tuple(self._metadata.get("scifio.metadata.image").get("axes"))
+            if "scifio.metadata.image" in self._metadata
+            else None
+        )
 
     def set(self, metadata: dict):
         """
