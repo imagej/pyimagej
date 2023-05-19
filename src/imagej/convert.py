@@ -170,7 +170,7 @@ def xarray_to_dataset(ij: "jc.ImageJ", xarr) -> "jc.Dataset":
     if hasattr(xarr, "metadata"):
         _assign_dataset_metadata(dataset, xarr.metadata.get())
     else:
-        _assign_dataset_metadata(dataset, xarr.attrs)
+        _assign_dataset_metadata(dataset, xarr.attrs['imagej'])
 
     return dataset
 

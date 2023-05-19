@@ -16,7 +16,6 @@ class ImgAccessor:
 class MetadataAccessor:
     def __init__(self, xarr):
         self._data = xarr
-        self._metadata = None
 
     @property
     def axes(self):
@@ -26,8 +25,8 @@ class MetadataAccessor:
         :return: A Python tuple of the ImageJ axes.
         """
         return (
-            tuple(self._metadata.get("scifio.metadata.image").get("axes"))
-            if "scifio.metadata.image" in self._metadata
+            tuple(self._data.attrs["imagej"].get("scifio.metadata.image").get("axes"))
+            if "scifio.metadata.image" in self._data.attrs["imagej"]
             else None
         )
 
@@ -37,7 +36,7 @@ class MetadataAccessor:
 
         :param metadata: A Python dict representing the image metadata.
         """
-        self._metadata = metadata
+        self._data.attrs["imagej"] = metadata
 
     def get(self):
         """
@@ -45,13 +44,13 @@ class MetadataAccessor:
 
         :return: A Python dict representing the image metadata.
         """
-        return self._metadata
+        return self._data.attrs["imagej"]
 
     def tree(self):
         """
         Print a tree of the metadata of the parent xarray.DataArray.
         """
-        self._print_dict_tree(self._metadata)
+        self._print_dict_tree(self._data.attrs["imagej"])
 
     def _print_dict_tree(self, dictionary, indent="", prefix=""):
         for idx, (key, value) in enumerate(dictionary.items()):
