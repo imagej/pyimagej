@@ -1,6 +1,8 @@
 import xarray as xr
 from scyjava import _convert
 
+import imagej.dims as dims
+
 
 @xr.register_dataarray_accessor("img")
 class ImgAccessor:
@@ -16,6 +18,7 @@ class ImgAccessor:
 class MetadataAccessor:
     def __init__(self, xarr):
         self._data = xarr
+        self._update()
 
     @property
     def axes(self):
@@ -64,3 +67,12 @@ class MetadataAccessor:
                     self._print_dict_tree(value, indent + "    ", prefix="── ")
                 else:
                     self._print_dict_tree(value, indent + "│   ", prefix="── ")
+
+    def _update(self):
+        if self._data.attrs.get("imagej"):
+            axes = []
+            for i in range(len(self.axes)):
+                axis_label = dims._convert_dim(self.axes[i].type().getLabel(), "python")
+                if axis_label in self._data.dims:
+                    axes.append(self.axes[i])
+            self._data.attrs["imagej"].get("scifio.metadata.image", {})["axes"] = axes
