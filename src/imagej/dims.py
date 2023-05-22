@@ -7,9 +7,8 @@ from typing import List, Tuple, Union
 import numpy as np
 import scyjava as sj
 import xarray as xr
-from jpype import JException, JObject
+from jpype import JObject
 
-import imagej.metadata as metadata
 from imagej._java import jc
 from imagej.images import is_arraylike as _is_arraylike
 from imagej.images import is_xarraylike as _is_xarraylike
@@ -207,30 +206,11 @@ def _assign_axes(
                 jc.Double(np.double(x)) for x in np.arrange(len(xarr.coords[dim]))
             ]
 
-        # assign calibrated axis type -- checks xarray for imagej metadata
-        jaxis = None
-        if "imagej" in xarr.attrs.keys():
-            if "axis" in xarr.attrs["imagej"].keys():
-                ax = xarr.attrs["imagej"]["axis"][i]
-                cal_type = ax["CalibratedAxis"].split(".")[3]
-                # case logic for various CalibratedAxis
-                if cal_type == "DefaultLinearAxis":
-                    jaxis = metadata.axis.str_to_calibrated_axis(ax["CalibratedAxis"])(
-                        ax_type, ax["scale"], ax["origin"]
-                    )
-                else:
-                    try:
-                        jaxis = metadata.axis.str_to_calibrated_axis(cal_type)(
-                            ax_type, doub_coords
-                        )
-                    except (JException, TypeError):
-                        jaxis = _get_fallback_linear_axis(ax_type, doub_coords)
-            else:
-                jaxis = _get_fallback_linear_axis(ax_type, doub_coords)
+        # use the xarr metadata if available to assign axes
+        if hasattr(xarr, "metadata") and xarr.metadata.axes:
+            axes[ax_num] = xarr.metadata.axes[i]
         else:
-            jaxis = _get_fallback_linear_axis(ax_type, doub_coords)
-
-        axes[ax_num] = jaxis
+            axes[ax_num] = _get_fallback_linear_axis(ax_type, doub_coords)
 
     return axes
 
