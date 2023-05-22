@@ -170,7 +170,7 @@ def xarray_to_dataset(ij: "jc.ImageJ", xarr) -> "jc.Dataset":
     if hasattr(xarr, "metadata"):
         _assign_dataset_metadata(dataset, xarr.metadata.get())
     else:
-        _assign_dataset_metadata(dataset, xarr.attrs['imagej'])
+        _assign_dataset_metadata(dataset, xarr.attrs["imagej"])
 
     return dataset
 
@@ -240,8 +240,9 @@ def java_to_xarray(ij: "jc.ImageJ", jobj) -> xr.DataArray:
     xr_dims = dims._convert_dims(xr_dims, direction="python")
     xr_coords = dims._get_axes_coords(xr_axes, xr_dims, narr.shape)
     name = jobj.getName() if isinstance(jobj, jc.Named) else None
+    xr_attrs = {"imagej": {}}
+    xarr = xr.DataArray(narr, dims=xr_dims, coords=xr_coords, name=name, attrs=xr_attrs)
     # use the MetadataAccessor to add metadata to the xarray
-    xarr = xr.DataArray(narr, dims=xr_dims, coords=xr_coords, name=name)
     xarr.metadata.set(dict(sj.to_python(permuted_rai.getProperties())))
     return xarr
 
