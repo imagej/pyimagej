@@ -244,6 +244,7 @@ def java_to_xarray(ij: "jc.ImageJ", jobj) -> xr.DataArray:
     xarr = xr.DataArray(narr, dims=xr_dims, coords=xr_coords, name=name, attrs=xr_attrs)
     # use the MetadataAccessor to add metadata to the xarray
     xarr.metadata.set(dict(sj.to_python(permuted_rai.getProperties())))
+    xarr.metadata._update()
     return xarr
 
 
