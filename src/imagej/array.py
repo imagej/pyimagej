@@ -1,3 +1,4 @@
+import numpy as np
 import xarray as xr
 from scyjava import _convert
 
@@ -11,7 +12,32 @@ class ImgAccessor:
 
     @property
     def is_rgb(self):
-        return
+        """
+        Returns True or False if the xarray.DataArray is an RGB image.
+
+        :return: Boolean
+        """
+        ch_labels = ["c", "ch", "Channel"]
+        # check if array is signed
+        if self._data.min() < 0:
+            return False
+        # check if array is integer dtype
+        if not np.issubdtype(self._data.data.dtype, np.integer):
+            return False
+        # check bitsperpixel
+        if self._data.dtype.itemsize * 8 != 8:
+            return False
+        # check if "channel" present
+        if not any(dim in self._data.dims for dim in ch_labels):
+            return False
+        # check channel length = 3 exactly
+        for dim in self._data.dims:
+            if dim in ch_labels:
+                loc = self._data.dims.index(dim)
+                if self._data.shape[loc] != 3:
+                    return False
+
+        return True
 
 
 @xr.register_dataarray_accessor("metadata")
