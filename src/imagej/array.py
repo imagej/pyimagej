@@ -70,9 +70,28 @@ class MetadataAccessor:
 
     def _update(self):
         if self._data.attrs.get("imagej"):
+            # update axes
             axes = []
             for i in range(len(self.axes)):
-                axis_label = dims._convert_dim(self.axes[i].type().getLabel(), "python")
-                if axis_label in self._data.dims:
+                ax_label = dims._convert_dim(self.axes[i].type().getLabel(), "python")
+                if ax_label in self._data.dims:
                     axes.append(self.axes[i])
             self._data.attrs["imagej"].get("scifio.metadata.image", {})["axes"] = axes
+
+            # update axis lengths
+            old_ax_len_metadata = (
+                self._data.attrs["imagej"]
+                .get("scifio.metadata.image", {})
+                .get("axisLengths", {})
+            )
+            new_ax_len_metadata = {}
+            for i in range(len(self.axes)):
+                ax_type = self.axes[i].type()
+                if ax_type in old_ax_len_metadata.keys():
+                    # update axis length
+                    ax_label = dims._convert_dim(ax_type.getLabel(), "python")
+                    curr_ax_len = self._data.shape[self._data.dims.index(ax_label)]
+                    new_ax_len_metadata[ax_type] = curr_ax_len
+            self._data.attrs["imagej"].get("scifio.metadata.image", {})[
+                "axisLengths"
+            ] = new_ax_len_metadata
