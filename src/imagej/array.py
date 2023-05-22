@@ -113,7 +113,6 @@ class MetadataAccessor:
             for i in range(len(self.axes)):
                 ax_type = self.axes[i].type()
                 if ax_type in old_ax_len_metadata.keys():
-                    # update axis length
                     ax_label = dims._convert_dim(ax_type.getLabel(), "python")
                     curr_ax_len = self._data.shape[self._data.dims.index(ax_label)]
                     new_ax_len_metadata[ax_type] = curr_ax_len
