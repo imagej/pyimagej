@@ -100,7 +100,8 @@ class MetadataAccessor:
             axes = [None] * len(self._data.dims)
             for i in range(len(self.axes)):
                 ax_label = dims._convert_dim(self.axes[i].type().getLabel(), "python")
-                axes[self._data.dims.index(ax_label)] = self.axes[i]
+                if ax_label in self._data.dims:
+                    axes[self._data.dims.index(ax_label)] = self.axes[i]
             self._data.attrs["imagej"].get("scifio.metadata.image", {})["axes"] = axes
 
             # update axis lengths
