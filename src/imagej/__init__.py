@@ -1223,15 +1223,17 @@ def init(
         # Show the GUI and block.
         global gateway
 
-        def show_gui_and_run_callbacks(ij):
-            ij.ui().showUI()
-            run_callbacks(ij)
+        def show_gui_and_run_callbacks():
+            global gateway
+            gateway = _create_gateway()
+            gateway.ui().showUI()
+            run_callbacks(gateway)
+            return gateway
 
         if macos:
             # NB: This will block the calling (main) thread forever!
             try:
-                gateway = _create_gateway()
-                setupGuiEnvironment(lambda: show_gui_and_run_callbacks(gateway))
+                setupGuiEnvironment(show_gui_and_run_callbacks)
             except ModuleNotFoundError as e:
                 if e.msg == "No module named 'PyObjCTools'":
                     advice = (
@@ -1251,15 +1253,13 @@ def init(
                     raise
         else:
             # Create and show the application.
-            gateway = _create_gateway()
-            show_gui_and_run_callbacks(gateway)
+            gateway = show_gui_and_run_callbacks()
             # We are responsible for our own blocking.
             # TODO: Poll using something better than ui().isVisible().
             while gateway.ui().isVisible():
                 time.sleep(1)
 
-        del gateway
-        return None
+        return gateway
 
     # HEADLESS or INTERACTIVE mode: create the gateway and return it.
     return run_callbacks(_create_gateway())
