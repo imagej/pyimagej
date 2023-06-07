@@ -11,6 +11,11 @@ manage PyImageJ's non-Python dependencies
 [Maven](https://maven.apache.org/). If you use pip, you will need to install
 those two things separately.
 
+**Windows users:** the mamba installation of maven currently
+[does not provide the maven executable](https://github.com/conda-forge/maven-feedstock/issues/23)
+and thus will not work for PyImageJ. If you are on Windows, you **must** 
+[install Maven](https://maven.apache.org/install.html) separately.
+
 ## Installing via conda/mamba
 
 Note: We strongly recommend using
