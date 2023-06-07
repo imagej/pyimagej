@@ -59,7 +59,7 @@ In addition, PyImageJ requires [OpenJDK] and [Maven] to be installed.
 
 ## Installation
 
-PyImageJ can be installed using [Conda]+[Mamba]. Here is how to create
+On Mac and Linux, PyImageJ can be installed using [Conda]+[Mamba]. Here is how to create
 and activate a new conda environment with PyImageJ available:
 
 ```
@@ -68,8 +68,9 @@ mamba create -n pyimagej -c conda-forge pyimagej openjdk=8
 conda activate pyimagej
 ```
 
-Alternately, you can install PyImageJ with pip, but in this
-case you will need to install OpenJDK and Maven manually.
+On Windows, you will need to install OpenJDK and Maven manually.
+
+You can also `pip install pyimagej`, but will again need to install OpenJDK and Maven manually.
 
 Installation time takes approximately 20 seconds. Initializing PyImageJ
 takes an additional ~30 seconds to ~2-3 minutes (depending on bandwidth)
