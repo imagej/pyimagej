@@ -134,6 +134,13 @@ emits output to the standard error stream.
 
 ## Common Errors
 
+### jgo.jgo.ExecutableNotFound: mvn not found on path ...
+
+This indicates the Maven executable wasn't found on your system.
+
+* If you [installed Maven manually](https://maven.apache.org/install.html), make sure the `bin` directory is actually on your `PATH` and start a fresh terminal session.
+* If you installed via conda and are on Windows, note that the Maven installation on Windows [appears to be broken](https://github.com/conda-forge/maven-feedstock/issues/23). You will need to install Maven manually.
+
 ### Error in "mvn.CMD -B -f pom.xml" dependency:resolve: 1
 
 This indicates a problem running Maven on your system.
