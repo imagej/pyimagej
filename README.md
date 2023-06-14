@@ -68,9 +68,7 @@ mamba create -n pyimagej -c conda-forge pyimagej openjdk=8
 conda activate pyimagej
 ```
 
-On Windows, you will need to install OpenJDK and Maven manually.
-
-You can also `pip install pyimagej`, but will again need to install OpenJDK and Maven manually.
+You can also `pip install pyimagej`, but will then need to install OpenJDK and Maven manually.
 
 Installation time takes approximately 20 seconds. Initializing PyImageJ
 takes an additional ~30 seconds to ~2-3 minutes (depending on bandwidth)
