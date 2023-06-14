@@ -139,7 +139,11 @@ emits output to the standard error stream.
 This indicates the Maven executable wasn't found on your system.
 
 * If you [installed Maven manually](https://maven.apache.org/install.html), make sure the `bin` directory is actually on your `PATH` and start a fresh terminal session.
-* If you installed via conda and are on Windows, note that the Maven installation on Windows [appears to be broken](https://github.com/conda-forge/maven-feedstock/issues/23). You will need to install Maven manually.
+* If you installed via conda/mamba and are on Windows, you maven have an old `maven` installation from when it [was broken](https://github.com/conda-forge/maven-feedstock/issues/23). You should be able to simply update with `conda update -n pyimagej maven` (adjusted if you named your environment something other than `pyimagej`).
+
+### <JAVA_HOME>/lib/ext exists, extensions mechanism no longer supported; Use -classpath instead.
+
+If you installed `maven` via conda/mamba on Windows, you may have gotten a version that was [briefly broken](https://github.com/conda-forge/maven-feedstock/issues/26). You should be able to simply update with `conda update -n pyimagej maven` (adjusted if you named your environment something other than `pyimagej`).
 
 ### Error in "mvn.CMD -B -f pom.xml" dependency:resolve: 1
 
