@@ -183,6 +183,14 @@ def _assign_axes(
     """
     Obtain xarray axes names, origin, scale and convert into ImageJ Axis. Supports both
     DefaultLinearAxis and the newer EnumeratedAxis.
+
+    Note that, in many cases, there are small discrepancies between the coordinates.
+    This can either be actually within the data, or it can be from floating point math
+    errors.  In this case, we delegate to numpy.isclose to tell us whether our
+    coordinates are linear or not. If our coordinates are nonlinear, and the
+    EnumeratedAxis type is available, we will use it. Otherwise, this function
+    returns a DefaultLinearAxis.
+
     :param xarr: xarray that holds the data.
     :return: A list of ImageJ Axis with the specified origin and scale.
     """
@@ -191,41 +199,37 @@ def _assign_axes(
         axis_str = _convert_dim(dim, "java")
         ax_type = jc.Axes.get(axis_str)
         ax_num = _get_axis_num(xarr, dim)
-        coords_arr = xarr.coords[dim].to_numpy()
+        coords_arr = xarr.coords[dim].to_numpy().astype(np.double)
 
-        # check if coords/scale is numeric
-        if _is_numeric_scale(coords_arr):
-            doub_coords = [jc.Double(np.double(x)) for x in xarr.coords[dim]]
-        else:
+        # coerce numeric scale
+        if not _is_numeric_scale(coords_arr):
             _logger.warning(
                 f"The {ax_type.label} axis is non-numeric and is translated "
                 "to a linear index."
             )
-            doub_coords = [
-                jc.Double(np.double(x)) for x in np.arrange(len(xarr.coords[dim]))
-            ]
+            coords_arr = [np.double(x) for x in np.arrange(len(xarr.coords[dim]))]
 
-        # assign calibrated axis type -- checks for imagej metadata
-        if "imagej" in xarr.attrs.keys():
-            ij_dim = _convert_dim(dim, "java")
-            if ij_dim + "_cal_axis_type" in xarr.attrs["imagej"].keys():
-                scale_type = xarr.attrs["imagej"][ij_dim + "_cal_axis_type"]
-                if scale_type == "linear":
-                    jaxis = _get_linear_axis(ax_type, sj.to_java(doub_coords))
-                if scale_type == "enumerated":
-                    try:
-                        EnumeratedAxis = _get_enumerated_axis()
-                    except (JException, TypeError):
-                        EnumeratedAxis = None
-                    if EnumeratedAxis is not None:
-                        jaxis = EnumeratedAxis(ax_type, sj.to_java(doub_coords))
-                    else:
-                        jaxis = _get_linear_axis(ax_type, sj.to_java(doub_coords))
+        # check scale linearity
+        diffs = np.diff(coords_arr)
+        linear: bool = diffs.size and np.all(np.isclose(diffs, diffs[0]))
+
+        # For non-linear scales, use EnumeratedAxis
+        try:
+            EnumeratedAxis = sj.jimport("net.imagej.axis.EnumeratedAxis")
+        except (JException, TypeError):
+            EnumeratedAxis = None
+        # If we can use EnumeratedAxis for a nonlinear scale, then use it
+        if not linear and EnumeratedAxis:
+            j_coords = [jc.Double(x) for x in coords_arr]
+            axes[ax_num] = EnumeratedAxis(ax_type, sj.to_java(j_coords))
+        # Otherwise, use DefaultLinearAxis
         else:
-            # default to DefaultLinearAxis always if no `scale_type` key in attr
-            jaxis = _get_linear_axis(ax_type, sj.to_java(doub_coords))
-
-        axes[ax_num] = jaxis
+            DefaultLinearAxis = sj.jimport("net.imagej.axis.DefaultLinearAxis")
+            scale = coords_arr[1] - coords_arr[0] if len(coords_arr) > 1 else 1
+            origin = coords_arr[0] if len(coords_arr) > 0 else 0
+            axes[ax_num] = DefaultLinearAxis(
+                ax_type, jc.Double(scale), jc.Double(origin)
+            )
 
     return axes
 
@@ -280,27 +284,6 @@ def _get_axes_coords(
     return coords
 
 
-def _get_scale(axis):
-    """
-    Get the scale of an axis, assuming it is linear and so the scale is simply
-    second - first coordinate.
-
-    :param axis: A 1D list like entry accessible with indexing, which contains the
-        axis coordinates
-    :return: The scale for this axis or None if it is a non-numeric scale.
-    """
-    try:
-        # HACK: This axis length check is a work around for singleton dimensions.
-        # You can't calculate the slope of a singleton dimension.
-        # This section will be removed when axis-scale-logic is merged.
-        if len(axis) <= 1:
-            return 1
-        else:
-            return axis.values[1] - axis.values[0]
-    except TypeError:
-        return None
-
-
 def _is_numeric_scale(coords_array: np.ndarray) -> bool:
     """
     Checks if the coordinates array of the given axis is numeric.
@@ -309,29 +292,6 @@ def _is_numeric_scale(coords_array: np.ndarray) -> bool:
     :return: bool
     """
     return np.issubdtype(coords_array.dtype, np.number)
-
-
-def _get_enumerated_axis():
-    """Get EnumeratedAxis.
-
-    EnumeratedAxis is only in releases later than March 2020. If using
-    an older version of ImageJ without EnumeratedAxis, use
-    _get_linear_axis() instead.
-    """
-    return sj.jimport("net.imagej.axis.EnumeratedAxis")
-
-
-def _get_linear_axis(axis_type: "jc.AxisType", values):
-    """Get linear axis.
-
-    This is used if no EnumeratedAxis is found. If EnumeratedAxis
-    is available, use _get_enumerated_axis() instead.
-    """
-    DefaultLinearAxis = sj.jimport("net.imagej.axis.DefaultLinearAxis")
-    origin = values[0]
-    scale = values[1] - values[0]
-    axis = DefaultLinearAxis(axis_type, scale, origin)
-    return axis
 
 
 def _dataset_to_imgplus(rai: "jc.RandomAccessibleInterval") -> "jc.ImgPlus":
@@ -483,30 +443,3 @@ def _to_ijdim(key: str) -> str:
         return ijdims[key]
     else:
         return key
-
-
-def _cal_axis_type_to_str(key) -> str:
-    """
-    Convert a CalibratedAxis type (e.g. net.imagej.axis.DefaultLinearAxis) to
-    a string.
-    """
-    cal_axis_types = {
-        jc.ChapmanRichardsAxis: "ChapmanRichardsAxis",
-        jc.DefaultLinearAxis: "DefaultLinearAxis",
-        jc.EnumeratedAxis: "EnumeratedAxis",
-        jc.ExponentialAxis: "ExponentialAxis",
-        jc.ExponentialRecoveryAxis: "ExponentialRecoveryAxis",
-        jc.GammaVariateAxis: "GammaVariateAxis",
-        jc.GaussianAxis: "GaussianAxis",
-        jc.IdentityAxis: "IdentityAxis",
-        jc.InverseRodbardAxis: "InverseRodbardAxis",
-        jc.LogLinearAxis: "LogLinearAxis",
-        jc.PolynomialAxis: "PolynomialAxis",
-        jc.PowerAxis: "PowerAxis",
-        jc.RodbardAxis: "RodbardAxis",
-    }
-
-    if key.__class__ in cal_axis_types:
-        return cal_axis_types[key.__class__]
-    else:
-        return "unknown"
