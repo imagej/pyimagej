@@ -215,19 +215,18 @@ def _assign_axes(
 
         # For non-linear scales, use EnumeratedAxis
         try:
-            EnumeratedAxis = sj.jimport("net.imagej.axis.EnumeratedAxis")
+            if not linear:
+                j_coords = [jc.Double(x) for x in coords_arr]
+                axes[ax_num] = jc.EnumeratedAxis(ax_type, sj.to_java(j_coords))
+                continue
         except (JException, TypeError):
-            EnumeratedAxis = None
-        # If we can use EnumeratedAxis for a nonlinear scale, then use it
-        if not linear and EnumeratedAxis:
-            j_coords = [jc.Double(x) for x in coords_arr]
-            axes[ax_num] = EnumeratedAxis(ax_type, sj.to_java(j_coords))
-        # Otherwise, use DefaultLinearAxis
-        else:
-            DefaultLinearAxis = sj.jimport("net.imagej.axis.DefaultLinearAxis")
+            # We don't have EnumeratedAxis available - use DefaultLinearAxis
+            pass
+        # For linear scales, use DefaultLinearAxis
+        finally:
             scale = coords_arr[1] - coords_arr[0] if len(coords_arr) > 1 else 1
             origin = coords_arr[0] if len(coords_arr) > 0 else 0
-            axes[ax_num] = DefaultLinearAxis(
+            axes[ax_num] = jc.DefaultLinearAxis(
                 ax_type, jc.Double(scale), jc.Double(origin)
             )
 
