@@ -1,4 +1,5 @@
 import random
+import string
 
 import numpy as np
 import pytest
@@ -7,6 +8,7 @@ import xarray as xr
 
 import imagej.dims as dims
 import imagej.images as images
+from imagej._java import jc
 
 # -- Image helpers --
 
@@ -90,6 +92,75 @@ def get_xarr(option="C"):
         )
     else:
         xarr = xr.DataArray(np.random.rand(1, 2, 3, 4, 5), name=name)
+
+    return xarr
+
+
+def get_non_linear_coord_xarr(option="C"):
+    name: str = "non_linear_coord_data_array"
+    linear_coord_arr = np.arange(5)
+    # generate a 1D log scale array
+    non_linear_coord_arr = np.logspace(0, np.log10(100), num=30)
+    if option == "C":
+        xarr = xr.DataArray(
+            np.random.rand(30, 30, 5),
+            dims=["row", "col", "ch"],
+            coords={
+                "row": non_linear_coord_arr,
+                "col": non_linear_coord_arr,
+                "ch": linear_coord_arr,
+            },
+            attrs={"Hello": "World"},
+            name=name,
+        )
+    elif option == "F":
+        xarr = xr.DataArray(
+            np.ndarray([30, 30, 5], order="F"),
+            dims=["row", "col", "ch"],
+            coords={
+                "row": non_linear_coord_arr,
+                "col": non_linear_coord_arr,
+                "ch": linear_coord_arr,
+            },
+            attrs={"Hello": "World"},
+            name=name,
+        )
+    else:
+        xarr = xr.DataArray(np.random.rand(30, 30, 5), name=name)
+
+    return xarr
+
+
+def get_non_numeric_coord_xarr(option="C"):
+    name: str = "non_numeric_coord_data_array"
+    non_numeric_coord_list = [random.choice(string.ascii_letters) for _ in range(30)]
+    linear_coord_arr = np.arange(5)
+    if option == "C":
+        xarr = xr.DataArray(
+            np.random.rand(30, 30, 5),
+            dims=["row", "col", "ch"],
+            coords={
+                "row": non_numeric_coord_list,
+                "col": non_numeric_coord_list,
+                "ch": linear_coord_arr,
+            },
+            attrs={"Hello": "World"},
+            name=name,
+        )
+    elif option == "F":
+        xarr = xr.DataArray(
+            np.ndarray([30, 30, 5], order="F"),
+            dims=["row", "col", "ch"],
+            coords={
+                "row": non_numeric_coord_list,
+                "col": non_numeric_coord_list,
+                "ch": linear_coord_arr,
+            },
+            attrs={"Hello": "World"},
+            name=name,
+        )
+    else:
+        xarr = xr.DataArray(np.random.rand(30, 30, 5), name=name)
 
     return xarr
 
@@ -357,6 +428,34 @@ def test_no_coords_or_dims_in_xarr(ij_fixture):
     xarr = get_xarr("NoDims")
     dataset = ij_fixture.py.from_java(xarr)
     assert_inverted_xarr_equal_to_xarr(dataset, ij_fixture, xarr)
+
+
+def test_linear_coord_on_xarr_conversion(ij_fixture):
+    xarr = get_xarr()
+    dataset = ij_fixture.py.to_java(xarr)
+    axes = dataset.dim_axes
+    # all axes should be DefaultLinearAxis
+    for ax in axes:
+        assert isinstance(ax, jc.DefaultLinearAxis)
+
+
+def test_non_linear_coord_on_xarr_conversion(ij_fixture):
+    xarr = get_non_linear_coord_xarr()
+    dataset = ij_fixture.py.to_java(xarr)
+    axes = dataset.dim_axes
+    # axes [0, 1] should be EnumeratedAxis with axis 2 as DefaultLinearAxis
+    for i in range(2):
+        assert isinstance(axes[i], jc.EnumeratedAxis)
+    assert isinstance(axes[-1], jc.DefaultLinearAxis)
+
+
+def test_non_numeric_coord_on_xarr_conversion(ij_fixture):
+    xarr = get_non_numeric_coord_xarr()
+    dataset = ij_fixture.py.to_java(xarr)
+    axes = dataset.dim_axes
+    # all axes should be DefaultLinearAxis
+    for ax in axes:
+        assert isinstance(ax, jc.DefaultLinearAxis)
 
 
 dataset_conversion_parameters = [
