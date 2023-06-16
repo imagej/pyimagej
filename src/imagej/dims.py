@@ -213,22 +213,15 @@ def _assign_axes(
         diffs = np.diff(coords_arr)
         linear: bool = diffs.size and np.all(np.isclose(diffs, diffs[0]))
 
-        # For non-linear scales, use EnumeratedAxis
-        try:
-            if not linear:
+        if not linear:
+            try:
                 j_coords = [jc.Double(x) for x in coords_arr]
                 axes[ax_num] = jc.EnumeratedAxis(ax_type, sj.to_java(j_coords))
-                continue
-        except (JException, TypeError):
-            # We don't have EnumeratedAxis available - use DefaultLinearAxis
-            pass
-        # For linear scales, use DefaultLinearAxis
-        finally:
-            scale = coords_arr[1] - coords_arr[0] if len(coords_arr) > 1 else 1
-            origin = coords_arr[0] if len(coords_arr) > 0 else 0
-            axes[ax_num] = jc.DefaultLinearAxis(
-                ax_type, jc.Double(scale), jc.Double(origin)
-            )
+            except (JException, TypeError):
+                # if EnumeratedAxis not available - use DefaultLinearAxis
+                axes[ax_num] = _get_default_linear_axis(coords_arr, ax_type)
+        else:
+            axes[ax_num] = _get_default_linear_axis(coords_arr, ax_type)
 
     return axes
 
@@ -281,6 +274,18 @@ def _get_axes_coords(
         for idx in range(len(dims))
     }
     return coords
+
+
+def _get_default_linear_axis(coords_arr: np.ndarray, ax_type: "jc.AxisType"):
+    """
+    Create a new DefaultLinearAxis with the given coordinate array and axis type.
+
+    :param coords_arr: A 1D NumPy array.
+    :return: An instance of net.imagej.axis.DefaultLinearAxis.
+    """
+    scale = coords_arr[1] - coords_arr[0] if len(coords_arr) > 1 else 1
+    origin = coords_arr[0] if len(coords_arr) > 0 else 0
+    return jc.DefaultLinearAxis(ax_type, jc.Double(scale), jc.Double(origin))
 
 
 def _is_numeric_scale(coords_array: np.ndarray) -> bool:
