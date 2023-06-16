@@ -199,15 +199,17 @@ def _assign_axes(
         axis_str = _convert_dim(dim, "java")
         ax_type = jc.Axes.get(axis_str)
         ax_num = _get_axis_num(xarr, dim)
-        coords_arr = xarr.coords[dim].to_numpy().astype(np.double)
+        coords_arr = xarr.coords[dim]
 
         # coerce numeric scale
         if not _is_numeric_scale(coords_arr):
             _logger.warning(
-                f"The {ax_type.label} axis is non-numeric and is translated "
+                f"The {ax_type.getLabel()} axis is non-numeric and is translated "
                 "to a linear index."
             )
-            coords_arr = [np.double(x) for x in np.arrange(len(xarr.coords[dim]))]
+            coords_arr = [np.double(x) for x in np.arange(len(xarr.coords[dim]))]
+        else:
+            coords_arr = coords_arr.to_numpy().astype(np.double)
 
         # check scale linearity
         diffs = np.diff(coords_arr)
