@@ -14,19 +14,22 @@ def arr():
 
 
 @pytest.fixture(scope="module")
-def results_table():
-    ResultsTable = sj.jimport("ij.measure.ResultsTable")
-    rt = ResultsTable.getResultsTable()
+def results_table(ij_fixture):
+    if ij_fixture.legacy and ij_fixture.legacy.isActive():
+        ResultsTable = sj.jimport("ij.measure.ResultsTable")
+        rt = ResultsTable.getResultsTable()
 
-    # add column headers
-    for i in range(5):
-        rt.setHeading(i, f"Column {i}")
+        # add column headers
+        for i in range(5):
+            rt.setHeading(i, f"Column {i}")
 
-    # add data rows
-    for i in range(3):
-        rt.incrementCounter()
-        for j in range(5):
-            rt.addValue(f"Column {j}", random.randint(1, 100))
+        # add data rows
+        for i in range(3):
+            rt.incrementCounter()
+            for j in range(5):
+                rt.addValue(f"Column {j}", random.randint(1, 100))
+    else:
+        pytest.skip("No original ImageJ. Skipping fixture.")
 
     return rt
 
