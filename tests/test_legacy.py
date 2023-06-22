@@ -1,5 +1,8 @@
+import random
+
 import numpy as np
 import pytest
+import scyjava as sj
 
 # -- Fixtures --
 
@@ -8,6 +11,24 @@ import pytest
 def arr():
     empty_array = np.zeros([512, 512])
     return empty_array
+
+
+@pytest.fixture(scope="module")
+def results_table():
+    ResultsTable = sj.jimport("ij.measure.ResultsTable")
+    rt = ResultsTable.getResultsTable()
+
+    # add column headers
+    for i in range(5):
+        rt.setHeading(i, f"Column {i}")
+
+    # add data rows
+    for i in range(3):
+        rt.incrementCounter()
+        for j in range(5):
+            rt.addValue(f"Column {j}", random.randint(1, 100))
+
+    return rt
 
 
 # -- Helpers --
@@ -122,3 +143,11 @@ def test_functions_throw_warning_if_legacy_not_enabled(ij_fixture):
 
     with pytest.raises(ImportError):
         ij_fixture.py.active_imageplus()
+
+
+def test_results_table_to_pandas_dataframe(ij_fixture, results_table):
+    df = ij_fixture.py.from_java(results_table)
+    for col in range(5):
+        rt_col = list(results_table.getColumn(col))
+        df_col = df[f"Column {col}"].tolist()
+        assert rt_col == df_col
