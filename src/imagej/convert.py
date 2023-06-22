@@ -504,6 +504,24 @@ def metadata_wrapper_to_dict(ij: "jc.ImageJ", metadata_wrapper: "jc.MetadataWrap
 
 
 ####################
+# Table converters #
+####################
+
+
+def results_table_to_scijava_table(
+    ij: "jc.ImageJ", table: "jc.ResultsTable"
+) -> "jc.Table":
+    """
+    Converts an ij.measure.ResultsTable to an org.scijava.table.Table.
+
+    :param ij: The ImageJ2 gateway (see imagej.init)
+    :param table: The ResultsTable to convert.
+    :return: A Java org.scijava.table.Table
+    """
+    return ij.convert().convert(table, jc.Table)
+
+
+####################
 # Helper functions #
 ####################
 

@@ -678,6 +678,15 @@ class ImageJPython:
                 priority=sj.Priority.HIGH - 2,
             )
         )
+        sj.add_py_converter(
+            sj.Converter(
+                predicate=lambda obj: isinstance(obj, jc.ResultsTable),
+                converter=lambda obj: self.from_java(
+                    convert.results_table_to_scijava_table(self._ij, obj)
+                ),
+                priority=sj.Priority.HIGH + 2,
+            )
+        )
 
     def _format_argument(self, key, value, ij1_style):
         if value is True:
