@@ -146,6 +146,8 @@ def test_functions_throw_warning_if_legacy_not_enabled(ij_fixture):
 
 
 def test_results_table_to_pandas_dataframe(ij_fixture, results_table):
+    ensure_legacy_enabled(ij_fixture)
+
     df = ij_fixture.py.from_java(results_table)
     for col in range(5):
         rt_col = list(results_table.getColumn(col))
