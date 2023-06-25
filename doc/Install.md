@@ -22,14 +22,15 @@ environments.
 
 2. Install PyImageJ into a new environment:
    ```
-   mamba create -n pyimagej pyimagej openjdk=8
+   mamba create -n pyimagej pyimagej openjdk=11
    ```
 
-   This command will install PyImageJ with OpenJDK 8. If you would rather use
-   OpenJDK 11, you can write `openjdk=11` instead, or even just leave off the
-   `openjdk` part altogether to get the latest version of OpenJDK. PyImageJ
-   has been tested most thoroughly with OpenJDK 8, but it is also known to
-   work with OpenJDK 11, and likely later OpenJDK versions as well.
+   This command will install PyImageJ with OpenJDK 11. PyImageJ requires a
+   minimum of OpenJDK 8. PyImageJ has been tested most thoroughly with OpenJDKs
+   8 and 11, but it is likely to work with later OpenJDK versions as well.
+
+   *Please note that openjdk=8 from conda-forge is broken on M1 Mac.*
+   If you are using an M1 Mac, you should use openjdk=11 or newer.
 
 3. Whenever you want to use PyImageJ, activate its environment:
    ```
@@ -83,7 +84,7 @@ It is possible to dynamically install PyImageJ from within a Jupyter notebook.
 For your first cell, write:
 ```
 import sys, os
-!mamba install --yes --prefix {sys.prefix} pyimagej openjdk=8
+!mamba install --yes --prefix {sys.prefix} pyimagej openjdk=11
 os.environ['JAVA_HOME'] = os.sep.join(sys.executable.split(os.sep)[:-2] + ['jre'])
 ```
 
@@ -119,7 +120,7 @@ on Google Colab with a wrapped local Fiji installation:
 
 3.  Install PyImageJ:
     ```python
-    !mamba install pyimagej openjdk=8
+    !mamba install pyimagej openjdk=11
     ```
     You can also install other deps here as well (scikit-image, opencv, etc).
 
@@ -166,7 +167,7 @@ RUN apt-get install -y wget unzip > /dev/null && rm -rf /var/lib/apt/lists/* > /
 RUN micromamba install -y -n base -c conda-forge \
         python=3.8\
         pyimagej  \
-        openjdk=8 && \
+        openjdk=11 && \
     micromamba clean --all --yes
 ENV JAVA_HOME="/usr/local"
 # Set MAMVA_DOCKERFILE_ACTIVATE (otherwise python will not be found)

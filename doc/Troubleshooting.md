@@ -145,6 +145,17 @@ This indicates the Maven executable wasn't found on your system.
 
 If you installed `maven` via conda/mamba on Windows, you may have gotten a version that was [briefly broken](https://github.com/conda-forge/maven-feedstock/issues/26). You should be able to simply update with `conda update -n pyimagej maven` (adjusted if you named your environment something other than `pyimagej`).
 
+### Command died with Signals.SIGKILL: 9
+
+If you see an error like:
+```
+subprocess.CalledProcessError: Command '['.../jre/bin/java', '-version']' died with <Signals.SIGKILL: 9>.
+```
+it might be that you are using an M1 Mac, and have OpenJDK 8 installed from conda-forge?
+Unfortunately, Version 8 of OpenJDK from conda-forge is known to be broken on Mac M1 machines.
+
+Try `mamba install openjdk=11` to update to version 11, and this problem should go away.
+
 ### Error in "mvn.CMD -B -f pom.xml" dependency:resolve: 1
 
 This indicates a problem running Maven on your system.
