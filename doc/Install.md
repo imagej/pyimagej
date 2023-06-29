@@ -73,9 +73,9 @@ you chose this route over conda/mamba above.
 
 Here's one way to test that it works:
 ```
-python -c 'import imagej; ij = imagej.init("2.5.0"); print(ij.getVersion())'
+python -c 'import imagej; ij = imagej.init("2.13.1"); print(ij.getVersion())'
 ```
-Should print `2.5.0` on the console.
+Should print `2.13.1` on the console.
 
 ## Dynamic installation within Jupyter
 
