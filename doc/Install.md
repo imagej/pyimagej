@@ -106,7 +106,7 @@ Here is an example set of notebook cells to run PyImageJ
 on Google Colab with a wrapped local Fiji installation:
 
 1.  Install [condacolab](https://pypi.org/project/condacolab/):
-    ```python
+    ```bash
     !pip install -q condacolab
     import condacolab
     condacolab.install()
@@ -119,13 +119,13 @@ on Google Colab with a wrapped local Fiji installation:
     ```
 
 3.  Install PyImageJ:
-    ```python
+    ```bash
     !mamba install pyimagej openjdk=11
     ```
     You can also install other deps here as well (scikit-image, opencv, etc).
 
 4.  Download and install Fiji, and optionally custom plugins as well:
-    ```python
+    ```bash
     !wget https://downloads.imagej.net/fiji/latest/fiji-linux64.zip > /dev/null && unzip fiji-linux64.zip > /dev/null
     !rm fiji-linux64.zip
     !wget https://imagej.nih.gov/ij/plugins/download/Filter_Rank.class > /dev/null
