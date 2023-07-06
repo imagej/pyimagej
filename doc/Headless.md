@@ -60,10 +60,96 @@ See the
 for some further details about what does and does not work headless, and
 things to try when having difficulty with ImageJ's behavior in headless mode.
 
+## Running ImageJ macros headlessly 
+
+There are many reasons why you might want to run ImageJ/PyImageJ headlessly, especially if you are developing programs using Apple MacOS. Since headless mode does not make use of `WindowManager`, running ImageJ macros headlessly requires you to manually point PyImageJ to open images in order to run properly. Here we describe a simple working script that loads a .tif stack time series and performs simple macro commands in headless mode.
+
+### **Using ImageJ macros with PyImageJ in headless mode - example**
+
+First, initialize PyImageJ in headless mode.
+
+```python
+import imagej
+ij = imagej.init()
+```
+
+We now want to open an image or time series and "show" PyImageJ the file since it cannot access the window manager. 
+
+```python
+# open example .tif stack
+img = ij.io().open('/<path_to_file>/example_stack.tif')
+
+# convert image to Imageplus and show it to the headless ImageJ instance
+imp = ij.py.to_imageplus(img)
+imp.show()
+```
+
+This will return.
+
+```
+[INFO] example_stack.tif = net.imagej.display.DefaultDatasetView@120350eb
+[java.lang.Enum.toString] [INFO] example_tif.tif = net.imagej.display.DefaultDatasetView@120350eb
+```
+
+If you want that the stack loaded correctly with the expected dimensions and has been shown to PyImageJ, you can run `dump_state()` after calling `imp.show()`.
+
+```python
+def dump_state():
+    active = ij.IJ.getImage()
+    print(f"Active ImagePlus = {active} ({active.getDimensions() if active else 'N/A'}")
+    print(f"Registered image IDs = {ij.WindowManager.getIDList()}")
+
+dump_state()
+```
+
+Which should return.
+
+```
+Active ImagePlus = img["example_stack.tif" (-2), 16-bit, 821x353x1x1x1600] ([821, 353, 1, 1, 200]
+Registered image IDs = [-2]
+```
+
+Now that we have an open image and have registered it with PyImageJ, we can simply run macros as normal. In this example we are going to perform a simple operation by running a background subtractor, noise despeckle, and then save the output to a new .tif file.
+
+```python
+# define macro
+macro = """
+
+"""
+# define arguments
+args = {}
+
+# run the macro
+ij.py.run_macro(macro,args)
+```
+
+### **Running Fiji plugins in ImageJ macros headlessly**
+
+Since PyImageJ can be initialized with distributions of Fiji, certain plugins can be used headlessely with PyImageJ as well. Since ImageJ plugins can also require higher memory usage, it is worthwhile [configuring the JVM](https://pyimagej.readthedocs.io/en/latest/Initialization.html#configuring-the-jvm) to increase the java heap memory. 
+
+Plugins that are tied to GUI elements will need to be run with `Xvfb` (see _Using PyImageJ with Xvfb_ below for an example). 
+
+To start, initialize PyImageJ with Fiji.
+
+```python
+import imagej
+import scyjava
+
+scyjava.config.add_options('-Xmx6g')
+ij = imagej.init('sc.fiji:fiji:2.13.1')
+```
+
+Note that when PyImageJ is initialized this way, we make use of the [Bio-Formats](https://imagej.net/formats/bio-formats) importer which is useful for datasets not already converted to tif stacks.
+
+We can now run macros the same way as above and include Fiji plugins. For this example, we will use the same macro as above but include the [Correct 3D Drift](https://imagej.net/plugins/correct-3d-drift) plugin.
+
+### **Dealing with multiple images in headless mode**
+
+_play around with this first_
 
 ## Using PyImageJ with Xvfb
 
- Workflows that require headless operation but also need to interact with ImageJ elements that are tied to the GUI, can be achieved with virtual displays. Using Xvfb we can create a virtual frame buffer for ImageJ's GUI elemnts without displaying any screen output. On Linux systems that already have a graphical environment installed (_e.g._ GNOME), you only need to install `xvfb`.
+Workflows that require headless operation but also need to interact with ImageJ elements that are tied to the GUI, can be achieved with virtual displays. Using Xvfb we can create a virtual frame buffer for ImageJ's GUI elemnts without displaying any screen output. On Linux systems that already have a graphical environment installed (_e.g._ GNOME), you only need to install `xvfb`.
 
 ```console
 $ sudo apt install xvfb
