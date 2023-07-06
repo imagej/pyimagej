@@ -84,29 +84,9 @@ imp = ij.py.to_imageplus(img)
 imp.show()
 ```
 
-This will return.
-
-```
+```python
 [INFO] example_stack.tif = net.imagej.display.DefaultDatasetView@120350eb
 [java.lang.Enum.toString] [INFO] example_tif.tif = net.imagej.display.DefaultDatasetView@120350eb
-```
-
-If you want that the stack loaded correctly with the expected dimensions and has been shown to PyImageJ, you can run `dump_state()` after calling `imp.show()`.
-
-```python
-def dump_state():
-    active = ij.IJ.getImage()
-    print(f"Active ImagePlus = {active} ({active.getDimensions() if active else 'N/A'}")
-    print(f"Registered image IDs = {ij.WindowManager.getIDList()}")
-
-dump_state()
-```
-
-Which should return.
-
-```
-Active ImagePlus = img["example_stack.tif" (-2), 16-bit, 821x353x1x1x1600] ([821, 353, 1, 1, 200]
-Registered image IDs = [-2]
 ```
 
 Now that we have an open image and have registered it with PyImageJ, we can simply run macros as normal. In this example we are going to perform a simple operation by running a background subtractor, noise despeckle, and then save the output to a new .tif file.
