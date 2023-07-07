@@ -1,22 +1,19 @@
 # Metadata
 include LICENSE.txt
 include MANIFEST.in
+include Makefile
 include README.md
 include conftest.py
 include pyproject.toml
-include setup.cfg
-include setup.py
 
 # Conda Environment Files
 include environment.yml
 include dev-environment.yml
 
-# Test script
-include test.sh
-
 # Directory inclusion
 graft src
-graft test
+graft tests
+graft bin
 
 # Directory exclusion
 prune doc
