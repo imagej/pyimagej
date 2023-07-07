@@ -1,5 +1,5 @@
-API Reference
-=============
+API
+===
 
 PyImageJ provides a set of wrapper functions for integration between
 ImageJ+ImageJ2 and Python. A major advantage of this approach is the ability to

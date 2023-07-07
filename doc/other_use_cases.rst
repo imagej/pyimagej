@@ -1,21 +1,5 @@
-Use cases
-=========
-
-Below are use cases utitlizing PyImageJ and other packages such as :code:`scikit-image`.
-These examples are available in the `PyImageJ repository`_.
-
-.. toctree::
-    :maxdepth: 3
-
-    Blob detection (interactive) <examples/blob_interactive.rst>
-    Blob detection (headless) <examples/blob_xvfb.rst>
-    CellProfiler <cellprofiler/README>
-    Classic Segmentation <Classic-Segmentation>
-    Puncta Segmentation <Puncta-Segmentation>
-
-------------------------------------------------------------------------
-
-.. rubric:: More use cases
+Other use cases
+===============
 
 Here are additional links to some other examples using PyImageJ
 in other projects.
