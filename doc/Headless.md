@@ -62,7 +62,7 @@ things to try when having difficulty with ImageJ's behavior in headless mode.
 
 ## Running ImageJ macros headlessly 
 
-There are many reasons why you might want to run ImageJ/PyImageJ headlessly, especially if you are developing programs using Apple MacOS. Since headless mode does not make use of `WindowManager`, running ImageJ macros headlessly requires you to manually point PyImageJ to open images in order to run properly. Here we describe a simple working script that loads a .tif stack time series and performs simple macro commands in headless mode.
+There are many reasons why you might want to run ImageJ/PyImageJ headlessly, especially if you are developing programs using Apple MacOS. Since headless mode does not make use of `WindowManager`, running ImageJ macros headlessly requires you to manually point PyImageJ to open images in order to run properly. Here we describe a working script that loads a .tif stack time series and performs simple macro commands in headless mode.
 
 ### **Using ImageJ macros with PyImageJ in headless mode - example**
 
@@ -85,24 +85,39 @@ imp.show()
 ```
 
 ```python
-[INFO] example_stack.tif = net.imagej.display.DefaultDatasetView@120350eb
-[java.lang.Enum.toString] [INFO] example_tif.tif = net.imagej.display.DefaultDatasetView@120350eb
+Operating in headless mode - the original ImageJ will have limited functionality.
 ```
 
-Now that we have an open image and have registered it with PyImageJ, we can simply run macros as normal. In this example we are going to perform a simple operation by running a background subtractor, noise despeckle, and then save the output to a new .tif file.
+Now that we have an open image and have registered it with PyImageJ, we can run macros as normal. In this example we are going to perform a simple operation by running a background subtractor, noise despeckle, and then save the output to a new .tif file.
 
 ```python
 # define macro
 macro = """
+#@ int rolling
 
+run("Subtract Background...", "rolling="+rolling+" stack");
+run("Despeckle", "stack");
 """
 # define arguments
-args = {}
+args = {'rolling':50}
 
 # run the macro
 ij.py.run_macro(macro,args)
+print("Macro run succesfully!")
+```
+```python
+Macro run successfully!
 ```
 
+Once the macro has finished running, we need to reconvert the `ImagePlus` object back to a java `Dataset` object so we can export the processed stack.
+
+```python
+# convert ImagePlus to Dataset object
+img = ij.py.to_dataset(imp)
+
+# export processed tiff stack
+ij.io().save(img,'/<path_to_output>/processed_stack.tif')
+```
 ### **Running Fiji plugins in ImageJ macros headlessly**
 
 Since PyImageJ can be initialized with distributions of Fiji, certain plugins can be used headlessely with PyImageJ as well. Since ImageJ plugins can also require higher memory usage, it is worthwhile [configuring the JVM](https://pyimagej.readthedocs.io/en/latest/Initialization.html#configuring-the-jvm) to increase the java heap memory. 
@@ -123,9 +138,37 @@ Note that when PyImageJ is initialized this way, we make use of the [Bio-Formats
 
 We can now run macros the same way as above and include Fiji plugins. For this example, we will use the same macro as above but include the [Correct 3D Drift](https://imagej.net/plugins/correct-3d-drift) plugin.
 
-### **Dealing with multiple images in headless mode**
+```python
+# open example .tif stack
+img = ij.io().open('/<path_to_file>/example_stack.tif')
 
-_play around with this first_
+# convert image to Imageplus and show it to the headless ImageJ instance
+imp = ij.py.to_imageplus(img)
+imp.show()
+
+# define macro
+macro = """
+#@ int rolling
+
+run("Subtract Background...", "rolling="+rolling+" stack");
+run("Despeckle", "stack");
+run("Correct 3D drift", "channel=1 correct multi_time_scale sub_pixel edge_enhance only=0 lowest=1 highest=1 max_shift_x=10.000000000 max_shift_y=10.000000000 max_shift_z=10");
+"""
+# define arguments
+args = {'rolling':50}
+
+# run the macro
+ij.py.run_macro(macro,args)
+print("Macro run successfully!")
+
+# save the results
+img = ij.py.to_dataset(imp)
+ij.io().save(img,'/<path_to_output>/processed_stack.tif')
+```
+```python
+Macro run successfully!
+```
+The `Correct 3D Drift` plugin should print its calculation steps to the console.
 
 ## Using PyImageJ with Xvfb
 
