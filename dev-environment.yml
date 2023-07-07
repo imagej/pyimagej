@@ -44,6 +44,7 @@ dependencies:
   - black
   - build
   - flake8
+  - flake8-typing-imports
   - isort
   - myst-nb
   - pre-commit
@@ -54,6 +55,7 @@ dependencies:
   - pip
   - pip:
     - readthedocs-sphinx-search
+    - flake8-pyproject
     - validate-pyproject[all]
     # Project from source
     - -e .
