@@ -54,16 +54,16 @@ include the imagej-legacy endpoint unless the `add_legacy=False` flag is given.
 |:---------------------------------------------------------|:----------------------------------------------------------------------------------:|:-------------:|
 | Newest available version of ImageJ2                      | `ij = imagej.init()`                                                               | NO            |
 | Newest available version of ImageJ2 (no original ImageJ) | `ij = imagej.init(add_legacy=False)`                                               | NO            |
-| Specific version of ImageJ2                              | `ij = imagej.init('2.13.1')`                                                       | YES           |
-| Specific version of ImageJ2 (no original ImageJ)         | `ij = imagej.init('2.13.1', add_legacy=False)`                                     | YES           |
+| Specific version of ImageJ2                              | `ij = imagej.init('2.14.0')`                                                       | YES           |
+| Specific version of ImageJ2 (no original ImageJ)         | `ij = imagej.init('2.14.0', add_legacy=False)`                                     | YES           |
 | With a GUI (newest version, blocking)                    | `ij = imagej.init(mode='gui')`                                                     | NO            |
-| With a GUI (specific version, blocking)                  | `ij = imagej.init('net.imagej:imagej:2.13.1', mode='gui')`                         | YES           |
+| With a GUI (specific version, blocking)                  | `ij = imagej.init('net.imagej:imagej:2.14.0', mode='gui')`                         | YES           |
 | With a GUI (newest version, interactive)                 | `ij = imagej.init(mode='interactive')`                                             | NO            |
-| With a GUI (specific version, interactive)               | `ij = imagej.init('net.imagej:imagej:2.13.1', mode='interactive')`                 | YES           |
+| With a GUI (specific version, interactive)               | `ij = imagej.init('net.imagej:imagej:2.14.0', mode='interactive')`                 | YES           |
 | With Fiji plugins (newest version)                       | `ij = imagej.init('sc.fiji:fiji')`                                                 | NO            |
-| With Fiji plugins (specific version)                     | `ij = imagej.init('sc.fiji:fiji:2.13.1')`                                          | YES           |
+| With Fiji plugins (specific version)                     | `ij = imagej.init('sc.fiji:fiji:2.14.0')`                                          | YES           |
 | With a specific plugin (newest version)                  | `ij = imagej.init(['net.imagej:imagej', 'net.preibisch:BigStitcher'])`             | NO            |
-| With a specific plugin (specific version)                | `ij = imagej.init(['net.imagej:imagej:2.13.1', 'net.preibisch:BigStitcher:0.4.1'])`| YES           |
+| With a specific plugin (specific version)                | `ij = imagej.init(['net.imagej:imagej:2.14.0', 'net.preibisch:BigStitcher:0.4.1'])`| YES           |
 | From a local installation                                | `ij = imagej.init('/Applications/Fiji.app')`                                       | DEPENDS       |
 
 ### Newest available version
@@ -84,7 +84,7 @@ You can specify a particular version, to facilitate reproducibility:
 
 ```python
 import imagej
-ij = imagej.init('2.13.1')
+ij = imagej.init('2.14.0')
 ij.getVersion()
 ```
 
@@ -156,7 +156,7 @@ or at a reproducible version:
 
 ```python
 import imagej
-ij = imagej.init('sc.fiji:fiji:2.13.1')
+ij = imagej.init('sc.fiji:fiji:2.14.0')
 ```
 
 ### From a local installation
@@ -202,7 +202,7 @@ This can be done for the latest versions as above, or at fixed versions like:
 
 ```python
 import imagej
-ij =imagej.init(['net.imagej:imagej:2.13.1', 'net.preibisch:BigStitcher:0.4.1'])
+ij =imagej.init(['net.imagej:imagej:2.14.0', 'net.preibisch:BigStitcher:0.4.1'])
 ```
 
 ### Plugins without Maven endpoints
