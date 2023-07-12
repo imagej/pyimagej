@@ -31,6 +31,10 @@ class MyJavaClasses(JavaClasses):
     """
 
     @JavaClasses.java_import
+    def Double(self):
+        return "java.lang.Double"
+
+    @JavaClasses.java_import
     def Throwable(self):
         return "java.lang.Throwable"
 
@@ -49,6 +53,14 @@ class MyJavaClasses(JavaClasses):
     @JavaClasses.java_import
     def LabelingIOService(self):
         return "io.scif.labeling.LabelingIOService"
+
+    @JavaClasses.java_import
+    def DefaultLinearAxis(self):
+        return "net.imagej.axis.DefaultLinearAxis"
+
+    @JavaClasses.java_import
+    def EnumeratedAxis(self):
+        return "net.imagej.axis.EnumeratedAxis"
 
     @JavaClasses.java_import
     def Dataset(self):

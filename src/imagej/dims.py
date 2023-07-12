@@ -2,7 +2,7 @@
 Utility functions for querying and manipulating dimensional axis metadata.
 """
 import logging
-from typing import List, Tuple
+from typing import List, Tuple, Union
 
 import numpy as np
 import scyjava as sj
@@ -177,49 +177,53 @@ def prioritize_rai_axes_order(
     return permute_order
 
 
-def _assign_axes(xarr: xr.DataArray):
+def _assign_axes(
+    xarr: xr.DataArray,
+) -> List[Union["jc.DefaultLinearAxis", "jc.EnumeratedAxis"]]:
     """
-    Obtain xarray axes names, origin, and scale and convert into ImageJ Axis;
-    currently supports EnumeratedAxis
-    :param xarr: xarray that holds the units
-    :return: A list of ImageJ Axis with the specified origin and scale
+    Obtain xarray axes names, origin, scale and convert into ImageJ Axis. Supports both
+    DefaultLinearAxis and the newer EnumeratedAxis.
+
+    Note that, in many cases, there are small discrepancies between the coordinates.
+    This can either be actually within the data, or it can be from floating point math
+    errors.  In this case, we delegate to numpy.isclose to tell us whether our
+    coordinates are linear or not. If our coordinates are nonlinear, and the
+    EnumeratedAxis type is available, we will use it. Otherwise, this function
+    returns a DefaultLinearAxis.
+
+    :param xarr: xarray that holds the data.
+    :return: A list of ImageJ Axis with the specified origin and scale.
     """
-    Double = sj.jimport("java.lang.Double")
-
-    axes = [""] * len(xarr.dims)
-
-    # try to get EnumeratedAxis, if not then default to LinearAxis in the loop
-    try:
-        EnumeratedAxis = _get_enumerated_axis()
-    except (JException, TypeError):
-        EnumeratedAxis = None
-
+    axes = [""] * xarr.ndim
     for dim in xarr.dims:
-        axis_str = _convert_dim(dim, direction="java")
+        axis_str = _convert_dim(dim, "java")
         ax_type = jc.Axes.get(axis_str)
         ax_num = _get_axis_num(xarr, dim)
-        scale = _get_scale(xarr.coords[dim])
+        coords_arr = xarr.coords[dim]
 
-        if scale is None:
+        # coerce numeric scale
+        if not _is_numeric_scale(coords_arr):
             _logger.warning(
-                f"The {ax_type.label} axis is non-numeric and is translated "
+                f"The {ax_type.getLabel()} axis is non-numeric and is translated "
                 "to a linear index."
             )
-            doub_coords = [
-                Double(np.double(x)) for x in np.arange(len(xarr.coords[dim]))
-            ]
+            coords_arr = [np.double(x) for x in np.arange(len(xarr.coords[dim]))]
         else:
-            doub_coords = [Double(np.double(x)) for x in xarr.coords[dim]]
+            coords_arr = coords_arr.to_numpy().astype(np.double)
 
-        # EnumeratedAxis is a new axis made for xarray, so is only present in
-        # ImageJ versions that are released later than March 2020.
-        # This actually returns a LinearAxis if using an earlier version.
-        if EnumeratedAxis is not None:
-            java_axis = EnumeratedAxis(ax_type, sj.to_java(doub_coords))
+        # check scale linearity
+        diffs = np.diff(coords_arr)
+        linear: bool = diffs.size and np.all(np.isclose(diffs, diffs[0]))
+
+        if not linear:
+            try:
+                j_coords = [jc.Double(x) for x in coords_arr]
+                axes[ax_num] = jc.EnumeratedAxis(ax_type, sj.to_java(j_coords))
+            except (JException, TypeError):
+                # if EnumeratedAxis not available - use DefaultLinearAxis
+                axes[ax_num] = _get_default_linear_axis(coords_arr, ax_type)
         else:
-            java_axis = _get_linear_axis(ax_type, sj.to_java(doub_coords))
-
-        axes[ax_num] = java_axis
+            axes[ax_num] = _get_default_linear_axis(coords_arr, ax_type)
 
     return axes
 
@@ -274,48 +278,26 @@ def _get_axes_coords(
     return coords
 
 
-def _get_scale(axis):
+def _get_default_linear_axis(coords_arr: np.ndarray, ax_type: "jc.AxisType"):
     """
-    Get the scale of an axis, assuming it is linear and so the scale is simply
-    second - first coordinate.
+    Create a new DefaultLinearAxis with the given coordinate array and axis type.
 
-    :param axis: A 1D list like entry accessible with indexing, which contains the
-        axis coordinates
-    :return: The scale for this axis or None if it is a non-numeric scale.
+    :param coords_arr: A 1D NumPy array.
+    :return: An instance of net.imagej.axis.DefaultLinearAxis.
     """
-    try:
-        # HACK: This axis length check is a work around for singleton dimensions.
-        # You can't calculate the slope of a singleton dimension.
-        # This section will be removed when axis-scale-logic is merged.
-        if len(axis) <= 1:
-            return 1
-        else:
-            return axis.values[1] - axis.values[0]
-    except TypeError:
-        return None
+    scale = coords_arr[1] - coords_arr[0] if len(coords_arr) > 1 else 1
+    origin = coords_arr[0] if len(coords_arr) > 0 else 0
+    return jc.DefaultLinearAxis(ax_type, jc.Double(scale), jc.Double(origin))
 
 
-def _get_enumerated_axis():
-    """Get EnumeratedAxis.
-
-    EnumeratedAxis is only in releases later than March 2020. If using
-    an older version of ImageJ without EnumeratedAxis, use
-    _get_linear_axis() instead.
+def _is_numeric_scale(coords_array: np.ndarray) -> bool:
     """
-    return sj.jimport("net.imagej.axis.EnumeratedAxis")
+    Checks if the coordinates array of the given axis is numeric.
 
-
-def _get_linear_axis(axis_type: "jc.AxisType", values):
-    """Get linear axis.
-
-    This is used if no EnumeratedAxis is found. If EnumeratedAxis
-    is available, use _get_enumerated_axis() instead.
+    :param coords_array: A 1D NumPy array.
+    :return: bool
     """
-    DefaultLinearAxis = sj.jimport("net.imagej.axis.DefaultLinearAxis")
-    origin = values[0]
-    scale = values[1] - values[0]
-    axis = DefaultLinearAxis(axis_type, scale, origin)
-    return axis
+    return np.issubdtype(coords_array.dtype, np.number)
 
 
 def _dataset_to_imgplus(rai: "jc.RandomAccessibleInterval") -> "jc.ImgPlus":
