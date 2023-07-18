@@ -43,6 +43,10 @@ class MyJavaClasses(JavaClasses):
         return "ij.ImagePlus"
 
     @JavaClasses.java_import
+    def ResultsTable(self):
+        return "ij.measure.ResultsTable"
+
+    @JavaClasses.java_import
     def ImageMetadata(self):
         return "io.scif.ImageMetadata"
 
@@ -121,6 +125,10 @@ class MyJavaClasses(JavaClasses):
     @JavaClasses.java_import
     def Named(self):
         return "org.scijava.Named"
+
+    @JavaClasses.java_import
+    def Table(self):
+        return "org.scijava.table.Table"
 
     @JavaClasses.java_import
     def Util(self):
