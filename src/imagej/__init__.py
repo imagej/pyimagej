@@ -1347,7 +1347,7 @@ def _create_jvm(
         sj.config.endpoints.append("net.imagej:imagej")
 
     elif isinstance(ij_dir_or_version_or_endpoint, list):
-        # Assume that this is a list of Maven endpoints.
+        # Looks like a list of Maven endpoints.
         _logger.debug(
             "List of Maven coordinates given: %s", ij_dir_or_version_or_endpoint
         )
@@ -1358,7 +1358,7 @@ def _create_jvm(
         sj.config.endpoints.extend(ij_dir_or_version_or_endpoint)
 
     elif os.path.isdir(os.path.expanduser(ij_dir_or_version_or_endpoint)):
-        # Assume path to local ImageJ2 installation.
+        # Looks like a path to a local ImageJ2 installation.
         path = os.path.abspath(os.path.expanduser(ij_dir_or_version_or_endpoint))
         _logger.debug("Local path to ImageJ2 installation given: %s", path)
         add_legacy = False
@@ -1385,7 +1385,7 @@ def _create_jvm(
         init_failed = True
 
     elif ":" in ij_dir_or_version_or_endpoint:
-        # Assume endpoint of an artifact.
+        # Looks like an artifact endpoint.
         _logger.debug("Maven coordinate given: %s", ij_dir_or_version_or_endpoint)
         # Strip whitespace and split concatenated endpoints.
         endpoints = re.sub("\\s*", "", ij_dir_or_version_or_endpoint).split("+")
@@ -1395,16 +1395,15 @@ def _create_jvm(
             add_legacy = False
         sj.config.endpoints.extend(endpoints)
 
+    elif re.match("\\d+\\.\\d+\\.\\d+", ij_dir_or_version_or_endpoint):
+        # Looks like an x.y.z-style version of net.imagej:imagej.
+        _logger.debug("ImageJ2 version given: %s", ij_dir_or_version_or_endpoint)
+        sj.config.endpoints.append("net.imagej:imagej:" + ij_dir_or_version_or_endpoint)
+
     else:
-        # Assume string is an x.y.z-style version of net.imagej:imagej.
-        version = ij_dir_or_version_or_endpoint
-        if not re.match("\\d+\\.\\d+\\.\\d+", version):
-            _logger.error("Invalid initialization string: %s", version)
-            init_failed = True
-            return False
-        else:
-            _logger.debug("ImageJ2 version given: %s", version)
-            sj.config.endpoints.append("net.imagej:imagej:" + version)
+        # String is in an unknown form.
+        _logger.error("Invalid initialization string: %s", ij_dir_or_version_or_endpoint)
+        init_failed = True
 
     if init_failed:
         # Restore any pre-existing endpoints to allow for re-initialization.
