@@ -164,7 +164,7 @@ def debug_to_stderr(logger=None, debug_maven=False):
                 logging.exception("Failed to enable scyjava verbose mode.")
         return
 
-    elif type(logger) == str:
+    elif type(logger) is str:
         module_name, logger_attr = logger.rsplit(".", 1)
         try:
             m = importlib.import_module(module_name)
