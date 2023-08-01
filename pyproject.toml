@@ -71,7 +71,7 @@ matplotlib = [
 notebooks = [
     "ipywidgets",
     "jupyter_contrib_nbextensions",
-    "notebook",
+    "notebook < 7.0.0",
     "pooch", # for scikit image
     "scikit-image",
 ]
