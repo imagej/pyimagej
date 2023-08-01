@@ -1430,7 +1430,6 @@ def _create_jvm(
         # Add additional ImageJ endpoints specific to PyImageJ.
 
         # Try to glean the needed ImageJ2 version.
-        ij_version = []
         for coord in sj.config.endpoints:
             if not re.match("(net.imagej:imagej|sc.fiji:fiji)(:|$)", coord):
                 # not an ImageJ2 or Fiji coordinate.
@@ -1452,7 +1451,7 @@ def _create_jvm(
             # Now some case logic to figure which scifio-labeling version to use.
             scifio_labeling_version = None
             if version == "RELEASE":
-                # Using latest release of ImageJ2; use latest release of scifio-labeling.
+                # Using newest ImageJ2, therefore also use newest scifio-labeling.
                 scifio_labeling_version = "RELEASE"
             elif version.startswith("2."):
                 # For v2.10.0+, scifio-labeling is managed; before that, must hardcode.
