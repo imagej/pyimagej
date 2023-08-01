@@ -1427,8 +1427,42 @@ def _create_jvm(
         # SLF4J: Defaulting to no-operation (NOP) logger implementation
         sj.config.endpoints.append("org.scijava:scijava-config:MANAGED")
 
-    # Add additional ImageJ endpoints specific to PyImageJ.
-    sj.config.endpoints.append("io.scif:scifio-labeling:0.3.1")
+        # Add additional ImageJ endpoints specific to PyImageJ.
+
+        # Try to glean the needed ImageJ2 version.
+        ij_version = []
+        for coord in sj.config.endpoints:
+            if not re.match("(net.imagej:imagej|sc.fiji:fiji)(:|$)", coord):
+                # not an ImageJ2 or Fiji coordinate.
+                continue
+
+            # Extract major and minor version digits.
+            gav = coord.split(":")
+            version = gav[2] if len(gav) > 2 else "RELEASE"
+            digits = version.split(".") if version else []
+            if len(digits) == 0:
+                # Unparseable version; skip this coordinate.
+                continue
+            minor_digit = None
+            try:
+                minor_digit = int(digits[1]) if len(digits) > 1 else -1
+            except ValueError:
+                pass
+
+            # Now some case logic to figure which scifio-labeling version to use.
+            scifio_labeling_version = None
+            if version == "RELEASE":
+                # Using latest release of ImageJ2; use latest release of scifio-labeling.
+                scifio_labeling_version = "RELEASE"
+            elif version.startswith("2."):
+                # For v2.10.0+, scifio-labeling is managed; before that, must hardcode.
+                scifio_labeling_version = "MANAGED" if minor_digit >= 10 else "0.3.1"
+
+            # Add scifio-labeling if appropriate.
+            if scifio_labeling_version:
+                sj.config.endpoints.append(
+                    f"io.scif:scifio-labeling:{scifio_labeling_version}"
+                )
 
     # Restore any pre-existing endpoints, after ImageJ2's.
     sj.config.endpoints.extend(original_endpoints)
