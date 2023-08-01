@@ -1402,7 +1402,9 @@ def _create_jvm(
 
     else:
         # String is in an unknown form.
-        _logger.error("Invalid initialization string: %s", ij_dir_or_version_or_endpoint)
+        _logger.error(
+            "Invalid initialization string: %s", ij_dir_or_version_or_endpoint
+        )
         init_failed = True
 
     if init_failed:
