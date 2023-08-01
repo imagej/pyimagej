@@ -7,7 +7,17 @@ modes="
 | Testing ImageJ2 + original ImageJ |--legacy=true
 |    Testing ImageJ2 standalone     |--legacy=false
 |  Testing Fiji Is Just ImageJ(2)   |--ij=sc.fiji:fiji
+|  Testing locally wrapped Fiji.app |--ij=Fiji.app
 "
+
+if [ ! -d Fiji.app ]
+then
+  # No locally available Fiji.app; download one.
+  echo "-- Downloading and unpacking Fiji.app --"
+  curl -fsLO https://downloads.imagej.net/fiji/latest/fiji-nojre.zip
+  unzip fiji-nojre.zip
+  echo
+fi
 
 echo "$modes" | while read mode
 do
