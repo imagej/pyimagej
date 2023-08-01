@@ -8,6 +8,8 @@ modes="
 |    Testing ImageJ2 standalone     |--legacy=false
 |  Testing Fiji Is Just ImageJ(2)   |--ij=sc.fiji:fiji
 |  Testing locally wrapped Fiji.app |--ij=Fiji.app
+|  Testing ImageJ2 version 2.10.0   |--ij=2.10.0
+|  Testing ImageJ2 version 2.14.0   |--ij=2.14.0
 "
 
 if [ ! -d Fiji.app ]
