@@ -51,7 +51,7 @@ dev = [
     "autopep8",
     "black",
     "build",
-    "flake8 <= 6.0.0",
+    "flake8",
     "flake8-pyproject",
     "flake8-typing-imports",
     "isort",

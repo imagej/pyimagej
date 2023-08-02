@@ -59,7 +59,7 @@ jobs:
 
       - name: Flake code
         run: |
-          python -m pip install 'flake8<=6.0.0' Flake8-pyproject flake8-typing-imports
+          python -m pip install flake8 Flake8-pyproject flake8-typing-imports
           python -m flake8 src tests
 
       - name: Check import ordering
