@@ -46,7 +46,7 @@ from typing import Tuple, Union
 import numpy as np
 import scyjava as sj
 import xarray as xr
-from jpype import JImplementationFor, JImplements, JOverride, setupGuiEnvironment
+from jpype import JImplementationFor, setupGuiEnvironment
 from scyjava.config import find_jars
 
 import imagej.convert as convert
@@ -1277,23 +1277,6 @@ def _create_gateway():
         return False
 
     ij = ImageJ()
-
-    # Forward stdout and stderr from Java to Python.
-    @JImplements("org.scijava.console.OutputListener")
-    class JavaOutputListener:
-        @JOverride
-        def outputOccurred(self, e):
-            source = e.getSource().toString
-            output = e.getOutput()
-            if source == "STDOUT":
-                sys.stdout.write(output)
-            elif source == "STDERR":
-                sys.stderr.write(output)
-            else:
-                sys.stderr.write(f"[{source}] {output}")
-
-    ij.py._outputMapper = JavaOutputListener()
-    ij.console().addOutputListener(ij.py._outputMapper)
 
     # Register a Python-side script runner object, used by the
     # org.scijava:scripting-python script language plugin.
