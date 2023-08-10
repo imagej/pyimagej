@@ -15,15 +15,40 @@ scikit-image, CellProfiler, OpenCV, ITK and many more.
 
 .. toctree::
    :maxdepth: 3
-   :caption: Contents:
+   :caption: 🚀 Getting Started
 
    Install
    Initialization
+
+.. toctree::
+   :maxdepth: 3
+   :caption: 🪄 How-to guides
+
    notebooks
-   use_cases
    Headless
-   Development
    Troubleshooting
+
+.. toctree::
+   :maxdepth: 3
+   :caption: 🔬 Use cases
+
+   Blob detection (interactive) <examples/blob_interactive.rst>
+   Blob detection (headless) <examples/blob_xvfb.rst>
+   CellProfiler <cellprofiler/README>
+   Classic Segmentation <Classic-Segmentation>
+   Puncta Segmentation <Puncta-Segmentation>
+   other_use_cases
+
+.. toctree::
+   :maxdepth: 3
+   :caption: 🛠️ Development
+
+   Development
+
+.. toctree::
+   :maxdepth: 3
+   :caption: 📚 Reference
+
    api
 
 Indices and tables
