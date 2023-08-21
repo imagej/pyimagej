@@ -4,7 +4,7 @@ Utility functions for converting objects between types.
 import ctypes
 import logging
 import os
-from typing import Dict, Sequence
+from typing import Dict, List, Sequence, Union
 
 import imglyb
 import numpy as np
@@ -457,6 +457,72 @@ def supports_imglabeling_to_labeling(obj):
     :return: True iff conversion to a Python Labeling is possible
     """
     return isinstance(obj, jc.ImgLabeling)
+
+
+#######################
+# IndexImg converters #
+#######################
+
+
+def index_img_to_roi_tree(
+    ij: "jc.ImageJ", index_img: Union[np.ndarray, "jc.RandomAccessibleInterval"]
+) -> "jc.DefaultROITree":
+    """
+    Convert an ImgLib2 or NumPy index image to a ROITree.
+
+    :param ij: The ImageJ2 gateway (see imagej.init)
+    :param index_img: An ImgLib2 or NumPy index image
+    :return: A ROITree with ImgLib2 ROIs
+    """
+    # convert ImgLib2 IndexImgs to NumPy
+    if sj.isjava(index_img):
+        index_img = ij.py.from_java(index_img)
+
+    # get contours and populate a ROITree
+    rois = _get_contours(ij, index_img)
+    roi_tree = jc.DefaultROITree()
+    roi_tree.addROIs(jc.ArrayList(rois))
+
+    return roi_tree
+
+
+def index_img_to_roi_manager(
+    ij: "jc.ImageJ", index_img: Union[np.ndarray, "jc.RandomAccessibleInterval"]
+):
+    """
+    Convert an ImgLib2 or NumPy into ImageJ ROIs and populate
+    the RoiManager.
+
+    :param ij: The ImageJ2 gateway (see imagej.init)
+    :param index_img: An ImgLib2 or NumPy index image
+    """
+    # convert ImgLib2 IndexImgs to NumPy
+    if sj.isjava(index_img):
+        index_img = ij.py.from_java(index_img)
+
+    # get contours and populate the ROIManager
+    rois = _get_contours(ij, index_img)
+    rm = ij.RoiManager.getRoiManager()
+    for r in rois:
+        rm.addRoi(ij.convert().convert(r, jc.PolygonRoi))
+
+
+def _get_contours(ij: "jc.ImageJ", index_img: np.ndarray) -> List:
+    """
+    Compute contours from an index image.
+
+    :param ij: The ImageJ2 gateway (see imagej.init)
+    :param index_img: An ImgLib2 or NumPy index image
+    """
+    contours = []
+    labels = np.unique(index_img)
+    for i in range(len(labels)):
+        if labels[i] == 0:
+            continue
+        mask = index_img == labels[i]
+        contours.append(ij.op().geom().contour(ij.py.to_dataset(mask), True))
+
+    return contours
 
 
 #######################
