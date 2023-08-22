@@ -502,9 +502,12 @@ def index_img_to_roi_manager(
 
     # get contours and populate the ROIManager
     rois = _get_contours(ij, index_img)
-    rm = ij.RoiManager.getRoiManager()
-    for r in rois:
-        rm.addRoi(ij.convert().convert(r, jc.PolygonRoi))
+    try:
+        rm = ij.RoiManager.getRoiManager()
+        for r in rois:
+            rm.addRoi(ij.convert().convert(r, jc.PolygonRoi))
+    except JException:
+        print("The RoiManager is unavailable in headless mode.")
 
 
 def _get_contours(ij: "jc.ImageJ", index_img: np.ndarray) -> List:
