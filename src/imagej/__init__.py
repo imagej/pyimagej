@@ -1357,10 +1357,6 @@ def _create_jvm(
             plugins_dir = str(Path(path) / "plugins")
             sj.config.add_option("-Dplugins.dir=" + plugins_dir)
 
-            # All is well -- now adjust the CWD to the ImageJ2 app directory.
-            # See https://github.com/imagej/pyimagej/issues/150.
-            os.chdir(path)
-
     elif re.match("^(/|[A-Za-z]:)", ij_dir_or_version_or_endpoint):
         # Looks like a file path was intended, but it's not a folder.
         path = ij_dir_or_version_or_endpoint
