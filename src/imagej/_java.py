@@ -131,6 +131,10 @@ class MyJavaClasses(JavaClasses):
         return "net.imglib2.img.ImgView"
 
     @JavaClasses.java_import
+    def DefaultWritablePolygon2D(self):
+        return "net.imglib2.roi.geom.real.DefaultWritablePolygon2D"
+
+    @JavaClasses.java_import
     def ImgLabeling(self):
         return "net.imglib2.roi.labeling.ImgLabeling"
 

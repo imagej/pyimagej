@@ -510,12 +510,15 @@ def index_img_to_roi_manager(
         print("The RoiManager is unavailable in headless mode.")
 
 
-def _get_contours(ij: "jc.ImageJ", index_img: np.ndarray) -> List:
+def _get_contours(
+    ij: "jc.ImageJ", index_img: np.ndarray
+) -> List["jc.DefaultWritablePolygon2D"]:
     """
     Compute contours from an index image.
 
     :param ij: The ImageJ2 gateway (see imagej.init)
     :param index_img: An ImgLib2 or NumPy index image
+    :return: A list of imglib2 2D poylgon ROIs
     """
     contours = []
     labels = np.unique(index_img)
