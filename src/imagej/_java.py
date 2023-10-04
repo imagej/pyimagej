@@ -139,6 +139,10 @@ class MyJavaClasses(JavaClasses):
         return "net.imglib2.roi.labeling.ImgLabeling"
 
     @JavaClasses.java_import
+    def LabelRegions(self):
+        return "net.imglib2.roi.labeling.LabelRegions"
+
+    @JavaClasses.java_import
     def Named(self):
         return "org.scijava.Named"
 
