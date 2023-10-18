@@ -32,11 +32,9 @@ scikit-image, CellProfiler, OpenCV, ITK and many more.
    :maxdepth: 3
    :caption: 🔬 Use cases
 
-   Blob detection (interactive) <examples/blob_interactive.rst>
-   Blob detection (headless) <examples/blob_xvfb.rst>
-   CellProfiler <cellprofiler/README>
-   Classic Segmentation <Classic-Segmentation>
-   Puncta Segmentation <Puncta-Segmentation>
+   imagej-ops <imagej-ops-use-cases>
+   Integration <integration-use-cases>
+   Segmentation <segmentation-use-cases>
    other_use_cases
 
 .. toctree::
