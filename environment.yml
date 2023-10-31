@@ -1,9 +1,9 @@
 # Use this file to construct an environment for working
 # with the PyImageJ tutorial notebooks in the doc folder.
 #
-# First, install mambaforge:
+# First, install miniforge3:
 #
-#   https://github.com/conda-forge/miniforge#mambaforge
+#   https://github.com/conda-forge/miniforge#miniforge3
 #
 # Then run:
 #

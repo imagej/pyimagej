@@ -7,7 +7,7 @@ Python, you do not need to follow any of these instructions.
 
 ## Configuring a conda environment for development
 
-Install [Mambaforge](https://github.com/conda-forge/miniforge#mambaforge).
+Install [Miniforge3](https://github.com/conda-forge/miniforge#miniforge3).
 Then:
 
 ```

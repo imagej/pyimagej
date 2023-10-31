@@ -18,7 +18,7 @@ Note: We strongly recommend using
 than plain Conda, because Conda is unfortunately terribly slow at configuring
 environments.
 
-1. [Install Mambaforge](https://github.com/conda-forge/miniforge#mambaforge).
+1. [Install Miniforge3](https://github.com/conda-forge/miniforge#miniforge3).
 
 2. Install PyImageJ into a new environment:
    ```
