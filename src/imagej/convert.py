@@ -512,7 +512,7 @@ def index_img_to_roi_manager(
 
 def _get_contours(
     ij: "jc.ImageJ", index_img: "jc.RandomAccessibleInterval"
-) -> List["jc.DefaultWritablePolygon2D"]:
+) -> List["jc.WritablePolygon2D"]:
     """Compute contours from an index image.
 
     Compute the contours from an index image by converting the image into
@@ -520,7 +520,7 @@ def _get_contours(
 
     :param ij: The ImageJ2 gateway (see imagej.init)
     :param index_img: An RandomAccessibleInterval index image
-    :return: A list of DefaultWritablePolygon2D ROIs
+    :return: A list of WritablePolygon2D ROIs
     """
     # convert index_img to img_labeling
     contours = []
