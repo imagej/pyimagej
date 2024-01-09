@@ -4,7 +4,7 @@ Utility functions for converting objects between types.
 import ctypes
 import logging
 import os
-from typing import Dict, Sequence
+from typing import Dict, List, Sequence, Union
 
 import imglyb
 import numpy as np
@@ -457,6 +457,80 @@ def supports_imglabeling_to_labeling(obj):
     :return: True iff conversion to a Python Labeling is possible
     """
     return isinstance(obj, jc.ImgLabeling)
+
+
+#######################
+# IndexImg converters #
+#######################
+
+
+def index_img_to_roi_tree(
+    ij: "jc.ImageJ", index_img: Union[np.ndarray, "jc.RandomAccessibleInterval"]
+) -> "jc.DefaultROITree":
+    """
+    Convert an ImgLib2 or NumPy index image to a ROITree.
+
+    :param ij: The ImageJ2 gateway (see imagej.init)
+    :param index_img: An ImgLib2 or NumPy index image
+    :return: A ROITree with ImgLib2 ROIs
+    """
+    # convert NumPy index images to Img
+    if not sj.isjava(index_img):
+        index_img = ij.py.to_java(index_img)
+
+    # get contours and populate a ROITree
+    rois = _get_contours(ij, index_img)
+    roi_tree = jc.DefaultROITree()
+    roi_tree.addROIs(jc.ArrayList(rois))
+
+    return roi_tree
+
+
+def index_img_to_roi_manager(
+    ij: "jc.ImageJ", index_img: Union[np.ndarray, "jc.RandomAccessibleInterval"]
+):
+    """
+    Convert an ImgLib2 or NumPy into ImageJ ROIs and populate
+    the RoiManager.
+
+    :param ij: The ImageJ2 gateway (see imagej.init)
+    :param index_img: An ImgLib2 or NumPy index image
+    """
+    # convert NumPy index images to Img
+    if not sj.isjava(index_img):
+        index_img = ij.py.to_java(index_img)
+
+    # get contours and populate the ROIManager
+    rois = _get_contours(ij, index_img)
+    try:
+        rm = ij.RoiManager.getRoiManager()
+        for r in rois:
+            rm.addRoi(ij.convert().convert(r, jc.PolygonRoi))
+    except JException:
+        print("The RoiManager is unavailable in headless mode.")
+
+
+def _get_contours(
+    ij: "jc.ImageJ", index_img: "jc.RandomAccessibleInterval"
+) -> List["jc.WritablePolygon2D"]:
+    """Compute contours from an index image.
+
+    Compute the contours from an index image by converting the image into
+    an ImgLabeling and applying the contour op on each region.
+
+    :param ij: The ImageJ2 gateway (see imagej.init)
+    :param index_img: An RandomAccessibleInterval index image
+    :return: A list of WritablePolygon2D ROIs
+    """
+    # convert index_img to img_labeling
+    contours = []
+    img_labeling = ij.convert().convert(index_img, jc.ImgLabeling)
+    regions = jc.LabelRegions(img_labeling)
+    # apply contour op to each region
+    for r in regions:
+        contours.append(ij.op().geom().contour(r, True))
+
+    return contours
 
 
 #######################

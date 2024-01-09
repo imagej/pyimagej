@@ -9,4 +9,5 @@ These are use cases demonstrating segmentation workflows with PyImageJ
     Blob detection (interactive) <examples/blob_interactive.rst>
     Blob detection (headless) <examples/blob_xvfb.rst>
     Classic Segmentation <Classic-Segmentation>
+    Cellpose/StarDist Segmentation <Cellpose-StarDist-Segmentation>
     Puncta Segmentation <Puncta-Segmentation>

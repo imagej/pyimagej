@@ -6,6 +6,7 @@ import pytest
 import scyjava as sj
 import xarray as xr
 
+import imagej.convert as convert
 import imagej.dims as dims
 import imagej.images as images
 from imagej._java import jc
@@ -55,6 +56,20 @@ def get_imgplus(ij_fixture):
         t.set(rng.nextInt(256))
 
     return imgplus
+
+
+def get_index_narr():
+    """Get an Index image."""
+    index_narr = np.zeros((500, 500), dtype=int)
+    circles = [(100, 100, 50), (250, 300, 75), (400, 200, 40)]
+
+    # draw circles in the index image
+    for label, (center_x, center_y, radius) in enumerate(circles, start=1):
+        y, x = np.ogrid[-center_x : 500 - center_x, -center_y : 500 - center_y]
+        mask = x**2 + y**2 <= radius**2
+        index_narr[mask] = label
+
+    return index_narr
 
 
 def get_nparr():
@@ -456,6 +471,28 @@ def test_non_numeric_coord_on_xarr_conversion(ij_fixture):
     # all axes should be DefaultLinearAxis
     for ax in axes:
         assert isinstance(ax, jc.DefaultLinearAxis)
+
+
+def test_index_image_converts_to_imglib_roi(ij_fixture):
+    index_narr = get_index_narr()
+    roi_tree = convert.index_img_to_roi_tree(ij_fixture, index_narr)
+    # ROI dimensions (max_a, max_b, min_a, min_b)
+    ref_roi_dims = (
+        (150.0, 150.0, 50.0, 50.0),
+        (375.0, 325.0, 225.0, 175.0),
+        (240.0, 440.0, 160.0, 360.0),
+    )
+    # extract each ROI into a python List
+    rois = []
+    for i in range(3):
+        rois.append(roi_tree.children().get(i).data())
+    # contour/ROI dimensions should match roi_dims
+    for i in range(3):
+        max_dims = ij_fixture.py.from_java(rois[i].maxAsDoubleArray())
+        min_dims = ij_fixture.py.from_java(rois[i].minAsDoubleArray())
+        roi_dims = np.concatenate((max_dims, min_dims))
+        for j in range(4):
+            assert ref_roi_dims[i][j] == roi_dims[j]
 
 
 dataset_conversion_parameters = [

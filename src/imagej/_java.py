@@ -39,12 +39,20 @@ class MyJavaClasses(JavaClasses):
         return "java.lang.Throwable"
 
     @JavaClasses.java_import
+    def ArrayList(self):
+        return "java.util.ArrayList"
+
+    @JavaClasses.java_import
     def ImagePlus(self):
         return "ij.ImagePlus"
 
     @JavaClasses.java_import
     def ResultsTable(self):
         return "ij.measure.ResultsTable"
+
+    @JavaClasses.java_import
+    def PolygonRoi(self):
+        return "ij.gui.PolygonRoi"
 
     @JavaClasses.java_import
     def ImageMetadata(self):
@@ -95,6 +103,10 @@ class MyJavaClasses(JavaClasses):
         return "net.imagej.axis.CalibratedAxis"
 
     @JavaClasses.java_import
+    def DefaultROITree(self):
+        return "net.imagej.roi.DefaultROITree"
+
+    @JavaClasses.java_import
     def ClassUtils(self):
         return "org.scijava.util.ClassUtils"
 
@@ -119,8 +131,16 @@ class MyJavaClasses(JavaClasses):
         return "net.imglib2.img.ImgView"
 
     @JavaClasses.java_import
+    def WritablePolygon2D(self):
+        return "net.imglib2.roi.geom.real.WritablePolygon2D"
+
+    @JavaClasses.java_import
     def ImgLabeling(self):
         return "net.imglib2.roi.labeling.ImgLabeling"
+
+    @JavaClasses.java_import
+    def LabelRegions(self):
+        return "net.imglib2.roi.labeling.LabelRegions"
 
     @JavaClasses.java_import
     def Named(self):
