@@ -34,7 +34,7 @@ def pytest_addoption(parser):
 
 
 @pytest.fixture(scope="session")
-def ij_fixture(request):
+def ij(request):
     """
     Create an ImageJ instance to be used by the whole testing environment
     :param request: Pytest variable passed in to fixtures
@@ -44,11 +44,11 @@ def ij_fixture(request):
     headless = request.config.getoption("--headless")
 
     mode = "headless" if headless else "interactive"
-    ij_wrapper = imagej.init(ij_dir, mode=mode, add_legacy=legacy)
+    ij = imagej.init(ij_dir, mode=mode, add_legacy=legacy)
 
-    yield ij_wrapper
+    yield ij
 
-    ij_wrapper.dispose()
+    ij.dispose()
 
 
 def str2bool(v):
