@@ -5,6 +5,7 @@ import logging
 
 import numpy as np
 import scyjava as sj
+from jpype import JException
 
 from imagej._java import jc
 
@@ -14,6 +15,8 @@ _logger = logging.getLogger(__name__)
 # fmt: off
 _imglib2_types = {
     "net.imglib2.type.logic.NativeBoolType":                          "bool_",
+    "net.imglib2.type.logic.BitType":                                 "bool_",
+    "net.imglib2.type.logic.BoolType":                                "bool_",
     "net.imglib2.type.numeric.integer.ByteType":                      "int8",
     "net.imglib2.type.numeric.integer.ByteLongAccessType":            "int8",
     "net.imglib2.type.numeric.integer.ShortType":                     "int16",
@@ -136,22 +139,25 @@ def copy_rai_into_ndarray(
     if not is_arraylike(narr):
         raise TypeError("narr is not arraylike")
 
-    # Check imglib2 version for fast copy availability.
-    imglib2_version = sj.get_version(jc.RandomAccessibleInterval)
-    if sj.is_version_at_least(imglib2_version, "5.9.0"):
-        # ImgLib2 is new enough to use net.imglib2.util.ImgUtil.copy.
-        ImgUtil = sj.jimport("net.imglib2.util.ImgUtil")
-        ImgUtil.copy(rai, sj.to_java(narr))
-        return narr
+    try:
+        # Check imglib2 version for fast copy availability.
+        imglib2_version = sj.get_version(jc.RandomAccessibleInterval)
+        if sj.is_version_at_least(imglib2_version, "5.9.0"):
+            # ImgLib2 is new enough to use net.imglib2.util.ImgUtil.copy.
+            ImgUtil = sj.jimport("net.imglib2.util.ImgUtil")
+            ImgUtil.copy(rai, sj.to_java(narr))
+            return narr
 
-    # Check imagej-common version for fast copy availability.
-    imagej_common_version = sj.get_version(jc.Dataset)
-    if sj.is_version_at_least(imagej_common_version, "0.30.0"):
-        # ImageJ Common is new enough to use (deprecated)
-        # net.imagej.util.Images.copy.
-        Images = sj.jimport("net.imagej.util.Images")
-        Images.copy(rai, sj.to_java(narr))
-        return narr
+        # Check imagej-common version for fast copy availability.
+        imagej_common_version = sj.get_version(jc.Dataset)
+        if sj.is_version_at_least(imagej_common_version, "0.30.0"):
+            # ImageJ Common is new enough to use (deprecated)
+            # net.imagej.util.Images.copy.
+            Images = sj.jimport("net.imagej.util.Images")
+            Images.copy(rai, sj.to_java(narr))
+            return narr
+    except JException:
+        pass
 
     # Fall back to copying with ImageJ Ops's copy.rai op. In theory, Ops
     # should always be faster. But in practice, the copy.rai operation is
