@@ -18,7 +18,7 @@ Note: We strongly recommend using
 than plain Conda, because Conda is unfortunately terribly slow at configuring
 environments.
 
-1. [Install Miniforge3](https://github.com/conda-forge/miniforge#miniforge3).
+1. [Install Miniforge3](https://github.com/conda-forge/miniforge#miniforge3). This is mainly for specifying the default (and only) channel as `conda-forge`. Refer to 2. for instructions on how to skip/circumvent this installation requirement.
 
 2. Install PyImageJ into a new environment:
    ```
@@ -32,7 +32,12 @@ environments.
    *Please note that openjdk=8 from conda-forge is broken on M1 Mac.*
    If you are using an M1 Mac, you should use openjdk=11 or newer.
 
-3. Whenever you want to use PyImageJ, activate its environment:
+   - If you did not install [Miniforge3](https://github.com/conda-forge/miniforge#miniforge3) as described in 1., you can just add `conda-forge` as a channel to the environment create command (otherwise, the `pimagej` package will not be found):
+     ```
+     mamba create -n pyimagej pyimagej openjdk=11 -c conda-forge
+     ```
+
+4. Whenever you want to use PyImageJ, activate its environment:
    ```
    mamba activate pyimagej
    ```
