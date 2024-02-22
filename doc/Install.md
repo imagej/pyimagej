@@ -32,12 +32,14 @@ environments.
    *Please note that openjdk=8 from conda-forge is broken on M1 Mac.*
    If you are using an M1 Mac, you should use openjdk=11 or newer.
 
-   - If you did not install [Miniforge3](https://github.com/conda-forge/miniforge#miniforge3) as described in 1., you can just add `conda-forge` as a channel to the environment create command (otherwise, the `pimagej` package will not be found):
-     ```
-     mamba create -n pyimagej pyimagej openjdk=11 -c conda-forge
-     ```
+   If you did not install [Miniforge3](https://github.com/conda-forge/miniforge#miniforge3)
+   as described in 1., you can just add `conda-forge` as a channel to the environment
+   create command (otherwise, the `pimagej` package will not be found):
+   ```
+   mamba create -n pyimagej pyimagej openjdk=11 -c conda-forge
+   ```
 
-4. Whenever you want to use PyImageJ, activate its environment:
+3. Whenever you want to use PyImageJ, activate its environment:
    ```
    mamba activate pyimagej
    ```
