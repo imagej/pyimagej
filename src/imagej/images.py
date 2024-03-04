@@ -1,6 +1,7 @@
 """
 Utility functions for creating and working with images.
 """
+
 import logging
 
 import numpy as np

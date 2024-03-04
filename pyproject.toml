@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "pyimagej"
-version = "1.4.2.dev0"
+version = "1.5.0.dev0"
 description = "Python wrapper for ImageJ"
 license = {text = "Apache-2.0"}
 authors = [{name = "ImageJ2 developers", email = "ctrueden@wisc.edu"}]

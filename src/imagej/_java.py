@@ -2,6 +2,7 @@
 Internal utility functions for working with Java objects.
 These are not intended for external use in PyImageJ-based scripts!
 """
+
 import logging
 from functools import lru_cache
 

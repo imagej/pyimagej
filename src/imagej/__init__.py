@@ -31,6 +31,7 @@ Here is an example of opening an image using ImageJ2 and displaying it:
     ij.py.show(image, cmap="gray")
 """
 
+import inspect
 import logging
 import os
 import re
@@ -60,7 +61,8 @@ __author__ = "ImageJ2 developers"
 __version__ = sj.get_version("pyimagej")
 
 _logger = logging.getLogger(__name__)
-rai_lock = threading.Lock()
+_init_callbacks = []
+_rai_lock = threading.Lock()
 
 # Enable debug logging if DEBUG environment variable is set.
 try:
@@ -1007,14 +1009,14 @@ class RAIOperators(object):
     def _ra(self):
         threadLocal = getattr(self, "_threadLocal", None)
         if threadLocal is None:
-            with rai_lock:
+            with _rai_lock:
                 threadLocal = getattr(self, "_threadLocal", None)
                 if threadLocal is None:
                     threadLocal = threading.local()
                     self._threadLocal = threadLocal
         ra = getattr(threadLocal, "ra", None)
         if ra is None:
-            with rai_lock:
+            with _rai_lock:
                 ra = getattr(threadLocal, "ra", None)
                 if ra is None:
                     ra = self.randomAccess()
@@ -1212,12 +1214,33 @@ def init(
         if not success:
             raise RuntimeError("Failed to create a JVM with the requested environment.")
 
+    def run_callbacks(ij):
+        # invoke registered callback functions
+        for callback in _init_callbacks:
+            if len(inspect.signature(callback).parameters) > 0:
+                # if there is a parameter, assume its ij and run it
+                callback(ij)
+            else:
+                # run callbacks that don't take parameters
+                callback()
+
+        return ij
+
     if mode == Mode.GUI:
         # Show the GUI and block.
+        global gateway
+
+        def show_gui_and_run_callbacks():
+            global gateway
+            gateway = _create_gateway()
+            gateway.ui().showUI()
+            run_callbacks(gateway)
+            return gateway
+
         if macos:
             # NB: This will block the calling (main) thread forever!
             try:
-                setupGuiEnvironment(lambda: _create_gateway().ui().showUI())
+                setupGuiEnvironment(show_gui_and_run_callbacks)
             except ModuleNotFoundError as e:
                 if e.msg == "No module named 'PyObjCTools'":
                     advice = (
@@ -1237,16 +1260,47 @@ def init(
                     raise
         else:
             # Create and show the application.
-            gateway = _create_gateway()
-            gateway.ui().showUI()
+            gateway = show_gui_and_run_callbacks()
             # We are responsible for our own blocking.
             # TODO: Poll using something better than ui().isVisible().
             while gateway.ui().isVisible():
                 time.sleep(1)
-            return None
-    else:
-        # HEADLESS or INTERACTIVE mode: create the gateway and return it.
-        return _create_gateway()
+
+        return gateway
+
+    # HEADLESS or INTERACTIVE mode: create the gateway and return it.
+    return run_callbacks(_create_gateway())
+
+
+def when_imagej_starts(f) -> None:
+    """
+    Registers a function to be called immediately after ImageJ2 starts.
+    This is useful especially with GUI mode, to perform additional
+    configuration and operations following initialization of ImageJ2,
+    because the use of GUI mode blocks the calling thread indefinitely.
+
+    :param f: Single-argument function to invoke during imagej.init().
+        The function will be passed the newly created ImageJ2 Gateway
+        as its sole argument, and called as the final action of the
+        init function before it returns or blocks.
+
+    :example:
+
+    .. highlight:: python
+    .. code-block:: python
+
+        import imagej
+
+        # create callback functions
+        imagej.when_imagej_starts(lambda ij: print(ij.getVersion()))
+        imagej.when_imagej_starts(lambda ij: ij.RoiManager.getRoiManager())
+
+        # initialize ImageJ in GUI mode
+        ij = imagej.init(mode='gui')
+    """
+    # Add function to the list of callbacks to invoke upon start_jvm().
+    global _init_callbacks
+    _init_callbacks.append(f)
 
 
 def imagej_main():

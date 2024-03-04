@@ -1,6 +1,7 @@
 """
 Utility functions for converting objects between types.
 """
+
 import ctypes
 import logging
 import os
