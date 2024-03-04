@@ -31,6 +31,7 @@ Here is an example of opening an image using ImageJ2 and displaying it:
     ij.py.show(image, cmap="gray")
 """
 
+import inspect
 import logging
 import os
 import re
@@ -1216,7 +1217,13 @@ def init(
     def run_callbacks(ij):
         # invoke registered callback functions
         for callback in _init_callbacks:
-            callback(ij)
+            if len(inspect.signature(callback).parameters) > 0:
+                # if there is a parameter, assume its ij and run it
+                callback(ij)
+            else:
+                # run callbacks that don't take parameters
+                callback()
+
         return ij
 
     if mode == Mode.GUI:
