@@ -1283,6 +1283,20 @@ def when_imagej_starts(f) -> None:
         The function will be passed the newly created ImageJ2 Gateway
         as its sole argument, and called as the final action of the
         init function before it returns or blocks.
+
+    :example:
+
+    .. highlight:: python
+    .. code-block:: python
+
+        import imagej
+
+        # create callback functions
+        imagej.when_imagej_starts(lambda ij: print(ij.getVersion()))
+        imagej.when_imagej_starts(lambda ij: ij.RoiManager.getRoiManager())
+
+        # initialize ImageJ in GUI mode
+        ij = imagej.init(mode='gui')
     """
     # Add function to the list of callbacks to invoke upon start_jvm().
     global _init_callbacks
