@@ -499,7 +499,7 @@ class ImageJPython:
         return sj.to_java(data, **hints)
 
     def to_xarray(self, data, dim_order=None):
-        """Convert the data into an ImgLib2 Img.
+        """Convert the data into an xarray DataArray.
 
         Converts a Python image (e.g. xarray or numpy array) or Java image (e.g.
         RandomAccessibleInterval) into an xarray.DataArray Python object.
