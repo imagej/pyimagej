@@ -43,7 +43,9 @@ def ij(request):
     legacy = request.config.getoption("--legacy")
     headless = request.config.getoption("--headless")
 
-    imagej.when_imagej_starts(lambda ij: setattr(ij, "_when_imagej_starts_result", "success"))
+    imagej.when_imagej_starts(
+        lambda ij: setattr(ij, "_when_imagej_starts_result", "success")
+    )
 
     mode = "headless" if headless else "interactive"
     ij = imagej.init(ij_dir, mode=mode, add_legacy=legacy)
