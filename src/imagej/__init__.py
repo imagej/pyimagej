@@ -1205,7 +1205,7 @@ def init(
 
     macos = sys.platform == "darwin"
 
-    if macos and mode == Mode.INTERACTIVE:
+    if macos and mode == Mode.INTERACTIVE and _is_main_thread():
         raise EnvironmentError("Sorry, the interactive mode is not available on macOS.")
 
     if not sj.jvm_started():
@@ -1515,6 +1515,14 @@ def _create_jvm(
 
 def _includes_imagej_legacy(items: list):
     return any(item.startswith("net.imagej:imagej-legacy") for item in items)
+
+
+def _is_main_thread():
+    """Detect if on main thread running on the main thread.
+
+    :return: Boolean indicating if the current thread is the main thread.
+    """
+    return threading.current_thread() == threading.main_thread()
 
 
 def _set_ij_env(ij_dir):
