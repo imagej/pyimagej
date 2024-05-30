@@ -44,7 +44,7 @@ PyImageJ has been tested on the following operating systems:
 PyImageJ requires the following packages:
 
 * Python >= 3.7
-* [imglyb] >= 2.0.1
+* [imglyb] >= 2.1.0
 * [jgo] >= 1.0.3
 * [JPype] >= 1.3.0
 * [labeling] >= 0.1.12
