@@ -47,7 +47,7 @@ PyImageJ requires the following packages:
 * [imglyb] >= 2.1.0
 * [jgo] >= 1.0.3
 * [JPype] >= 1.3.0
-* [labeling] >= 0.1.12
+* [labeling] >= 0.1.14
 * [matplotlib] \(optional, for `ij.py.show` function only)
 * [NumPy]
 * [scyjava] >= 1.8.0
