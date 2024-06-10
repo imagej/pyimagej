@@ -19,6 +19,11 @@ than plain Conda, because Conda is unfortunately terribly slow at configuring
 environments.
 
 1. [Install Miniforge3](https://github.com/conda-forge/miniforge#miniforge3).
+   **OR:** If you already have `mamba` installed, activate conda-forge:
+   ```
+   conda config --add channels conda-forge
+   conda config --set channel_priority strict
+   ```
 
 2. Install PyImageJ into a new environment:
    ```
