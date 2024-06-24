@@ -21,7 +21,7 @@ channels:
   - conda-forge
   - defaults
 dependencies:
-  - python >= 3.7
+  - python >= 3.8
   # Project dependencies
   - imglyb >= 2.1.0
   - jgo >= 1.0.3

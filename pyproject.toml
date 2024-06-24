@@ -16,7 +16,6 @@ classifiers = [
     "Intended Audience :: Education",
     "Intended Audience :: Science/Research",
     "Programming Language :: Python :: 3 :: Only",
-    "Programming Language :: Python :: 3.7",
     "Programming Language :: Python :: 3.8",
     "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",
@@ -33,7 +32,7 @@ classifiers = [
 ]
 
 # NB: Keep this in sync with environment.yml AND dev-environment.yml!
-requires-python = ">=3.7"
+requires-python = ">=3.8"
 dependencies = [
     "imglyb >= 2.1.0",
     "jgo >= 1.0.3",
@@ -104,7 +103,7 @@ exclude = ["build", "dist", "doc"]
 extend-ignore = ["E203"]
 # See https://black.readthedocs.io/en/stable/guides/using_black_with_other_tools.html#flake8
 max-line-length = 88
-min_python_version = "3.7"
+min_python_version = "3.8"
 
 [tool.isort]
 profile = "black"
