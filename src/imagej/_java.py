@@ -132,6 +132,10 @@ class MyJavaClasses(JavaClasses):
         return "net.imglib2.img.ImgView"
 
     @JavaClasses.java_import
+    def Mesh(self):
+        return "net.imglib2.mesh.Mesh"
+
+    @JavaClasses.java_import
     def WritablePolygon2D(self):
         return "net.imglib2.roi.geom.real.WritablePolygon2D"
 

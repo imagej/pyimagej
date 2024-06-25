@@ -18,6 +18,7 @@ import imagej.dims as dims
 import imagej.images as images
 from imagej._java import jc
 from imagej._java import log_exception as _log_exception
+from mpl_toolkits.mplot3d.art3d import Poly3DCollection
 
 _logger = logging.getLogger(__name__)
 
@@ -532,6 +533,27 @@ def _get_contours(
         contours.append(ij.op().geom().contour(r, True))
 
     return contours
+
+
+###################
+# Mesh converters #
+###################
+
+
+def mesh_to_poly3dcollection(mesh: "jc.Mesh") -> Poly3DCollection:
+    """Convert a mesh into a matplotlib Poly3DCollection.
+
+    :param mesh: An ImgLib2 mesh.
+    :return: A Poly3DCollection.
+    """
+    tri_narrs = []
+    for t in mesh.triangles():
+        verts = ((t.v0xf(), t.v0yf(), t.v0zf()),
+                 (t.v1xf(), t.v1yf(), t.v1zf()),
+                 (t.v2xf(), t.v2yf(), t.v2zf()))
+        tri_narrs.append(np.array(verts))
+
+    return Poly3DCollection(np.array(tri_narrs))
 
 
 #######################
