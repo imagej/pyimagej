@@ -133,7 +133,7 @@ on Google Colab with a wrapped local Fiji installation:
     ```bash
     !wget https://downloads.imagej.net/fiji/latest/fiji-linux64.zip > /dev/null && unzip fiji-linux64.zip > /dev/null
     !rm fiji-linux64.zip
-    !wget https://imagej.nih.gov/ij/plugins/download/Filter_Rank.class > /dev/null
+    !wget  https://imagej.net/ij/plugins/download/Filter_Rank.class > /dev/null
     !mv Filter_Rank.class Fiji.app/plugins
     ```
 
