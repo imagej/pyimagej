@@ -38,6 +38,7 @@ import subprocess
 import sys
 import threading
 import time
+from ctypes import cdll
 from enum import Enum
 from functools import lru_cache
 from pathlib import Path
@@ -1206,7 +1207,11 @@ def init(
     macos = sys.platform == "darwin"
 
     if macos and mode == Mode.INTERACTIVE:
-        raise EnvironmentError("Sorry, the interactive mode is not available on macOS.")
+        # check for main thread only on macOS
+        if _macos_is_main_thread():
+            raise EnvironmentError(
+                "Sorry, the interactive mode is not available on macOS."
+            )
 
     if not sj.jvm_started():
         success = _create_jvm(ij_dir_or_version_or_endpoint, mode, add_legacy)
@@ -1515,6 +1520,24 @@ def _create_jvm(
 
 def _includes_imagej_legacy(items: list):
     return any(item.startswith("net.imagej:imagej-legacy") for item in items)
+
+
+def _macos_is_main_thread():
+    """Detect if the current thread is the main thread on macOS.
+
+    :return: Boolean indicating if the current thread is the main thread.
+    """
+    # try to load the pthread library
+    try:
+        pthread = cdll.LoadLibrary("libpthread.dylib")
+    except OSError as e:
+        print("No pthread library found.", e)
+
+    # detect if main thread
+    if pthread.pthread_main_np() == 1:
+        return True
+    else:
+        return False
 
 
 def _set_ij_env(ij_dir):
