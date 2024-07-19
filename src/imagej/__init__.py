@@ -1530,10 +1530,13 @@ def _macos_is_main_thread():
     # try to load the pthread library
     try:
         pthread = cdll.LoadLibrary("libpthread.dylib")
-    except OSError as e:
-        print("No pthread library found.", e)
+    except OSError as exc:
+        _log_exception(_logger, exc)
+        print("No pthread library found.")
+        # assume the current thread is the main thread
+        return True
 
-    # detect if main thread
+    # detect if the current thread is the main thread
     if pthread.pthread_main_np() == 1:
         return True
     else:
