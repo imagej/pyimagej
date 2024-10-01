@@ -96,7 +96,7 @@ jobs:
           # Create env with dev packages
           auto-update-conda: true
           python-version: 3.9
-          miniforge-variant: Mambaforge
+          miniforge-version: latest
           environment-file: dev-environment.yml
           # Activate pyimagej-dev environment
           activate-environment: pyimagej-dev
