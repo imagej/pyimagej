@@ -21,6 +21,9 @@ check:
 lint: check
 	bin/lint.sh
 
+fmt: check
+	bin/fmt.sh
+
 test: check
 	bin/test.sh
 

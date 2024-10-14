@@ -39,22 +39,17 @@ dependencies:
   - pooch # for scikit image
   - scikit-image
   # Developer tools
-  - autopep8
-  - black
-  - flake8
-  - flake8-typing-imports
-  - isort
   - myst-nb
   - pre-commit
   - python-build
   - pytest
   - pytest-cov
+  - ruff
   - sphinx
   - sphinx_rtd_theme
   - pip
   - pip:
     - readthedocs-sphinx-search
-    - flake8-pyproject
     - validate-pyproject[all]
     # Project from source
     - -e .
