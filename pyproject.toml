@@ -49,17 +49,12 @@ dependencies = [
 # NB: Keep this in sync with dev-environment.yml!
 # Development tools
 dev = [
-    "autopep8",
-    "black",
     "build",
-    "flake8",
-    "flake8-pyproject",
-    "flake8-typing-imports",
-    "isort",
     "myst-nb",
     "pre-commit",
     "pytest",
     "pytest-cov",
+    "ruff",
     "sphinx",
     "sphinx_rtd_theme",
     "validate-pyproject[all]",
@@ -96,20 +91,19 @@ include-package-data = false
 where = ["src"]
 namespaces = false
 
-[tool.black]
-exclude = 'dist|doc'
+# ruff configuration
+[tool.ruff]
+line-length = 88
+src = ["src", "tests"]
+include = ["pyproject.toml", "src/**/*.py", "tests/**/*.py"]
+extend-exclude = ["bin", "build", "dist"]
 
-# Thanks to Flake8-pyproject, we can configure flake8 here!
-[tool.flake8]
-exclude = ["build", "dist", "doc"]
+[tool.ruff.lint]
 extend-ignore = ["E203"]
-# See https://black.readthedocs.io/en/stable/guides/using_black_with_other_tools.html#flake8
-max-line-length = 88
-min_python_version = "3.8"
 
-[tool.isort]
-profile = "black"
-skip = ["doc"]
+[tool.ruff.lint.per-file-ignores]
+# Ignore `E402` (import violations) in all `__init__.py` files, and in `path/to/file.py`.
+"__init__.py" = ["E402", "F401"]
 
 [tool.pytest.ini_options]
 addopts = "--ignore=docs"

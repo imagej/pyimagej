@@ -55,18 +55,11 @@ jobs:
       - uses: actions/setup-python@v3
 
       - name: Lint code
-        uses: psf/black@stable
-
-      - name: Flake code
         run: |
-          python -m pip install flake8 Flake8-pyproject flake8-typing-imports
-          python -m flake8 src tests
-
-      - name: Check import ordering
-        uses: isort/isort-action@master
-        with:
-          configuration: --check-only
-
+          python -m pip install ruff
+          ruff check
+          ruff format --check
+        
       - name: Validate pyproject.toml
         run: |
           python -m pip install validate-pyproject[all]
