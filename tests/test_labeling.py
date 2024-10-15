@@ -31,16 +31,16 @@ def py_labeling():
 
 
 @pytest.fixture(scope="module")
-def java_labeling(ij_fixture):
+def java_labeling(ij):
     img = np.zeros((4, 4), dtype=np.int32)
     img[:2, :2] = 6
     img[:2, 2:] = 3
     img[2:, :2] = 7
     img[2:, 2:] = 4
-    img_java = ij_fixture.py.to_java(img)
+    img_java = ij.py.to_java(img)
     example_lists = [[], [1], [2], [1, 2], [2, 3], [3], [1, 4], [3, 4]]
     sets = [set(example) for example in example_lists]
-    sets_java = ij_fixture.py.to_java(sets)
+    sets_java = ij.py.to_java(sets)
 
     ImgLabeling = sj.jimport("net.imglib2.roi.labeling.ImgLabeling")
     return ImgLabeling.fromImageAndLabelSets(img_java, sets_java)
@@ -61,21 +61,21 @@ def assert_labels_equality(
 # -- Tests --
 
 
-def test_py_to_java(ij_fixture, py_labeling, java_labeling):
-    j_convert = ij_fixture.py.to_java(py_labeling)
+def test_py_to_java(ij, py_labeling, java_labeling):
+    j_convert = ij.py.to_java(py_labeling)
     # Assert indexImg equality
-    expected_img = ij_fixture.py.from_java(java_labeling.getIndexImg())
-    actual_img = ij_fixture.py.from_java(j_convert.getIndexImg())
+    expected_img = ij.py.from_java(java_labeling.getIndexImg())
+    actual_img = ij.py.from_java(j_convert.getIndexImg())
     assert np.array_equal(expected_img, actual_img)
     # Assert label sets equality
-    expected_labels = ij_fixture.py.from_java(java_labeling.getMapping().getLabelSets())
-    actual_labels = ij_fixture.py.from_java(j_convert.getMapping().getLabelSets())
+    expected_labels = ij.py.from_java(java_labeling.getMapping().getLabelSets())
+    actual_labels = ij.py.from_java(j_convert.getMapping().getLabelSets())
     assert expected_labels == actual_labels
 
 
-def test_java_to_py(ij_fixture, py_labeling, java_labeling):
+def test_java_to_py(ij, py_labeling, java_labeling):
     # Convert
-    p_convert = ij_fixture.py.from_java(java_labeling)
+    p_convert = ij.py.from_java(java_labeling)
     # Assert indexImg equality
     exp_img, exp_labels = py_labeling.get_result()
     act_img, act_labels = p_convert.get_result()
@@ -88,10 +88,10 @@ def test_java_to_py(ij_fixture, py_labeling, java_labeling):
     )
 
 
-def test_py_java_py(ij_fixture, py_labeling):
+def test_py_java_py(ij, py_labeling):
     # Convert
-    to_java = ij_fixture.py.to_java(py_labeling)
-    back_to_py = ij_fixture.py.from_java(to_java)
+    to_java = ij.py.to_java(py_labeling)
+    back_to_py = ij.py.from_java(to_java)
     print(py_labeling.label_sets)
     print(back_to_py.label_sets)
     # Assert indexImg equality

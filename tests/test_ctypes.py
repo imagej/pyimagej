@@ -29,14 +29,14 @@ parameters = [
 
 
 @pytest.mark.parametrize(argnames="ctype,jtype_str,value", argvalues=parameters)
-def test_ctype_to_realtype(ij_fixture, ctype, jtype_str, value):
+def test_ctype_to_realtype(ij, ctype, jtype_str, value):
     py_type = ctype(value)
     # Convert the ctype into a RealType
-    converted = ij_fixture.py.to_java(py_type)
+    converted = ij.py.to_java(py_type)
     jtype = sj.jimport(jtype_str)
     assert isinstance(converted, jtype)
     assert converted.get() == value
     # Convert the RealType back into a ctype
-    converted_back = ij_fixture.py.from_java(converted)
+    converted_back = ij.py.from_java(converted)
     assert isinstance(converted_back, ctype)
     assert converted_back.value == value
