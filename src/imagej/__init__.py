@@ -1227,6 +1227,7 @@ def init(
     if mode == Mode.GUI:
         # Show the GUI and block.
         global gateway
+        gateway = None
 
         def show_gui_and_run_callbacks():
             global gateway
@@ -1261,10 +1262,11 @@ def init(
             gateway = show_gui_and_run_callbacks()
             # We are responsible for our own blocking.
             # TODO: Poll using something better than ui().isVisible().
-            while gateway.ui().isVisible():
+            while sj.jvm_started() and gateway.ui().isVisible():
                 time.sleep(1)
 
-        return gateway
+        del gateway
+        return None
 
     # HEADLESS or INTERACTIVE mode: create the gateway and return it.
     return run_callbacks(_create_gateway())
