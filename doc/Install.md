@@ -89,8 +89,14 @@ It is possible to dynamically install PyImageJ from within a Jupyter notebook.
 For your first cell, write:
 ```
 import sys, os
-!mamba install --yes --prefix {sys.prefix} pyimagej openjdk=11
-os.environ['JAVA_HOME'] = os.sep.join(sys.executable.split(os.sep)[:-2] + ['jre'])
+prefix = sys.prefix.replace("\\", "/") # Handle Windows Paths
+%mamba install --yes --prefix {prefix} -c conda-forge pyimagej openjdk=11
+jvm_lib_path = [sys.prefix, 'lib', 'jvm']
+
+# platform specific JVM lib path locations
+if sys.platform == "win32":
+    jvm_lib_path.insert(1, 'Library')
+os.environ['JAVA_HOME'] = os.sep.join(jvm_lib_path)
 ```
 
 This approach is useful for [JupyterHub](https://jupyter.org/hub) on the cloud,
