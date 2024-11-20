@@ -5,6 +5,7 @@ import numpy as np
 import pytest
 import scyjava as sj
 import xarray as xr
+from jpype import JLong
 
 import imagej.convert as convert
 import imagej.dims as dims
@@ -374,6 +375,21 @@ def test_dataset_converts_to_xarray(ij_fixture):
     xarr = get_xarr()
     dataset = ij_fixture.py.to_java(xarr)
     assert_inverted_xarr_equal_to_xarr(dataset, ij_fixture, xarr)
+
+
+def test_bittype_img_to_ndarray(ij_fixture):
+    ArrayImgs = sj.jimport("net.imglib2.img.array.ArrayImgs")
+    dims = JLong[:] @ [10, 10, 10]
+    j_img = ArrayImgs.bits(dims)
+    p_img = ij_fixture.py.from_java(j_img)
+    assert p_img.dtype == np.bool_
+
+
+def test_boolean_ndarray_to_img(ij_fixture):
+    narr = np.ones((10, 10), dtype=np.bool_)
+    j_img = ij_fixture.py.to_java(narr)
+    BooleanType = sj.jimport("net.imglib2.type.BooleanType")
+    assert isinstance(j_img.firstElement(), BooleanType)
 
 
 def test_image_metadata_conversion(ij_fixture):
