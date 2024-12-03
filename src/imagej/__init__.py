@@ -38,6 +38,7 @@ import subprocess
 import sys
 import threading
 import time
+from ctypes import cdll
 from enum import Enum
 from functools import lru_cache
 from pathlib import Path
@@ -60,7 +61,8 @@ __author__ = "ImageJ2 developers"
 __version__ = sj.get_version("pyimagej")
 
 _logger = logging.getLogger(__name__)
-rai_lock = threading.Lock()
+_init_callbacks = []
+_rai_lock = threading.Lock()
 
 # Enable debug logging if DEBUG environment variable is set.
 try:
@@ -1007,14 +1009,14 @@ class RAIOperators(object):
     def _ra(self):
         threadLocal = getattr(self, "_threadLocal", None)
         if threadLocal is None:
-            with rai_lock:
+            with _rai_lock:
                 threadLocal = getattr(self, "_threadLocal", None)
                 if threadLocal is None:
                     threadLocal = threading.local()
                     self._threadLocal = threadLocal
         ra = getattr(threadLocal, "ra", None)
         if ra is None:
-            with rai_lock:
+            with _rai_lock:
                 ra = getattr(threadLocal, "ra", None)
                 if ra is None:
                     ra = self.randomAccess()
@@ -1205,19 +1207,39 @@ def init(
     macos = sys.platform == "darwin"
 
     if macos and mode == Mode.INTERACTIVE:
-        raise EnvironmentError("Sorry, the interactive mode is not available on macOS.")
+        # check for main thread only on macOS
+        if _macos_is_main_thread():
+            raise EnvironmentError(
+                "Sorry, the interactive mode is not available on macOS."
+            )
 
     if not sj.jvm_started():
         success = _create_jvm(ij_dir_or_version_or_endpoint, mode, add_legacy)
         if not success:
             raise RuntimeError("Failed to create a JVM with the requested environment.")
 
+    def run_callbacks(ij):
+        # invoke registered callback functions
+        for callback in _init_callbacks:
+            callback(ij)
+        return ij
+
     if mode == Mode.GUI:
         # Show the GUI and block.
+        global gateway
+        gateway = None
+
+        def show_gui_and_run_callbacks():
+            global gateway
+            gateway = _create_gateway()
+            gateway.ui().showUI()
+            run_callbacks(gateway)
+            return gateway
+
         if macos:
             # NB: This will block the calling (main) thread forever!
             try:
-                setupGuiEnvironment(lambda: _create_gateway().ui().showUI())
+                setupGuiEnvironment(show_gui_and_run_callbacks)
             except ModuleNotFoundError as e:
                 if e.msg == "No module named 'PyObjCTools'":
                     advice = (
@@ -1237,16 +1259,34 @@ def init(
                     raise
         else:
             # Create and show the application.
-            gateway = _create_gateway()
-            gateway.ui().showUI()
+            gateway = show_gui_and_run_callbacks()
             # We are responsible for our own blocking.
             # TODO: Poll using something better than ui().isVisible().
-            while gateway.ui().isVisible():
+            while sj.jvm_started() and gateway.ui().isVisible():
                 time.sleep(1)
-            return None
-    else:
-        # HEADLESS or INTERACTIVE mode: create the gateway and return it.
-        return _create_gateway()
+
+        del gateway
+        return None
+
+    # HEADLESS or INTERACTIVE mode: create the gateway and return it.
+    return run_callbacks(_create_gateway())
+
+
+def when_imagej_starts(f) -> None:
+    """
+    Registers a function to be called immediately after ImageJ2 starts.
+    This is useful especially with GUI mode, to perform additional
+    configuration and operations following initialization of ImageJ2,
+    because the use of GUI mode blocks the calling thread indefinitely.
+
+    :param f: Single-argument function to invoke during imagej.init().
+        The function will be passed the newly created ImageJ2 Gateway
+        as its sole argument, and called as the final action of the
+        init function before it returns or blocks.
+    """
+    # Add function to the list of callbacks to invoke upon start_jvm().
+    global _init_callbacks
+    _init_callbacks.append(f)
 
 
 def imagej_main():
@@ -1482,6 +1522,27 @@ def _create_jvm(
 
 def _includes_imagej_legacy(items: list):
     return any(item.startswith("net.imagej:imagej-legacy") for item in items)
+
+
+def _macos_is_main_thread():
+    """Detect if the current thread is the main thread on macOS.
+
+    :return: Boolean indicating if the current thread is the main thread.
+    """
+    # try to load the pthread library
+    try:
+        pthread = cdll.LoadLibrary("libpthread.dylib")
+    except OSError as exc:
+        _log_exception(_logger, exc)
+        print("No pthread library found.")
+        # assume the current thread is the main thread
+        return True
+
+    # detect if the current thread is the main thread
+    if pthread.pthread_main_np() == 1:
+        return True
+    else:
+        return False
 
 
 def _set_ij_env(ij_dir):
