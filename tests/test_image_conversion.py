@@ -560,6 +560,13 @@ xarr_conversion_parameters = [
         ("t", "z", "y", "x", "c"),
         (5, 4, 6, 12, 3),
     ),
+    (
+        get_xarr,
+        "python",
+        ["foo", "bar", "a", "z", "monday"],
+        ("foo", "bar", "a", "z", "monday"),
+        (5, 4, 6, 12, 3),
+    ),
 ]
 
 
