@@ -652,11 +652,7 @@ def _rename_xarray_dims(xarr, new_dims: Sequence[str]):
     for i in range(xarr.ndim):
         dim_map[curr_dims[i]] = new_dims[i]
 
-    # swap dims and set indexed coordinates
-    coord_map = {v: k for k, v in dim_map.items()}
-    xarr = xarr.swap_dims(dim_map)
-
-    return xarr.set_index(coord_map)
+    return xarr.rename(dim_map)
 
 
 def _delete_labeling_files(filepath):
