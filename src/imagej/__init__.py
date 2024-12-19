@@ -421,13 +421,19 @@ class ImageJPython:
         pixels = imp.getProcessor().getPixels()
         stack.setPixels(pixels, imp.getCurrentSlice())
 
-    def to_dataset(self, data, dim_order=None):
+    def to_dataset(self, data, dim_order=None) -> "jc.Dataset":
         """Convert the data into an ImageJ2 Dataset.
 
         Converts a Python image (e.g. xarray or numpy array) or Java image (e.g.
         RandomAccessibleInterval or Img) into a net.imagej.Dataset Java object.
 
         :param data: Image object to be converted to Dataset.
+        :param dim_order: A sequence of strings (i.e. a list or tuple) specifying the
+            new dimension names. The length of dim_order must be less than or equal to
+            the number of dimensions in the input data. dim_order sequences lengths
+            that are smaller than the dimension shape length are populated with "dim_n"
+            where "n" is an incrementing counter. Specifying a new dimension order does
+            not changes its shape or coordinates, but only renames the dimensions.
         :return: A net.imagej.Dataset.
         """
         if sj.isjava(data):
@@ -500,13 +506,19 @@ class ImageJPython:
 
         return sj.to_java(data, **hints)
 
-    def to_xarray(self, data, dim_order=None):
+    def to_xarray(self, data, dim_order=None) -> xr.DataArray:
         """Convert the data into an xarray DataArray.
 
         Converts a Python image (e.g. xarray or numpy array) or Java image (e.g.
         RandomAccessibleInterval) into an xarray.DataArray Python object.
 
         :param data: Image object to be converted to xarray.DataArray.
+        :param dim_order: A sequence of strings (i.e. a list or tuple) specifying the
+            new dimension names. The length of dim_order must be less than or equal to
+            the number of dimensions in the input data. dim_order sequences lengths
+            that are smaller than the dimension shape length are populated with "dim_n"
+            where "n" is an incrementing counter. Specifying a new dimension order does
+            not changes its shape or coordinates, but only renames the dimensions.
         :return: An xarray.DataArray.
         """
         if sj.isjava(data):
