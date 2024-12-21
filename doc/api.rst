@@ -91,9 +91,21 @@ Annotated space addons
 PyImageJ submodules
 -------------------
 
+imagej.convert
+~~~~~~~~~~~~~~
+.. automodule:: convert
+   :members:
+   :show-inheritance:
+
 imagej.dims
 ~~~~~~~~~~~
 .. automodule:: dims
+   :members:
+   :show-inheritance:
+
+imagej.doctor
+~~~~~~~~~~~~~
+.. automodule:: doctor
    :members:
    :show-inheritance:
 
@@ -103,8 +115,8 @@ imagej.stack
    :members:
    :show-inheritance:
 
-imagej.doctor
+imagej.images
 ~~~~~~~~~~~~~
-.. automodule:: doctor
+.. automodule:: images
    :members:
    :show-inheritance:
