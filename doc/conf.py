@@ -70,5 +70,4 @@ html_static_path = []
 html_logo = "doc-images/logo.svg"
 html_theme_options = {
     "logo_only": True,
-    "display_version": False,
 }
