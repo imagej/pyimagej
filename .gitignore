@@ -5,6 +5,7 @@
 /.pytest_cache/
 /build/
 /dist/
+/doc/_build/
 /src/pyimagej.egg-info/
 /Fiji.app
 /fiji-nojre.zip
