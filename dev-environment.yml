@@ -46,6 +46,7 @@ dependencies:
   - pytest-cov
   - ruff
   - sphinx
+  - sphinx-copybutton
   - sphinx_rtd_theme
   - pip
   - pip:
