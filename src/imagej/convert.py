@@ -27,33 +27,35 @@ _logger = logging.getLogger(__name__)
 ###############
 
 
-def java_to_dataset(ij: "jc.ImageJ", jobj) -> "jc.Dataset":
+def java_to_dataset(ij: "jc.ImageJ", jobj, dim_order=None) -> "jc.Dataset":
     """
     Convert the given Java image data into an ImageJ2 Dataset.
 
     :param ij: The ImageJ2 gateway (see imagej.init)
     :param jobj: The Java image (e.g. RandomAccessibleInterval)
+    :param dim_order: Sequence of desired dimensions for the Dataset.
     :return: The converted ImageJ2 Dataset
     """
     assert sj.isjava(jobj)
     if isinstance(jobj, jc.Dataset):
-        return jobj
+        return _rename_dataset_dims(jobj, dim_order)
 
     # NB: This try checking is necessary because the set of ImageJ2 converters is
     # not complete. E.g., there is no way to directly go from Img to Dataset,
     # instead you need to chain the Img->ImgPlus->Dataset converters.
     try:
         if ij.convert().supports(jobj, jc.Dataset):
-            return ij.convert().convert(jobj, jc.Dataset)
+            ds = ij.convert().convert(jobj, jc.Dataset)
         if ij.convert().supports(jobj, jc.ImgPlus):
             imgplus = ij.convert().convert(jobj, jc.ImgPlus)
-            return ij.dataset().create(imgplus)
+            ds = ij.dataset().create(imgplus)
         if ij.convert().supports(jobj, jc.Img):
             img = ij.convert().convert(jobj, jc.Img)
-            return ij.dataset().create(jc.ImgPlus(img))
+            ds = ij.dataset().create(jc.ImgPlus(img))
         if ij.convert().supports(jobj, jc.RandomAccessibleInterval):
             rai = ij.convert().convert(jobj, jc.RandomAccessibleInterval)
-            return ij.dataset().create(rai)
+            ds = ij.dataset().create(rai)
+        return _rename_dataset_dims(ds, dim_order)
     except Exception as exc:
         _log_exception(_logger, exc)
         raise exc
@@ -640,6 +642,35 @@ def _permute_rai_to_python(rich_rai: "jc.RandomAccessibleInterval"):
         permuted_rai.getProperties().putAll(rai_metadata)
 
     return permuted_rai
+
+
+def _rename_dataset_dims(ds, new_dims: Sequence[str]):
+    # return the dataset if no new_dims
+    if not new_dims:
+        return ds
+    # validate dim sequence
+    curr_dims = ds.dim_axes
+    new_dims = dims._validate_dim_order(new_dims, ds.shape)
+    new_axes = []
+    for i in range(ds.ndim):
+        # TODO: differentiate between linear and enumerated axes
+        # get current dim scale and origin
+        curr_scale = curr_dims[i].scale()
+        curr_origin = curr_dims[i].origin()
+        # create new axis with current dim info
+        new_axis_str = dims._convert_dim(new_dims[i], "java")
+        new_axis_type = jc.Axes.get(new_axis_str)
+        axis = jc.DefaultLinearAxis(
+                new_axis_type,
+                jc.Double(curr_scale),
+                jc.Double(curr_origin)
+                )
+        new_axes.append(axis)
+
+    # TODO: ensure metadata reflects dimension renaming?
+    ds.setAxes(new_axes)
+
+    return ds
 
 
 def _rename_xarray_dims(xarr, new_dims: Sequence[str]):

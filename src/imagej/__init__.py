@@ -437,11 +437,7 @@ class ImageJPython:
         :return: A net.imagej.Dataset.
         """
         if sj.isjava(data):
-            if dim_order:
-                _logger.warning(
-                    f"Dimension reordering is not supported for {type(data)}."
-                )
-            return convert.java_to_dataset(self._ij, data)
+            return convert.java_to_dataset(self._ij, data, dim_order)
 
         if images.is_xarraylike(data):
             return convert.xarray_to_dataset(
