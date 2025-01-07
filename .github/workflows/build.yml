@@ -45,6 +45,7 @@ jobs:
         python -m pip install -e '.[dev]'
 
     - name: Test PyImageJ
+      shell: bash
       run: |
         bin/test.sh
 
