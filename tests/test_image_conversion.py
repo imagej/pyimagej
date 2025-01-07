@@ -5,7 +5,6 @@ import numpy as np
 import pytest
 import scyjava as sj
 import xarray as xr
-from jpype import JLong
 
 import imagej.convert as convert
 import imagej.dims as dims
@@ -378,9 +377,16 @@ def test_dataset_converts_to_xarray(ij):
 
 
 def test_bittype_img_to_ndarray(ij):
+    ops_version = sj.get_version(sj.jimport("net.imagej.ops.OpService"))
+    if not sj.is_version_at_least(ops_version, "2.1.0"):
+        pytest.skip("Fails without ImageJ Ops >= 2.1.0")
+
     ArrayImgs = sj.jimport("net.imglib2.img.array.ArrayImgs")
-    dims = JLong[:] @ [10, 10, 10]
+    # NB ArrayImgs requires a long[] - construct long[] {10, 10, 10}
+    dims = sj.jarray("j", 3)
+    dims[:] = [10] * 3
     j_img = ArrayImgs.bits(dims)
+
     p_img = ij.py.from_java(j_img)
     assert p_img.dtype == np.bool_
 

@@ -140,31 +140,48 @@ def copy_rai_into_ndarray(
     if not is_arraylike(narr):
         raise TypeError("narr is not arraylike")
 
-    try:
-        # Check imglib2 version for fast copy availability.
-        imglib2_version = sj.get_version(jc.RandomAccessibleInterval)
-        if sj.is_version_at_least(imglib2_version, "5.9.0"):
+    # Suppose all mechanisms fail. Any one of these might be the one that was
+    # "supposed" to work.
+    failure_exceptions = []
+
+    # Check imglib2 version for fast copy availability.
+    imglib2_version = sj.get_version(jc.RandomAccessibleInterval)
+    if sj.is_version_at_least(imglib2_version, "5.9.0"):
+        try:
             # ImgLib2 is new enough to use net.imglib2.util.ImgUtil.copy.
             ImgUtil = sj.jimport("net.imglib2.util.ImgUtil")
             ImgUtil.copy(rai, sj.to_java(narr))
             return narr
+        except JException as exc:
+            # Try another method
+            failure_exceptions.append(exc)
 
-        # Check imagej-common version for fast copy availability.
-        imagej_common_version = sj.get_version(jc.Dataset)
-        if sj.is_version_at_least(imagej_common_version, "0.30.0"):
+    # Check imagej-common version for fast copy availability.
+    imagej_common_version = sj.get_version(jc.Dataset)
+    if sj.is_version_at_least(imagej_common_version, "0.30.0"):
+        try:
             # ImageJ Common is new enough to use (deprecated)
             # net.imagej.util.Images.copy.
             Images = sj.jimport("net.imagej.util.Images")
             Images.copy(rai, sj.to_java(narr))
             return narr
-    except JException:
-        pass
+        except JException as exc:
+            # Try another method
+            failure_exceptions.append(exc)
 
     # Fall back to copying with ImageJ Ops's copy.rai op. In theory, Ops
     # should always be faster. But in practice, the copy.rai operation is
     # slower than the hardcoded ones above. If we were to fix Ops to be
     # fast always, we could eliminate the above special casing.
-    ij.op().run("copy.rai", sj.to_java(narr), rai)
+    try:
+        ij.op().run("copy.rai", sj.to_java(narr), rai)
+        return
+    except JException as exc:
+        # Try another method
+        failure_exceptions.append(exc)
+
+    # Failed
+    raise Exception("Could not copy rai into ndarray", *failure_exceptions)
 
 
 def dtype(image_or_type) -> np.dtype:
