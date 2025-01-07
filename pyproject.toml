@@ -107,3 +107,6 @@ extend-ignore = ["E203"]
 
 [tool.pytest.ini_options]
 addopts = "--ignore=docs"
+testpaths = [
+    "tests",
+]
