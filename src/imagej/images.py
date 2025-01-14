@@ -154,7 +154,9 @@ def copy_rai_into_ndarray(
             return narr
         except JException as exc:
             # Try another method
-            failure_exceptions.append(exc)
+            failure_exceptions.append(
+                _format_copy_exception(exc.toString(), "net.imglib2.util.ImgUtil.copy")
+            )
 
     # Check imagej-common version for fast copy availability.
     imagej_common_version = sj.get_version(jc.Dataset)
@@ -167,7 +169,9 @@ def copy_rai_into_ndarray(
             return narr
         except JException as exc:
             # Try another method
-            failure_exceptions.append(exc)
+            failure_exceptions.append(
+                _format_copy_exception(exc.toString(), "net.imglib2.util.Images.copy")
+            )
 
     # Fall back to copying with ImageJ Ops's copy.rai op. In theory, Ops
     # should always be faster. But in practice, the copy.rai operation is
@@ -178,10 +182,15 @@ def copy_rai_into_ndarray(
         return
     except JException as exc:
         # Try another method
-        failure_exceptions.append(exc)
+        failure_exceptions.append(
+            _format_copy_exception(
+                exc.toString(), "net.imagej.ops.copy.CopyNamespace.rai"
+            )
+        )
 
     # Failed
-    raise Exception("Could not copy rai into ndarray", *failure_exceptions)
+    failure_msg = "\n".join(failure_exceptions)
+    raise Exception("\n" + failure_msg)
 
 
 def dtype(image_or_type) -> np.dtype:
@@ -238,3 +247,25 @@ def dtype(image_or_type) -> np.dtype:
         raise TypeError(f"Unsupported original ImageJ type: {imagej_type}")
 
     raise TypeError("Unsupported Java type: " + str(sj.jclass(image_or_type).getName()))
+
+
+def _format_copy_exception(exc: str, fun_name: str) -> str:
+    """Format copy exceptions strings.
+
+    :param exc: Exception as a String.
+    :param fun_name: Name of the function producing the exception.
+    :return: The formatted exception.
+    """
+    # format cast exception
+    m = exc.split(" ")
+    from_class = ""
+    to_class = ""
+    if m[0] == "java.lang.ClassCastException:" and "net.imglib2.util" in fun_name:
+        from_class = m[2]
+        to_class = m[8]
+    elif m[0] == "java.lang.RuntimeException:" and "net.imagej.ops" in fun_name:
+        from_class = m[4]
+        to_class = m[10]
+    msg = f"Error: Unsupported type cast via {fun_name}\n    Source type: {from_class}\n    Target type: {to_class}"
+
+    return msg
