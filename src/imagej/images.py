@@ -258,10 +258,19 @@ def _format_copy_exception(exc: str, fun_name: str) -> str:
     """
     # format cast exception
     exc = str(exc)
-    m = exc.split(" ")
     if "cannot be cast to" in exc:
+        m = exc.split(" ")
         from_class = m[m.index("cannot") - 1]
-        to_class = m[m.index("cast") + 3]
-        return f"Error: Unsupported type cast via {fun_name}\n    Source type: {from_class}\n    Target type: {to_class}"
+        # special case if "class" is present or not
+        ci = m.index("cast")
+        if m[ci + 2] == "class":
+            to_class = m[ci + 3]
+        else:
+            to_class = m[ci + 2]
+        return (
+            f"Error: Unsupported type cast via {fun_name}\n"
+            f"    Source type: {from_class}\n"
+            f"    Target type: {to_class}"
+        )
     else:
         return exc
