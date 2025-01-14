@@ -257,15 +257,11 @@ def _format_copy_exception(exc: str, fun_name: str) -> str:
     :return: The formatted exception.
     """
     # format cast exception
+    exc = str(exc)
     m = exc.split(" ")
-    from_class = ""
-    to_class = ""
-    if m[0] == "java.lang.ClassCastException:" and "net.imglib2.util" in fun_name:
-        from_class = m[2]
-        to_class = m[8]
-    elif m[0] == "java.lang.RuntimeException:" and "net.imagej.ops" in fun_name:
-        from_class = m[4]
-        to_class = m[10]
-    msg = f"Error: Unsupported type cast via {fun_name}\n    Source type: {from_class}\n    Target type: {to_class}"
-
-    return msg
+    if "cannot be cast to" in exc:
+        from_class = m[m.index("cannot") - 1]
+        to_class = m[m.index("cast") + 3]
+        return f"Error: Unsupported type cast via {fun_name}\n    Source type: {from_class}\n    Target type: {to_class}"
+    else:
+        return exc
