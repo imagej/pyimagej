@@ -648,27 +648,15 @@ def _rename_dataset_dims(ds, new_dims: Sequence[str]):
     # return the dataset if no new_dims
     if not new_dims:
         return ds
+
     # validate dim sequence
-    curr_dims = ds.dim_axes
     new_dims = dims._validate_dim_order(new_dims, ds.shape)
-    new_axes = []
-    for i in range(ds.ndim):
-        # TODO: differentiate between linear and enumerated axes
-        # get current dim scale and origin
-        curr_scale = curr_dims[i].scale()
-        curr_origin = curr_dims[i].origin()
-        # create new axis with current dim info
+
+   # set axis type for each axis
+   for i in range(ds.ndim):
         new_axis_str = dims._convert_dim(new_dims[i], "java")
         new_axis_type = jc.Axes.get(new_axis_str)
-        axis = jc.DefaultLinearAxis(
-                new_axis_type,
-                jc.Double(curr_scale),
-                jc.Double(curr_origin)
-                )
-        new_axes.append(axis)
-
-    # TODO: ensure metadata reflects dimension renaming?
-    ds.setAxes(new_axes)
+        ds.dim_axes[i].setType(new_axis_type)
 
     return ds
 
