@@ -56,6 +56,15 @@ nb_execution_mode = "off"
 
 # -- Options for HTML output -------------------------------------------------
 
+# Always show the Edit on GitHub buttons
+# Set the correct path for Edit on GitHub
+html_context = {
+    'display_github': True,
+    'github_user': 'imagej',
+    'github_repo': 'pyimagej',
+    'github_version': 'main/doc/',
+}
+
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
 #
