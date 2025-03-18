@@ -1362,17 +1362,29 @@ def _create_jvm(
         sj.config.add_option("-Djava.awt.headless=true")
     try:
         if hasattr(sj, "jvm_version") and sj.jvm_version()[0] >= 9:
-            # Disable illegal reflection access warnings.
-            def add_open(mod_pack):
-                sj.config.add_option(f"--add-opens={mod_pack}=ALL-UNNAMED")
-
-            add_open("java.base/java.lang")
-            add_open("java.base/java.util")
+            # Allow illegal reflection access. Necessary for Java 17+.
+            mod_packs = [
+                "java.base/java.lang",
+                "java.base/java.lang.invoke",
+                "java.base/java.net",
+                "java.base/java.nio",
+                "java.base/java.time",
+                "java.base/java.util",
+                "java.base/java.util.concurrent.atomic",
+                "java.base/sun.nio.ch",
+                "java.base/sun.util.calendar",
+                "java.desktop/com.sun.java.swing",
+                "java.desktop/java.awt",
+                "java.desktop/javax.swing",
+                "java.desktop/sun.awt",
+                "java.desktop/sun.swing",
+            ]
             if sys.platform == "linux":
-                add_open("java.desktop/sun.awt.X11")
+                mod_packs.append("java.desktop/sun.awt.X11")
             elif sys.platform == "darwin":
-                add_open("java.desktop/com.apple.eawt")
-
+                mod_packs.append("java.desktop/com.apple.eawt")
+            for mod_pack in mod_packs:
+                sj.config.add_option(f"--add-opens={mod_pack}=ALL-UNNAMED")
     except RuntimeError as e:
         _logger.warning("Failed to guess the Java version.")
         _logger.debug(e, exc_info=True)
