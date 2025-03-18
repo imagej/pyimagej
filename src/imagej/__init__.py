@@ -1365,7 +1365,11 @@ def _create_jvm(
             # Disable illegal reflection access warnings.
             sj.config.add_option("--add-opens=java.base/java.lang=ALL-UNNAMED")
             sj.config.add_option("--add-opens=java.base/java.util=ALL-UNNAMED")
-            sj.config.add_option("--add-opens=java.desktop/sun.awt.X11=ALL-UNNAMED")
+            if sys.platform == "linux":
+                sj.config.add_option("--add-opens=java.desktop/sun.awt.X11=ALL-UNNAMED")
+            elif sys.platform == "darwin":
+                sj.config.add_option("--add-opens=java.desktop/com.apple.eawt=ALL-UNNAMED")
+
     except RuntimeError as e:
         _logger.warning("Failed to guess the Java version.")
         _logger.debug(e, exc_info=True)
