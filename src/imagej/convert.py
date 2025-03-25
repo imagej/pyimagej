@@ -659,8 +659,8 @@ def _rename_dataset_dims(ds, new_dims: Sequence[str]):
     # validate dim sequence
     new_dims = dims._validate_dim_order(new_dims, ds.shape)
 
-   # set axis type for each axis
-   for i in range(ds.ndim):
+    # set axis type for each axis
+    for i in range(ds.ndim):
         new_axis_str = dims._convert_dim(new_dims[i], "java")
         new_axis_type = jc.Axes.get(new_axis_str)
         ds.dim_axes[i].setType(new_axis_type)
