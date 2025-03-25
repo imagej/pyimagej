@@ -645,6 +645,13 @@ def _permute_rai_to_python(rich_rai: "jc.RandomAccessibleInterval"):
 
 
 def _rename_dataset_dims(ds, new_dims: Sequence[str]):
+    """
+    Rename, without reshaping, a Dataset's dimension labels.
+
+    :param ds: Input Dataset.
+    :param new_dims: Dimension labels to apply
+    :return: Dataset with dimension labels renamed.
+    """
     # return the dataset if no new_dims
     if not new_dims:
         return ds
@@ -662,6 +669,13 @@ def _rename_dataset_dims(ds, new_dims: Sequence[str]):
 
 
 def _rename_xarray_dims(xarr, new_dims: Sequence[str]):
+    """
+    Rename, without reshaping, an xarray's dimension labels.
+
+    :param xarr: Input xarray.
+    :param new_dims: Dimension labels to apply.
+    :return: xarray with dimension labels renamed.
+    """
     curr_dims = xarr.dims
     if not new_dims:
         return xarr
