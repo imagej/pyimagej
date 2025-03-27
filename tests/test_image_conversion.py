@@ -521,15 +521,15 @@ dataset_conversion_parameters = [
     (
         get_img,
         "java",
-        ["a", "b", "c", "d", "e"],
-        ("X", "Y", "Unknown", "Unknown", "Unknown"),
+        ["X", "Y", "monday", "green", "Time"],
+        ("X", "Y", "monday", "green", "Time"),
         (1, 2, 3, 4, 5),
     ),
     (
         get_imgplus,
         "java",
-        ["a", "b", "c", "d", "e", "f", "g"],
-        ("X", "Y", "foo", "bar", "Channel", "Time", "Z"),
+        ["Y", "X", "Channel", "gray", "e", "foo", "gold"],
+        ("Y", "X", "Channel", "gray", "e", "foo", "gold"),
         (7, 8, 4, 2, 3, 5, 6),
     ),
     (
