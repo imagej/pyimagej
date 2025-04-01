@@ -164,6 +164,38 @@ class ImageJPython:
                     formatted_args.append(arg)
             return " ".join(formatted_args)
 
+    def cite(self) -> str:
+        """Generate a citation string and package version numbers.
+
+        Generate the PyImageJ citation/reference string and fetch
+        the environments Python and Java versions.
+
+        :return: A citation and package version numbers
+        """
+        # set PyImageJ reference sub strings
+        authors = "Rueden, C.T., Hiner, M.C., Evans, E.L. et al."
+        pub_title = "\nPyImageJ: A library for integrating ImageJ and Python."
+        journal = "\nNat Methods 19, 1326–1327 (2022)."
+        doi_link = "\nhttps://doi.org/10.1038/s41592-022-01655-4"
+        divider = "\n-----------------------"
+        # collect the current Python version
+        py_vi = sys.version_info
+        python_version = f"\nPython version: {py_vi.major}.{py_vi.minor}.{py_vi.micro}"
+        # collect the current Java version
+        j_vi = sj.jvm_version()
+        java_version = f"\nJava version: {j_vi[0]}.{j_vi[1]}.{j_vi[2]}"
+        # construct final string
+        citation = (
+            authors
+            + pub_title
+            + journal
+            + doi_link
+            + divider
+            + python_version
+            + java_version
+        )
+        return citation
+
     def dtype(self, image_or_type):
         """Get the dtype of the input image as a numpy.dtype object.
 
