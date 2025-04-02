@@ -164,12 +164,14 @@ class ImageJPython:
                     formatted_args.append(arg)
             return " ".join(formatted_args)
 
-    def cite(self) -> str:
+    def cite(self, show: bool = True) -> str:
         """Generate a citation string and package version numbers.
 
         Generate the PyImageJ citation/reference string and fetch
         the environments Python and Java versions.
 
+        :param show: Print the PyImageJ citation if True, if False
+            the PyImageJ citation string is returned instead.
         :return: A citation and package version numbers
         """
         # set PyImageJ reference sub strings
@@ -194,7 +196,10 @@ class ImageJPython:
             + python_version
             + java_version
         )
-        return citation
+        if show:
+            print(citation)
+        else:
+            return citation
 
     def dtype(self, image_or_type):
         """Get the dtype of the input image as a numpy.dtype object.
