@@ -3,6 +3,7 @@ import random
 import numpy as np
 import pytest
 import scyjava as sj
+import xarray
 
 # -- Fixtures --
 
@@ -11,6 +12,11 @@ import scyjava as sj
 def arr():
     empty_array = np.zeros([512, 512])
     return empty_array
+
+
+@pytest.fixture(scope="module")
+def xarr(arr):
+    return xarray.DataArray(arr, name="test_xarray")
 
 
 @pytest.fixture(scope="module")
@@ -139,6 +145,19 @@ def test_window_to_numpy_converts_active_image_to_xarray(ij, arr):
     ij.ui().show(ds)
     new_arr = ij.py.active_xarray()
     assert (arr == new_arr.values).all
+
+
+def test_linked_dataset_convertsion_to_xarray(ij, xarr):
+    ensure_legacy_enabled(ij)
+    ensure_gui_available(ij)
+
+    # get a dataset, linked to an ImagePlus
+    dataset = ij.py.to_dataset(arr)
+    ij.ui().show(dataset)
+
+    # convert the image data to xarray
+    xarr_out = ij.py.to_xarray(dataset)
+    assert xarr_out.name == "test_xarray"
 
 
 def test_functions_throw_warning_if_legacy_not_enabled(ij):
