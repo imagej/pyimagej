@@ -147,7 +147,7 @@ def test_window_to_numpy_converts_active_image_to_xarray(ij, arr):
     assert (arr == new_arr.values).all
 
 
-def test_linked_dataset_convertsion_to_xarray(ij, xarr):
+def test_linked_dataset_conversion_to_xarray(ij, xarr):
     ensure_legacy_enabled(ij)
     ensure_gui_available(ij)
 
