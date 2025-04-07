@@ -239,8 +239,7 @@ def java_to_xarray(ij: "jc.ImageJ", jobj) -> xr.DataArray:
     xr_dims.reverse()
     xr_dims = dims._convert_dims(xr_dims, direction="python")
     xr_coords = dims._get_axes_coords(xr_axes, xr_dims, narr.shape)
-    name = jobj.getName() if isinstance(jobj, jc.Named) else None
-    name = ij.py.from_java(name)
+    name = str(jobj.getName()) if isinstance(jobj, jc.Named) else None
     return xr.DataArray(narr, dims=xr_dims, coords=xr_coords, attrs=xr_attrs, name=name)
 
 

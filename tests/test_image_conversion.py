@@ -650,6 +650,8 @@ def test_direct_to_xarray_conversion(
         im_data = im_req()
     # convert the image data to xarray
     xarr_out = ij.py.to_xarray(im_data, dim_order=new_dims)
+    name = xarr_out.name
+    assert name is None or isinstance(name, str)
     assert xarr_out.dims == exp_dims
     assert xarr_out.shape == exp_shape
     if hasattr(im_data, "dim_axes") and obj_type == "java":
