@@ -48,6 +48,7 @@ import numpy as np
 import scyjava as sj
 import xarray as xr
 from jpype import JImplementationFor, setupGuiEnvironment
+from jpype import __version__ as _jpype_version
 from scyjava.config import find_jars
 
 import imagej.convert as convert
@@ -164,42 +165,82 @@ class ImageJPython:
                     formatted_args.append(arg)
             return " ".join(formatted_args)
 
-    def cite(self, show: bool = True) -> str:
-        """Generate a citation string and package version numbers.
+    def cite_publication(self, show: bool = True) -> str:
+        """Generate a citation string.
 
-        Generate the PyImageJ citation/reference string and fetch
-        the environments Python and Java versions.
+        Generate the PyImageJ citation/reference string.
 
         :param show: Print the PyImageJ citation if True, if False
             the PyImageJ citation string is returned instead.
-        :return: A citation and package version numbers
+        :return: The PyImageJ citation.
         """
         # set PyImageJ reference sub strings
-        authors = "Rueden, C.T., Hiner, M.C., Evans, E.L. et al."
+        header = "=====PyImageJ Citation====="
+        authors = "\nRueden, C.T., Hiner, M.C., Evans, E.L. et al."
         pub_title = "\nPyImageJ: A library for integrating ImageJ and Python."
         journal = "\nNat Methods 19, 1326–1327 (2022)."
         doi_link = "\nhttps://doi.org/10.1038/s41592-022-01655-4"
-        divider = "\n-----------------------"
-        # collect the current Python version
-        py_vi = sys.version_info
-        python_version = f"\nPython version: {py_vi.major}.{py_vi.minor}.{py_vi.micro}"
-        # collect the current Java version
-        j_vi = sj.jvm_version()
-        java_version = f"\nJava version: {j_vi[0]}.{j_vi[1]}.{j_vi[2]}"
-        # construct final string
-        citation = (
-            authors
-            + pub_title
-            + journal
-            + doi_link
-            + divider
-            + python_version
-            + java_version
-        )
+
+        # construct output citation string
+        citation = header + authors + pub_title + journal + doi_link
         if show:
             print(citation)
         else:
             return citation
+
+    def cite_versions(self, show: bool = True) -> str:
+        """Fetch the current environment's package versions.
+
+        Fetch and construct the current environment's package versions.
+        This function returns the versions for:
+            - Python
+            - Java
+            - pyimagej
+            - scyjava
+            - imglyb
+            - jgo
+            - jpype
+
+        :param show: Print the PyImageJ citation if True, if False
+            the PyImageJ citation string is returned instead.
+        :param show: Print the version numbers if True, if False
+            the environment version number string is returned instead.
+        :return: The current PyImageJ instance's package versions.
+        """
+        # collect the current isntance's package versions
+        py_ver = sys.version_info
+        java_ver = sj.jvm_version()
+        pyimagej_ver = __version__
+        scyjava_ver = sj.get_version("scyjava")
+        imglyb_ver = sj.get_version("imglyb")
+        jpype_ver = _jpype_version
+        jgo_ver = sj.get_version("jgo")
+
+        # construct version strings
+        header = "=====Environment package versions====="
+        python_ver_str = f"\nPython:   {py_ver.major}.{py_ver.minor}.{py_ver.micro}"
+        java_ver_str = f"\nJava:     {java_ver[0]}.{java_ver[1]}.{java_ver[2]}"
+        pyimagej_ver_str = f"\npyimagej: {pyimagej_ver}"
+        scyjava_ver_str = f"\nscyjava:  {scyjava_ver}"
+        imglyb_ver_str = f"\nimglyb:   {imglyb_ver}"
+        jgo_ver_str = f"\njgo:      {jgo_ver}"
+        jpype_ver_str = f"\njpype:    {jpype_ver}"
+
+        # construct output version string
+        versions = (
+            header
+            + python_ver_str
+            + java_ver_str
+            + pyimagej_ver_str
+            + scyjava_ver_str
+            + imglyb_ver_str
+            + jgo_ver_str
+            + jpype_ver_str
+        )
+        if show:
+            print(versions)
+        else:
+            return versions
 
     def dtype(self, image_or_type):
         """Get the dtype of the input image as a numpy.dtype object.
