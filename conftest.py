@@ -1,5 +1,5 @@
 import argparse
-
+import sys
 import pytest
 
 import imagej
@@ -21,7 +21,7 @@ def pytest_addoption(parser):
         "--headless",
         type=str2bool,
         action="store",
-        default=True,
+        default=False,
         help="Start in headless mode",
     )
     parser.addoption(
@@ -46,6 +46,10 @@ def ij(request):
     imagej.when_imagej_starts(lambda ij: setattr(ij, "_testing", True))
 
     mode = "headless" if headless else "interactive"
+    # set headless mode for macOS only
+    macos = sys.platform == "darwin"
+    if macos:
+        mode = "headless"
     ij = imagej.init(ij_dir, mode=mode, add_legacy=legacy)
 
     yield ij

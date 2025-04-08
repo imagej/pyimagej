@@ -45,9 +45,10 @@ jobs:
         python -m pip install -e '.[dev]'
 
     - name: Test PyImageJ
-      shell: bash
-      run: |
-        bin/test.sh
+      uses: GabrielBB/xvfb-action@v1
+      with:
+        run:
+          bash bin/test.sh
 
   ensure-clean-code:
     runs-on: ubuntu-latest
