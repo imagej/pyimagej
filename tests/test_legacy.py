@@ -119,6 +119,8 @@ def test_get_imageplus_synchronizes_from_imagej_to_imagej2(ij, arr):
     ij.ui().show(ds)
     macro = """run("Add...", "value=5");"""
     ij.py.run_macro(macro)
+    imp = ij.WindowManager.getCurrentImage()
+    ij.py.sync_image(imp)
 
     assert arr[0, 0] == original + 5
 
