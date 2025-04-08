@@ -21,7 +21,7 @@ def pytest_addoption(parser):
         "--headless",
         type=str2bool,
         action="store",
-        default=True,
+        default=False,
         help="Start in headless mode",
     )
     parser.addoption(
