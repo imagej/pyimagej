@@ -154,7 +154,7 @@ def test_linked_dataset_conversion_to_xarray(ij, xarr):
     ensure_gui_available(ij)
 
     # get a dataset, linked to an ImagePlus
-    dataset = ij.py.to_dataset(arr)
+    dataset = ij.py.to_dataset(xarr)
     ij.ui().show(dataset)
 
     # convert the image data to xarray
