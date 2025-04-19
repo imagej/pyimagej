@@ -6,7 +6,7 @@ build-backend = "setuptools.build_meta"
 name = "pyimagej"
 version = "1.6.1.dev0"
 description = "Python wrapper for ImageJ"
-license = {text = "Apache-2.0"}
+license = "Apache-2.0"
 authors = [{name = "ImageJ2 developers", email = "ctrueden@wisc.edu"}]
 readme = "README.md"
 keywords = ["java", "imagej", "imagej2", "fiji"]
@@ -21,7 +21,6 @@ classifiers = [
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
-    "License :: OSI Approved :: Apache Software License",
     "Operating System :: Microsoft :: Windows",
     "Operating System :: Unix",
     "Operating System :: MacOS",
