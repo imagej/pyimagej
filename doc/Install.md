@@ -48,16 +48,15 @@ If installing via pip, we recommend using a
 [virtualenv](https://virtualenv.pypa.io/) to avoid cluttering up or mangling
 your system-wide or user-wide Python environment. Alternately, you can use
 mamba just for its virtual environment feature (`mamba create -n pyimagej
-python=3.8; mamba activate pyimagej`) and then simply `pip install` everything
+python=3.9; mamba activate pyimagej`) and then simply `pip install` everything
 into that active environment.
 
 There are several ways to install things via pip, but we will not enumerate
 them all here; these instructions will assume you know what you are doing if
 you chose this route over conda/mamba above.
 
-1. Install [Python 3](https://python.org/). As of this writing, PyImageJ has
-   been tested with Python 3.6, 3.7, 3.8, 3.9, and 3.10.
-   You might have issues with Python 3.10 on Windows.
+1. Install [Python 3](https://python.org/). As of this writing,
+   PyImageJ has been tested with Python up through 3.13.
 
 2. Install OpenJDK 8 or OpenJDK 11. PyImageJ should work with whichever
    distribution of OpenJDK you prefer; we recommend
@@ -176,7 +175,7 @@ USER root
 RUN apt-get update
 RUN apt-get install -y wget unzip > /dev/null && rm -rf /var/lib/apt/lists/* > /dev/null
 RUN micromamba install -y -n base -c conda-forge \
-        python=3.8\
+        python=3.9\
         pyimagej  \
         openjdk=11 && \
     micromamba clean --all --yes

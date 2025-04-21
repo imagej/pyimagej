@@ -17,15 +17,7 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-latest, windows-latest, macos-latest]
-        python-version: ["3.8", "3.10"]
-        # Breaks due to https://github.com/jpype-project/jpype/issues/1009
-        # Should be included once the fix is released
-        exclude:
-          - os: windows-latest
-            python-version: "3.10"
-        include:
-          - os: windows-latest
-            python-version: "3.9"
+        python-version: ["3.9", "3.13"]
 
     steps:
     - uses: actions/checkout@v2
