@@ -42,6 +42,7 @@ from ctypes import cdll
 from enum import Enum
 from functools import lru_cache
 from pathlib import Path
+from textwrap import dedent
 from typing import Tuple, Union
 
 import numpy as np
@@ -1205,6 +1206,10 @@ def init(
 
         ij = imagej.init("sc.fiji:fiji", mode=imagej.Mode.GUI)
     """
+    force = mode.endswith(":force")
+    if force:
+        mode = mode[:-6]
+
     if headless is not None:
         _logger.warning(
             "The headless flag of imagej.init is deprecated. "
@@ -1215,10 +1220,31 @@ def init(
     macos = sys.platform == "darwin"
 
     if macos and mode == Mode.INTERACTIVE:
-        # check for main thread only on macOS
-        if _macos_is_main_thread():
+        if not _macos_enable_interactive(force=force):
             raise EnvironmentError(
-                "Sorry, the interactive mode is not available on macOS."
+                dedent("""\
+                Cannot enable interactive mode in this environment.
+                On macOS, the CoreFoundation/AppKit event loop must
+                be running on the process's main thread.
+
+                If you are in an IPython/Jupyter environment,
+                you can try using the `%gui osx` magic.
+
+                If you are running with plain python, your program
+                appears to be running on the process's main thread,
+                meaning your program will hang when attempting to
+                perform any GUI-related action like showing the UI.
+                You could try launching via Jaunch...
+
+                Or, if you really want to try it anyway, you can
+                pass `mode="interactive:force"` for the init mode,
+                which will bypass this check. But this mode is
+                UNSUPPORTED and the PyImageJ team CANNOT SUPPORT YOU
+                if you do this. Please do not publish scripts that
+                use `interactive:force`; rather, let's improve
+                PyImageJ's `_macos_enable_interactive()` function
+                to more smartly detect your deployment situation.
+            """)
             )
 
     if not sj.jvm_started():
@@ -1551,25 +1577,50 @@ def _includes_imagej_legacy(items: list):
     return any(item.startswith("net.imagej:imagej-legacy") for item in items)
 
 
-def _macos_is_main_thread():
-    """Detect if the current thread is the main thread on macOS.
-
-    :return: Boolean indicating if the current thread is the main thread.
+def _macos_enable_interactive(force: bool = False) -> bool:
     """
-    # try to load the pthread library
+    Make interactive mode work on macOS if possible.
+
+    :return: True if interactive mode will work, False if not.
+    """
+    _logger.debug("Attempting to enable interactive mode.")
+
+    # Check for an IPython/Jupyter environment.
     try:
+        import IPython
+
+        ipy = IPython.get_ipython()
+        if ipy is None:
+            _logger.debug("No IPython environment found.")
+        else:
+            # Engage the `%gui osx` magic!
+            ipy.enable_gui("osx")
+            _logger.debug("Enabled IPython osx gui.")
+            return True
+    except Exception as exc:
+        _logger.debug("Failed to converse with IPython.")
+        _logger.debug(exc)
+
+    # Try to ask the pthread library.
+    try:
+        # Ask pthread whether we're on the main thread.
         pthread = cdll.LoadLibrary("libpthread.dylib")
+        thread_num = pthread.pthread_main_np()
+        _logger.debug(f"pthread reports thread number {thread_num}.")
+        if thread_num != 1:
+            # Not on the main thread! Worth a try...
+            return True
     except OSError as exc:
-        _log_exception(_logger, exc)
-        print("No pthread library found.")
-        # assume the current thread is the main thread
+        _logger.debug("Failed to converse with pthread library.")
+        _logger.debug(exc)
+
+    # Seems like we're on the main thread outside IPython.
+    if force:
+        _logger.warning("Interactive mode forced. Your program might hang.")
         return True
 
-    # detect if the current thread is the main thread
-    if pthread.pthread_main_np() == 1:
-        return True
-    else:
-        return False
+    _logger.debug("All checks failed. Interactive mode not available.")
+    return False
 
 
 def _set_ij_env(ij_dir):
