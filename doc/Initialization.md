@@ -118,8 +118,9 @@ This mode returns immediately after initializing ImageJ2, allowing you to
 "mix and match" operations performed via Python code with operations
 performed via GUI interactions.
 
-_**Note:** This mode does not work on macOS,
-due to a limitation in the macOS threading model._
+_**Note:** This mode does not work on macOS from plain Python, due to a
+limitation in the macOS threading model. It does work in IPython/Jupyter, as
+well as via the [Jaunch](https://github.com/apposed/jaunch#readme) launcher._
 
 ### Support for the original ImageJ
 

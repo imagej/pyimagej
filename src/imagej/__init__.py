@@ -1179,8 +1179,9 @@ def init(
             Start ImageJ2 with GUI support, but *not* displaying the GUI
             automatically, Does not block. To display the GUI in this mode,
             call ij.ui().showUI().
-            NB: This mode is not available on macOS, due to its application
-            threading model.
+            NB: On macOS, this mode only works in some scenarios. It will
+            not work from plain Python, but it works in IPython/Jupyter,
+            as well as when launching Python via the Jaunch launcher.
             NB: In this mode with add_legacy=True, the JVM and Python will
             both terminate when ImageJ closes!
 

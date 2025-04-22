@@ -65,12 +65,13 @@ you want to register or update.
 
 ### Non-blocking INTERACTIVE mode on macOS
 
-On macOS, the Cocoa event loop needs to be started from the main thread before
-any Java-AWT-specific functions can work. And doing so blocks the main thread.
-For this reason, PyImageJ includes two graphical modes, `GUI` and
-`INTERACTIVE`, with `GUI` blocking the `imagej.init` invocation, and
-`INTERACTIVE` returning immediately... but `INTERACTIVE` cannot work on macOS
-and is therefore not available, due to this OS-specific limitation.
+On macOS, the CoreFoundation/AppKit event loop needs to be started from the
+main thread before any Java-AWT-specific functions can work. And doing so
+blocks the main thread. For this reason, PyImageJ includes two graphical modes,
+`GUI` and `INTERACTIVE`, with `GUI` blocking the `imagej.init` invocation, and
+`INTERACTIVE` returning immediately... but `INTERACTIVE` can only work on macOS
+in certain scenarios. PyImageJ makes a best effort to check your environment
+and report when interactive cannot work, and how you might go about fixing it.
 
 ### Old versions of ImageJ2
 
