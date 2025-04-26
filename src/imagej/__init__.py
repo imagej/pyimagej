@@ -1207,7 +1207,11 @@ def init(
 
         ij = imagej.init("sc.fiji:fiji", mode=imagej.Mode.GUI)
     """
-    force = mode.endswith(":force")
+    if isinstance(mode, str):
+        force = mode.endswith(":force")
+    else:
+        force = False
+
     if force:
         mode = mode[:-6]
 
