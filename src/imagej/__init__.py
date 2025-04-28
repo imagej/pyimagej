@@ -57,6 +57,8 @@ import imagej.images as images
 import imagej.stack as stack
 from imagej._java import JObjectArray, jc
 from imagej._java import log_exception as _log_exception
+from imagej._macos_eventloop import run_event_loop_for_repl
+from imagej._util import run_non_blocking_event_loop
 
 __author__ = "ImageJ2 developers"
 __version__ = sj.get_version("pyimagej")
@@ -1278,7 +1280,8 @@ def init(
         if macos:
             # NB: This will block the calling (main) thread forever!
             try:
-                setupGuiEnvironment(show_gui_and_run_callbacks)
+                run_non_blocking_event_loop(show_gui_and_run_callbacks)
+                # setupGuiEnvironment(show_gui_and_run_callbacks)
             except ModuleNotFoundError as e:
                 if e.msg == "No module named 'PyObjCTools'":
                     advice = (
