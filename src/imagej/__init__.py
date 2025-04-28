@@ -49,6 +49,7 @@ import numpy as np
 import scyjava as sj
 import xarray as xr
 from jpype import JImplementationFor, setupGuiEnvironment
+from jpype._jproxy import JProxy
 from scyjava.config import find_jars
 
 import imagej.convert as convert
@@ -57,6 +58,7 @@ import imagej.images as images
 import imagej.stack as stack
 from imagej._java import JObjectArray, jc
 from imagej._java import log_exception as _log_exception
+from imagej._macos_eventloop import EventLoopConsole, cocoa_mainloop
 
 __author__ = "ImageJ2 developers"
 __version__ = sj.get_version("pyimagej")
@@ -1257,28 +1259,29 @@ def init(
         if not success:
             raise RuntimeError("Failed to create a JVM with the requested environment.")
 
-    def run_callbacks(ij):
-        # invoke registered callback functions
-        for callback in _init_callbacks:
-            callback(ij)
-        return ij
-
     if mode == Mode.GUI:
         # Show the GUI and block.
         global gateway
-        gateway = None
-
-        def show_gui_and_run_callbacks():
-            global gateway
-            gateway = _create_gateway()
-            gateway.ui().showUI()
-            run_callbacks(gateway)
-            return gateway
+        gateway = _create_gateway()
 
         if macos:
             # NB: This will block the calling (main) thread forever!
             try:
-                setupGuiEnvironment(show_gui_and_run_callbacks)
+                # create the Java thread for the GUI
+                def show_gui():
+                    global gateway
+                    gateway.ui().showUI()
+                m = {'run': show_gui}
+                jThread = sj.jimport("java.lang.Thread")
+                proxy = JProxy('java.lang.Runnable', m)
+                jThread.ofPlatform().start(proxy)
+                # TODO: is it possible to send the local context to the event loop console?
+                console_locals = {
+                        'cocoa_mainloop': cocoa_mainloop,
+                        'ij': gateway
+                        }
+                console = EventLoopConsole(locals=console_locals)
+                console.interact("macOS PyImageJ interactive console")
             except ModuleNotFoundError as e:
                 if e.msg == "No module named 'PyObjCTools'":
                     advice = (
