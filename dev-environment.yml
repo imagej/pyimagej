@@ -27,8 +27,7 @@ dependencies:
   - jpype1 >= 1.4.0
   - labeling >= 0.1.14
   - numpy
-  - openjdk=11
-  - scyjava >= 1.8.0
+  - scyjava >= 1.12.0
   - xarray
   # Optional dependencies
   - matplotlib-base
