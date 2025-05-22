@@ -7,7 +7,7 @@ modes="
 | Testing ImageJ2 + original ImageJ |--legacy=true
 |    Testing ImageJ2 standalone     |--legacy=false
 |  Testing Fiji Is Just ImageJ(2)   |--ij=sc.fiji:fiji
-|  Testing locally wrapped Fiji.app |--ij=Fiji.app
+|  Testing locally wrapped Fiji.app |--ij=Fiji
 |  Testing ImageJ2 version 2.10.0   |--ij=2.10.0
 |  Testing ImageJ2 version 2.14.0   |--ij=2.14.0
 "
@@ -16,8 +16,8 @@ if [ ! -d Fiji.app ]
 then
   # No locally available Fiji.app; download one.
   echo "-- Downloading and unpacking Fiji.app --"
-  curl -fsLO https://downloads.imagej.net/fiji/latest/fiji-nojre.zip
-  unzip fiji-nojre.zip
+  curl -fsLO https://downloads.imagej.net/fiji/latest/fiji-latest-portable-nojava.zip
+  unzip fiji-latest-portable-nojava.zip
   echo
 fi
 
