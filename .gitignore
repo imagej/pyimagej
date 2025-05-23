@@ -9,6 +9,7 @@
 /src/pyimagej.egg-info/
 /Fiji.app
 /fiji-nojre.zip
+/uv.lock
 MANIFEST
 .vscode/settings.json
 .vscode/launch.json

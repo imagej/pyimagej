@@ -34,9 +34,9 @@ do
     echo "-------------------------------------"
     if [ $# -gt 0 ]
     then
-      python -m pytest -p no:faulthandler $flag --java $java $@
+      uv run python -m pytest -p no:faulthandler $flag --java $java $@
     else
-      python -m pytest -p no:faulthandler $flag --java $java tests
+      uv run python -m pytest -p no:faulthandler $flag --java $java tests
     fi
     code=$?
     if [ $code -eq 0 ]
