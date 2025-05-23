@@ -56,7 +56,7 @@ def ij(request):
     # dropped from the JDK at v15, so we readd it here if needed.
     if int(java_version) >= 15:
         config.endpoints.append("org.openjdk.nashorn:nashorn-core")
-    imagej.when_imagej_starts(lambda ij: setattr(ij, "_testing", True))
+    imagej.when_imagej_starts(lambda ij: setattr(ij, "_java_version", java_version))
     # initialize the ImageJ2 gateway
     mode = "headless" if headless else "interactive"
     ij = imagej.init(ij_dir, mode=mode, add_legacy=legacy)
