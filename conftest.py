@@ -8,7 +8,7 @@ from scyjava import config
 
 def pytest_addoption(parser):
     """
-    Set up the command line parser for ImageJ location and headless mode
+    Set up the command line parser for ImageJ2 location and headless mode
     :param parser: pytest's parser, passed in automatically
     :return: None
     """
@@ -43,7 +43,7 @@ def pytest_addoption(parser):
 @pytest.fixture(scope="session")
 def ij(request):
     """
-    Create an ImageJ instance to be used by the whole testing environment
+    Create an ImageJ2 gateway to be used by the whole testing environment
     :param request: Pytest variable passed in to fixtures
     """
     # get test configuration
@@ -57,10 +57,9 @@ def ij(request):
     if int(java_version) >= 15:
         config.endpoints.append("org.openjdk.nashorn:nashorn-core")
     imagej.when_imagej_starts(lambda ij: setattr(ij, "_testing", True))
-    # initialize the ImageJ gateway
+    # initialize the ImageJ2 gateway
     mode = "headless" if headless else "interactive"
     ij = imagej.init(ij_dir, mode=mode, add_legacy=legacy)
-
     yield ij
 
     ij.dispose()
