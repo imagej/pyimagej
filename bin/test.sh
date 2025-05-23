@@ -26,22 +26,31 @@ do
   test "$mode" || continue
   msg="${mode%|*}|"
   flag=${mode##*|}
-  echo "-------------------------------------"
-  echo "$msg"
-  echo "-------------------------------------"
-  if [ $# -gt 0 ]
-  then
-    python -m pytest -p no:faulthandler $flag $@
-  else
-    python -m pytest -p no:faulthandler $flag tests
-  fi
-  code=$?
-  if [ $code -ne 0 ]
-  then
-    # HACK: `while read` creates a subshell, which can't modify the parent
-    # shell's variables. So we save the failure code to a temporary file.
-    echo $code >exitCode.tmp
-  fi
+  for java in 8 21
+  do
+    echo "-------------------------------------"
+    echo "$msg"
+    printf "|           < OpenJDK %2s >          |\n" "$java"
+    echo "-------------------------------------"
+    if [ $# -gt 0 ]
+    then
+      python -m pytest -p no:faulthandler $flag --java $java $@
+    else
+      python -m pytest -p no:faulthandler $flag --java $java tests
+    fi
+    code=$?
+    if [ $code -eq 0 ]
+    then
+      echo "==> TESTS PASSED with code 0"
+    else
+      # HACK: `while read` creates a subshell, which can't modify the parent
+      # shell's variables. So we save the failure code to a temporary file.
+      echo
+      echo "==> TESTS FAILED with code $code"
+      echo $code >exitCode.tmp
+    fi
+    echo
+  done
 done
 exitCode=0
 if [ -f exitCode.tmp ]

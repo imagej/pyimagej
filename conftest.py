@@ -32,6 +32,12 @@ def pytest_addoption(parser):
         default=True,
         help="Include the original ImageJ",
     )
+    parser.addoption(
+        "--java",
+        action="store",
+        default=None,
+        help="version of Java to cache and use (e.g. 8, 11, 17, 21)",
+    )
 
 
 @pytest.fixture(scope="session")
@@ -44,8 +50,12 @@ def ij(request):
     ij_dir = request.config.getoption("--ij")
     legacy = request.config.getoption("--legacy")
     headless = request.config.getoption("--headless")
-    # add the nashorn (JavaScript) endpoint if needed,
-    config.set_java_constraints(fetch=True, vendor='zulu', version=11)
+    java_version = request.config.getoption("--java")
+    config.set_java_constraints(fetch=True, vendor='zulu', version=java_version)
+    # JavaScript is used in the tests. But the Nashorn engine was
+    # dropped from the JDK at v15, so we readd it here if needed.
+    if int(java_version) >= 15:
+        config.endpoints.append("org.openjdk.nashorn:nashorn-core")
     imagej.when_imagej_starts(lambda ij: setattr(ij, "_testing", True))
     # initialize the ImageJ gateway
     mode = "headless" if headless else "interactive"
