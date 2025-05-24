@@ -3,6 +3,7 @@ import subprocess
 import pytest
 
 import imagej
+import imagej.doctor
 from scyjava import config
 
 
@@ -46,6 +47,8 @@ def ij(request):
     Create an ImageJ2 gateway to be used by the whole testing environment
     :param request: Pytest variable passed in to fixtures
     """
+    # enable debug logging
+    imagej.doctor.debug_to_stderr()
     # get test configuration
     ij_dir = request.config.getoption("--ij")
     legacy = request.config.getoption("--legacy")
