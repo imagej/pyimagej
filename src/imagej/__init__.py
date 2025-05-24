@@ -1350,7 +1350,11 @@ def _create_gateway():
         )
         return False
 
-    ij = ImageJ()
+    try:
+        ij = ImageJ()
+    except Exception as e:
+        _log_exception(_logger, e)
+        raise e
 
     # Register a Python-side script runner object, used by the
     # org.scijava:scripting-python script language plugin.
