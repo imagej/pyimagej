@@ -49,7 +49,6 @@ import numpy as np
 import scyjava as sj
 import xarray as xr
 from jpype import JImplementationFor, setupGuiEnvironment
-from scyjava.config import find_jars
 
 import imagej.convert as convert
 import imagej.dims as dims
@@ -1638,9 +1637,9 @@ def _set_ij_env(ij_dir):
     """
     jars = []
     # search jars directory
-    jars.extend(find_jars(ij_dir + "/jars"))
+    jars.extend(sj.config.find_jars(ij_dir + "/jars"))
     # search plugins directory
-    jars.extend(find_jars(ij_dir + "/plugins"))
+    jars.extend(sj.config.find_jars(ij_dir + "/plugins"))
     # add to classpath
     sj.config.add_classpath(os.pathsep.join(jars))
     return len(jars)
