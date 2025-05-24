@@ -7,7 +7,7 @@ import logging
 from functools import lru_cache
 
 from jpype import JArray, JObject
-from scyjava import JavaClasses, jstacktrace
+from scyjava import JavaClasses, jimport, jstacktrace
 
 
 def log_exception(logger: logging.Logger, exc: "jc.Throwable") -> None:
@@ -15,6 +15,41 @@ def log_exception(logger: logging.Logger, exc: "jc.Throwable") -> None:
         jtrace = jstacktrace(exc)
         if jtrace:
             logger.debug(jtrace)
+
+
+def unlock_modules(logger: logging.Logger) -> None:
+    """
+    In Java 17 and later, reflection on modularized Java code is disallowed.
+    Normally, the only way to enable it is by passing --add-opens arguments at
+    launch, each of which unlocks a single package. This function calls
+    shenanigans on that requirement and unlocks everything at runtime. The only
+    argument needed at launch is `--add-opens=java.base/java.lang=ALL-UNNAMED`.
+    """
+    try:
+        Module = jimport("java.lang.Module")
+        ModuleLayer = jimport("java.lang.ModuleLayer")
+        String = jimport("java.lang.String")
+        Method = jimport("java.lang.reflect.Method")
+
+        addOpens = Module.class_.getDeclaredMethod("implAddOpens", String.class_, Module.class_)
+        addOpens.setAccessible(True)
+        addExports = Module.class_.getDeclaredMethod("implAddExports", String.class_, Module.class_)
+        addExports.setAccessible(True)
+
+        # HACK: We need a class from the unnamed module.
+        unnamed = jimport("org.scijava.Context").class_.getModule()
+
+        for module in ModuleLayer.boot().modules():
+            for package in m.getPackages():
+                try:
+                    addOpens.invoke(m, package, unnamed)
+                    addExports.invoke(m, package, unnamed)
+                except Exception as e:
+                    # Continue with other packages
+                    log_exception(logger, e)
+
+    except Exception as e:
+        log_exception(logger, e)
 
 
 # Import Java resources on demand.

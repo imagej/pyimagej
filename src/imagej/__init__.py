@@ -43,7 +43,7 @@ from enum import Enum
 from functools import lru_cache
 from pathlib import Path
 from textwrap import dedent
-from typing import Tuple, Union
+from typing import Optional, Tuple, Union
 
 import numpy as np
 import scyjava as sj
@@ -1388,10 +1388,10 @@ def _create_jvm(
         option = "-Djava.awt.headless=true"
         _logger.debug(f"Adding option: {option}")
         sj.config.add_option(option)
+
     try:
-        version_digits = sj.jvm_version()
-        _logger.debug(f"Detected Java version: {version_digits}")
-        if version_digits[0] >= 9:
+        major_version = _guess_java_version()
+        if major_version is not None and major_version >= 9:
             # Allow illegal reflection access. Necessary for Java 17+.
             mod_packs = [
                 "java.base/java.lang",
@@ -1580,6 +1580,42 @@ def _create_jvm(
         return False
 
     return True
+
+
+def _guess_java_version() -> Optional[int]:
+    # Ask scyjava what version of Java will be used.
+    try:
+        version_digits = sj.jvm_version()
+        _logger.debug(f"Detected existing Java version: {version_digits}")
+        major_version = version_digits[0]
+    except RuntimeError as e:
+        # This is OK -- it just means no already installed Java is known.
+        # But scyjava might download and cache a JDK, so we'll proceed with
+        # that understanding.
+        _log_exception(_logger, e)
+
+    # In scyjava 1.12.0+, if a JDK fetch is planned, the jvm_version()
+    # result will be invalid because that function is reporting on an
+    # already-installed JVM available on the system. So let's be more
+    # nuanced in how we predict the future here.
+    fetch_plan = sj.config.get_fetch_java()
+    will_fetch = fetch_plan == 'always' or \
+        (fetch_rule == 'auto' and version_digits is None)
+    if will_fetch:
+        version_to_fetch = sj.config.get_java_version()
+        _logger.debug(f"Detected Java version to fetch: {version_to_fetch}")
+        try:
+            major_version = int(version_to_fetch.split(".")[0])
+        except ValueError:
+            # If version_to_fetch is falsy / unconstrained, assume
+            # the latest major version of Java will be fetched.
+            # Otherwise, give up by setting it to None.
+            major_version = None if version_to_fetch else 9999
+
+    if major_version is None:
+        _logger.warning("Failed to guess the Java version.")
+
+    return major_version
 
 
 def _includes_imagej_legacy(items: list):
