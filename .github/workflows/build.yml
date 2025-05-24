@@ -11,31 +11,29 @@ on:
       - main
 
 jobs:
-  build-pip:
-    name: pip - ${{matrix.os}} - ${{matrix.python-version}}
+  build:
+    name: ${{matrix.os}} - ${{matrix.python-version}}
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
         os: [ubuntu-latest, windows-latest, macos-latest]
         python-version: ["3.9", "3.13"]
 
-
     steps:
-    - uses: actions/checkout@v2
+      - uses: actions/checkout@v2
+      - uses: actions/setup-python@v3
+        with:
+          python-version: ${{matrix.python-version}}
 
-    - uses: actions/setup-python@v3
-      with:
-        python-version: ${{matrix.python-version}}
+      - name: Install uv
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install uv
 
-    - name: Install PyImageJ
-      run: |
-        python -m pip install --upgrade pip
-        python -m pip install -e '.[dev]'
-
-    - name: Test PyImageJ
-      shell: bash
-      run: |
-        bin/test.sh
+      - name: Test PyImageJ
+        shell: bash
+        run: |
+          bin/test.sh
 
   ensure-clean-code:
     runs-on: ubuntu-latest
@@ -43,51 +41,23 @@ jobs:
       - uses: actions/checkout@v2
       - uses: actions/setup-python@v3
 
+      - name: Install uv
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install uv
+
       - name: Lint code
         run: |
-          python -m pip install ruff
-          ruff check
-          ruff format --check
+          uv run ruff check
+          uv run ruff format --check
 
       - name: Validate pyproject.toml
         run: |
-          python -m pip install validate-pyproject[all]
-          python -m validate_pyproject pyproject.toml
+          uv run validate-pyproject pyproject.toml
 
-  conda-dev-test:
-    name: Conda Setup & Code Coverage
-    runs-on: ubuntu-latest
-    defaults:
-      # Steps that rely on the activated environment must be run with this shell setup.
-      # See https://github.com/marketplace/actions/setup-miniconda#important
-      run:
-        shell: bash -l {0}
-    steps:
-      - uses: actions/checkout@v2
-      - name: Cache conda
-        uses: actions/cache@v4
-        env:
-          # Increase this value to reset cache if dev-environment.yml has not changed
-          CACHE_NUMBER: 0
-        with:
-          path: ~/conda_pkgs_dir
-          key:
-            ${{ runner.os }}-conda-${{ env.CACHE_NUMBER }}-${{ hashFiles('dev-environment.yml') }}
-      - uses: conda-incubator/setup-miniconda@v3
-        with:
-          # Create env with dev packages
-          auto-update-conda: true
-          python-version: 3.9
-          miniforge-version: latest
-          environment-file: dev-environment.yml
-          # Activate pyimagej-dev environment
-          activate-environment: pyimagej-dev
-          auto-activate-base: false
-          # Use mamba for faster setup
-          use-mamba: true
-      - name: Test pyimagej
+      - name: Analyze code coverage
         run: |
           bin/test.sh tests --cov-report=xml --cov=.
-      # We could do this in its own action, but we'd have to setup the environment again.
-      - name: Upload Coverage to Codecov
+
+      - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v2
