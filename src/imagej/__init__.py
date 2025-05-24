@@ -56,6 +56,7 @@ import imagej.images as images
 import imagej.stack as stack
 from imagej._java import JObjectArray, jc
 from imagej._java import log_exception as _log_exception
+from imagej._java import unlock_modules as _unlock_modules
 
 __author__ = "ImageJ2 developers"
 __version__ = sj.get_version("pyimagej")
@@ -1389,37 +1390,7 @@ def _create_jvm(
         _logger.debug(f"Adding option: {option}")
         sj.config.add_option(option)
 
-    try:
-        major_version = _guess_java_version()
-        if major_version is not None and major_version >= 9:
-            # Allow illegal reflection access. Necessary for Java 17+.
-            mod_packs = [
-                "java.base/java.lang",
-                "java.base/java.lang.invoke",
-                "java.base/java.net",
-                "java.base/java.nio",
-                "java.base/java.time",
-                "java.base/java.util",
-                "java.base/java.util.concurrent.atomic",
-                "java.base/sun.nio.ch",
-                "java.base/sun.util.calendar",
-                "java.desktop/com.sun.java.swing",
-                "java.desktop/java.awt",
-                "java.desktop/javax.swing",
-                "java.desktop/sun.awt",
-                "java.desktop/sun.swing",
-            ]
-            if sys.platform == "linux":
-                mod_packs.append("java.desktop/sun.awt.X11")
-            elif sys.platform == "darwin":
-                mod_packs.append("java.desktop/com.apple.eawt")
-            for mod_pack in mod_packs:
-                option = f"--add-opens={mod_pack}=ALL-UNNAMED"
-                _logger.debug(f"Adding option: {option}")
-                sj.config.add_option(option)
-    except RuntimeError as e:
-        _logger.warning("Failed to guess the Java version.")
-        _logger.debug(e, exc_info=True)
+    needs_unlock = _prepare_to_unlock_modules()
 
     # We want ImageJ2's endpoints to be first, so these will be restored later
     original_endpoints = sj.config.endpoints.copy()
@@ -1579,6 +1550,9 @@ def _create_jvm(
         sj.config.endpoints.extend(original_endpoints)
         return False
 
+    if needs_unlock:
+        _unlock_modules(_logger)
+
     return True
 
 
@@ -1665,6 +1639,19 @@ def _macos_enable_interactive(force: bool = False) -> bool:
         return True
 
     _logger.debug("All checks failed. Interactive mode not available.")
+    return False
+
+
+def _prepare_to_unlock_modules() -> bool:
+    major_version = _guess_java_version()
+
+    if major_version is not None and major_version >= 9:
+        # Allow illegal reflection access. Necessary for Java 17+.
+        option = f"--add-opens=java.base/java.lang=ALL-UNNAMED"
+        _logger.debug(f"Adding option: {option}")
+        sj.config.add_option(option)
+        return True
+
     return False
 
 
