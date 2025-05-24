@@ -1385,9 +1385,13 @@ def _create_jvm(
 
     # Initialize configuration.
     if mode == Mode.HEADLESS:
-        sj.config.add_option("-Djava.awt.headless=true")
+        option = "-Djava.awt.headless=true"
+        _logger.debug(f"Adding option: {option}")
+        sj.config.add_option(option)
     try:
-        if hasattr(sj, "jvm_version") and sj.jvm_version()[0] >= 9:
+        version_digits = sj.jvm_version()
+        _logger.debug(f"Detected Java version: {version_digits}")
+        if version_digits[0] >= 9:
             # Allow illegal reflection access. Necessary for Java 17+.
             mod_packs = [
                 "java.base/java.lang",
@@ -1410,7 +1414,9 @@ def _create_jvm(
             elif sys.platform == "darwin":
                 mod_packs.append("java.desktop/com.apple.eawt")
             for mod_pack in mod_packs:
-                sj.config.add_option(f"--add-opens={mod_pack}=ALL-UNNAMED")
+                option = f"--add-opens={mod_pack}=ALL-UNNAMED"
+                _logger.debug(f"Adding option: {option}")
+                sj.config.add_option(option)
     except RuntimeError as e:
         _logger.warning("Failed to guess the Java version.")
         _logger.debug(e, exc_info=True)
