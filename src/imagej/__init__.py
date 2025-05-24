@@ -1418,8 +1418,7 @@ def _create_jvm(
         _logger.warning("Failed to guess the Java version.")
         _logger.debug(e, exc_info=True)
 
-    # We want ImageJ2's endpoints to come first, so these will be restored
-    # later
+    # We want ImageJ2's endpoints to be first, so these will be restored later
     original_endpoints = sj.config.endpoints.copy()
     sj.config.endpoints.clear()
     init_failed = False
