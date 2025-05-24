@@ -1,5 +1,6 @@
 from scyjava import jimport
 
+
 def test_when_imagej_starts(ij):
     """
     The ImageJ2 gateway test fixture registers a callback function via

@@ -29,21 +29,24 @@ def unlock_modules(logger: logging.Logger) -> None:
         Module = jimport("java.lang.Module")
         ModuleLayer = jimport("java.lang.ModuleLayer")
         String = jimport("java.lang.String")
-        Method = jimport("java.lang.reflect.Method")
 
-        addOpens = Module.class_.getDeclaredMethod("implAddOpens", String.class_, Module.class_)
+        addOpens = Module.class_.getDeclaredMethod(
+            "implAddOpens", String.class_, Module.class_
+        )
         addOpens.setAccessible(True)
-        addExports = Module.class_.getDeclaredMethod("implAddExports", String.class_, Module.class_)
+        addExports = Module.class_.getDeclaredMethod(
+            "implAddExports", String.class_, Module.class_
+        )
         addExports.setAccessible(True)
 
         # HACK: We need a class from the unnamed module.
         unnamed = jimport("org.scijava.Context").class_.getModule()
 
         for module in ModuleLayer.boot().modules():
-            for package in m.getPackages():
+            for package in module.getPackages():
                 try:
-                    addOpens.invoke(m, package, unnamed)
-                    addExports.invoke(m, package, unnamed)
+                    addOpens.invoke(module, package, unnamed)
+                    addExports.invoke(module, package, unnamed)
                 except Exception as e:
                     # Continue with other packages
                     log_exception(logger, e)

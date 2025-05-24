@@ -1573,8 +1573,9 @@ def _guess_java_version() -> Optional[int]:
     # already-installed JVM available on the system. So let's be more
     # nuanced in how we predict the future here.
     fetch_plan = sj.config.get_fetch_java()
-    will_fetch = fetch_plan == 'always' or \
-        (fetch_rule == 'auto' and version_digits is None)
+    will_fetch = fetch_plan == "always" or (
+        fetch_plan == "auto" and version_digits is None
+    )
     if will_fetch:
         version_to_fetch = sj.config.get_java_version()
         _logger.debug(f"Detected Java version to fetch: {version_to_fetch}")
@@ -1647,7 +1648,7 @@ def _prepare_to_unlock_modules() -> bool:
 
     if major_version is not None and major_version >= 9:
         # Allow illegal reflection access. Necessary for Java 17+.
-        option = f"--add-opens=java.base/java.lang=ALL-UNNAMED"
+        option = "--add-opens=java.base/java.lang=ALL-UNNAMED"
         _logger.debug(f"Adding option: {option}")
         sj.config.add_option(option)
         return True
