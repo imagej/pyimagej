@@ -7,8 +7,10 @@
 /dist/
 /doc/_build/
 /src/pyimagej.egg-info/
+/Fiji
 /Fiji.app
-/fiji-nojre.zip
+/fiji-*.zip
+/uv.lock
 MANIFEST
 .vscode/settings.json
 .vscode/launch.json

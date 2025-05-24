@@ -4,10 +4,10 @@ dir=$(dirname "$0")
 cd "$dir/.."
 
 exitCode=0
-ruff check
+uv run ruff check
 code=$?; test $code -eq 0 || exitCode=$code
-ruff format --check
+uv run ruff format --check
 code=$?; test $code -eq 0 || exitCode=$code
-validate-pyproject pyproject.toml
+uv run validate-pyproject pyproject.toml
 code=$?; test $code -eq 0 || exitCode=$code
 exit $exitCode

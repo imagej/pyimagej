@@ -32,7 +32,6 @@ classifiers = [
     "Topic :: Utilities",
 ]
 
-# NB: Keep this in sync with environment.yml AND dev-environment.yml!
 requires-python = ">=3.9"
 dependencies = [
     "imglyb >= 2.1.0",
@@ -40,12 +39,11 @@ dependencies = [
     "jpype1 >= 1.4.0",
     "labeling >= 0.1.14",
     "numpy",
-    "scyjava >= 1.8.0",
+    "scyjava >= 1.12.0",
     "xarray",
 ]
 
-[project.optional-dependencies]
-# NB: Keep this in sync with dev-environment.yml!
+[dependency-groups]
 # Development tools
 dev = [
     "build",
@@ -58,6 +56,8 @@ dev = [
     "sphinx_rtd_theme",
     "validate-pyproject[all]",
 ]
+
+[project.optional-dependencies]
 # Matplotlib display backend
 matplotlib = [
     "matplotlib",

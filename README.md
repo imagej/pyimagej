@@ -43,32 +43,30 @@ PyImageJ has been tested on the following operating systems:
 
 PyImageJ requires the following packages:
 
-* Python >= 3.7
+* Python >= 3.9
 * [imglyb] >= 2.1.0
 * [jgo] >= 1.0.3
 * [JPype] >= 1.3.0
 * [labeling] >= 0.1.14
 * [matplotlib] \(optional, for `ij.py.show` function only)
 * [NumPy]
-* [scyjava] >= 1.8.0
+* [scyjava] >= 1.12.0
 * [xarray]
 
 PyImageJ will not function properly if dependency versions are too old.
 
-In addition, PyImageJ requires [OpenJDK] and [Maven] to be installed.
-
 ## Installation
 
-On Mac and Linux, PyImageJ can be installed using [Conda]+[Mamba]. Here is how to create
-and activate a new conda environment with PyImageJ available:
+On Mac and Linux, PyImageJ can be installed using [Conda]+[Mamba]. Here is
+how to create and activate a new conda environment with PyImageJ available:
 
 ```
 conda install mamba -n base -c conda-forge
-mamba create -n pyimagej -c conda-forge pyimagej openjdk=8
+mamba create -n pyimagej -c conda-forge pyimagej
 conda activate pyimagej
 ```
 
-You can also `pip install pyimagej`, but will then need to install OpenJDK and Maven manually.
+Alternately, you can `pip install pyimagej`.
 
 Installation time takes approximately 20 seconds. Initializing PyImageJ
 takes an additional ~30 seconds to ~2-3 minutes (depending on bandwidth)
@@ -150,7 +148,5 @@ For details on how to develop the PyImageJ codebase, see
 [NumPy]: https://numpy.org/
 [scyjava]: https://github.com/scijava/scyjava
 [xarray]: https://docs.xarray.dev/
-[OpenJDK]: https://en.wikipedia.org/wiki/OpenJDK
-[Maven]: https://maven.apache.org/
 [Conda]: https://conda.io/
 [Mamba]: https://mamba.readthedocs.io/

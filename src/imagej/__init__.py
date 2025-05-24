@@ -43,13 +43,12 @@ from enum import Enum
 from functools import lru_cache
 from pathlib import Path
 from textwrap import dedent
-from typing import Tuple, Union
+from typing import Optional, Tuple, Union
 
 import numpy as np
 import scyjava as sj
 import xarray as xr
 from jpype import JImplementationFor, setupGuiEnvironment
-from scyjava.config import find_jars
 
 import imagej.convert as convert
 import imagej.dims as dims
@@ -57,6 +56,7 @@ import imagej.images as images
 import imagej.stack as stack
 from imagej._java import JObjectArray, jc
 from imagej._java import log_exception as _log_exception
+from imagej._java import unlock_modules as _unlock_modules
 
 __author__ = "ImageJ2 developers"
 __version__ = sj.get_version("pyimagej")
@@ -1207,10 +1207,7 @@ def init(
 
         ij = imagej.init("sc.fiji:fiji", mode=imagej.Mode.GUI)
     """
-    force = False
-    if isinstance(mode, str):
-        force = mode.endswith(":force")
-
+    force = isinstance(mode, str) and mode.endswith(":force")
     if force:
         mode = mode[:-6]
 
@@ -1354,7 +1351,11 @@ def _create_gateway():
         )
         return False
 
-    ij = ImageJ()
+    try:
+        ij = ImageJ()
+    except Exception as e:
+        _log_exception(_logger, e)
+        raise e
 
     # Register a Python-side script runner object, used by the
     # org.scijava:scripting-python script language plugin.
@@ -1385,38 +1386,13 @@ def _create_jvm(
 
     # Initialize configuration.
     if mode == Mode.HEADLESS:
-        sj.config.add_option("-Djava.awt.headless=true")
-    try:
-        if hasattr(sj, "jvm_version") and sj.jvm_version()[0] >= 9:
-            # Allow illegal reflection access. Necessary for Java 17+.
-            mod_packs = [
-                "java.base/java.lang",
-                "java.base/java.lang.invoke",
-                "java.base/java.net",
-                "java.base/java.nio",
-                "java.base/java.time",
-                "java.base/java.util",
-                "java.base/java.util.concurrent.atomic",
-                "java.base/sun.nio.ch",
-                "java.base/sun.util.calendar",
-                "java.desktop/com.sun.java.swing",
-                "java.desktop/java.awt",
-                "java.desktop/javax.swing",
-                "java.desktop/sun.awt",
-                "java.desktop/sun.swing",
-            ]
-            if sys.platform == "linux":
-                mod_packs.append("java.desktop/sun.awt.X11")
-            elif sys.platform == "darwin":
-                mod_packs.append("java.desktop/com.apple.eawt")
-            for mod_pack in mod_packs:
-                sj.config.add_option(f"--add-opens={mod_pack}=ALL-UNNAMED")
-    except RuntimeError as e:
-        _logger.warning("Failed to guess the Java version.")
-        _logger.debug(e, exc_info=True)
+        option = "-Djava.awt.headless=true"
+        _logger.debug(f"Adding option: {option}")
+        sj.config.add_option(option)
 
-    # We want ImageJ2's endpoints to come first, so these will be restored
-    # later
+    needs_unlock = _prepare_to_unlock_modules()
+
+    # We want ImageJ2's endpoints to be first, so these will be restored later
     original_endpoints = sj.config.endpoints.copy()
     sj.config.endpoints.clear()
     init_failed = False
@@ -1574,7 +1550,46 @@ def _create_jvm(
         sj.config.endpoints.extend(original_endpoints)
         return False
 
+    if needs_unlock:
+        _unlock_modules(_logger)
+
     return True
+
+
+def _guess_java_version() -> Optional[int]:
+    # Ask scyjava what version of Java will be used.
+    try:
+        version_digits = sj.jvm_version()
+        _logger.debug(f"Detected existing Java version: {version_digits}")
+        major_version = version_digits[0]
+    except RuntimeError as e:
+        # This is OK -- it just means no already installed Java is known.
+        # But scyjava might download and cache a JDK, so we'll proceed with
+        # that understanding.
+        _log_exception(_logger, e)
+
+    # In scyjava 1.12.0+, if a JDK fetch is planned, the jvm_version()
+    # result will be invalid because that function is reporting on an
+    # already-installed JVM available on the system. So let's be more
+    # nuanced in how we predict the future here.
+    fetch_plan = sj.config.get_fetch_java()
+    will_fetch = fetch_plan == 'always' or \
+        (fetch_rule == 'auto' and version_digits is None)
+    if will_fetch:
+        version_to_fetch = sj.config.get_java_version()
+        _logger.debug(f"Detected Java version to fetch: {version_to_fetch}")
+        try:
+            major_version = int(version_to_fetch.split(".")[0])
+        except ValueError:
+            # If version_to_fetch is falsy / unconstrained, assume
+            # the latest major version of Java will be fetched.
+            # Otherwise, give up by setting it to None.
+            major_version = None if version_to_fetch else 9999
+
+    if major_version is None:
+        _logger.warning("Failed to guess the Java version.")
+
+    return major_version
 
 
 def _includes_imagej_legacy(items: list):
@@ -1627,6 +1642,19 @@ def _macos_enable_interactive(force: bool = False) -> bool:
     return False
 
 
+def _prepare_to_unlock_modules() -> bool:
+    major_version = _guess_java_version()
+
+    if major_version is not None and major_version >= 9:
+        # Allow illegal reflection access. Necessary for Java 17+.
+        option = f"--add-opens=java.base/java.lang=ALL-UNNAMED"
+        _logger.debug(f"Adding option: {option}")
+        sj.config.add_option(option)
+        return True
+
+    return False
+
+
 def _set_ij_env(ij_dir):
     """
     Create a list of required jars and add to the java classpath.
@@ -1636,9 +1664,9 @@ def _set_ij_env(ij_dir):
     """
     jars = []
     # search jars directory
-    jars.extend(find_jars(ij_dir + "/jars"))
+    jars.extend(sj.config.find_jars(ij_dir + "/jars"))
     # search plugins directory
-    jars.extend(find_jars(ij_dir + "/plugins"))
+    jars.extend(sj.config.find_jars(ij_dir + "/plugins"))
     # add to classpath
     sj.config.add_classpath(os.pathsep.join(jars))
     return len(jars)
