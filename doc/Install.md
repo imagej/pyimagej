@@ -16,11 +16,16 @@ environments.
 1. [Install Miniforge3](https://github.com/conda-forge/miniforge#miniforge3).
    **OR:** If you already have `mamba` installed, activate conda-forge:
    ```
+   mamba config append channels conda-forge
+   mamba config set channel_priority strict
+   ```
+   On the other hand, if you are using `conda` (not recommended):
+   ```
    conda config --add channels conda-forge
    conda config --set channel_priority strict
    ```
 
-2. Install PyImageJ into a new environment:
+3. Install PyImageJ into a new environment:
    ```
    mamba create -n pyimagej pyimagej openjdk=11
    ```
@@ -32,7 +37,7 @@ environments.
    *Please note that openjdk=8 from conda-forge is broken on M1 Mac.*
    If you are using an M1 Mac, you should use openjdk=11 or newer.
 
-3. Whenever you want to use PyImageJ, activate its environment:
+4. Whenever you want to use PyImageJ, activate its environment:
    ```
    mamba activate pyimagej
    ```
