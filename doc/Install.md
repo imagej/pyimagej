@@ -16,6 +16,11 @@ environments.
 1. [Install Miniforge3](https://github.com/conda-forge/miniforge#miniforge3).
    **OR:** If you already have `mamba` installed, activate conda-forge:
    ```
+   mamba config append channels conda-forge
+   mamba config set channel_priority strict
+   ```
+   On the other hand, if you are using `conda` (not recommended):
+   ```
    conda config --add channels conda-forge
    conda config --set channel_priority strict
    ```
