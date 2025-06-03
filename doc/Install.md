@@ -37,7 +37,7 @@ environments.
    *Please note that openjdk=8 from conda-forge is broken on M1 Mac.*
    If you are using an M1 Mac, you should use openjdk=11 or newer.
 
-4. Whenever you want to use PyImageJ, activate its environment:
+3. Whenever you want to use PyImageJ, activate its environment:
    ```
    mamba activate pyimagej
    ```
