@@ -25,7 +25,7 @@ environments.
    conda config --set channel_priority strict
    ```
 
-3. Install PyImageJ into a new environment:
+2. Install PyImageJ into a new environment:
    ```
    mamba create -n pyimagej pyimagej openjdk=11
    ```
