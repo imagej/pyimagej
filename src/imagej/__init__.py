@@ -1368,7 +1368,9 @@ def _create_gateway():
 
 
 def _create_jvm(
-    ij_dir_or_version_or_endpoint=None, mode=Mode.HEADLESS, add_legacy=True
+    ij_dir_or_version_or_endpoint=None,
+    mode=Mode.HEADLESS,
+    add_legacy=True,
 ):
     """
     Ensures the JVM is properly initialized and ready to go,
