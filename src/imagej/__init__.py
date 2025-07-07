@@ -48,7 +48,7 @@ from typing import Optional, Tuple, Union
 import numpy as np
 import scyjava as sj
 import xarray as xr
-from jpype import JImplementationFor, setupGuiEnvironment
+from jpype import JImplementationFor, JVMNotFoundException, setupGuiEnvironment
 
 import imagej.convert as convert
 import imagej.dims as dims
@@ -1558,11 +1558,12 @@ def _create_jvm(
 
 def _guess_java_version() -> Optional[int]:
     # Ask scyjava what version of Java will be used.
+    version_digits = None
     try:
         version_digits = sj.jvm_version()
         _logger.debug(f"Detected existing Java version: {version_digits}")
         major_version = version_digits[0]
-    except RuntimeError as e:
+    except JVMNotFoundException as e:
         # This is OK -- it just means no already installed Java is known.
         # But scyjava might download and cache a JDK, so we'll proceed with
         # that understanding.
