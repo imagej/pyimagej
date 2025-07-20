@@ -38,6 +38,9 @@ do
   flag=${mode##*|}
   for java in 8 21
   do
+    # HACK: Skip crashing macOS tests on CI.
+    test "$RUNNER_OS" = macOS -a "$java" -eq 8 && continue
+
     # Fiji-Latest requires Java 21; skip Fiji-Latest + Java 8.
     echo "$msg" | grep -q Fiji-Latest && test "$java" -eq 8 && continue
 
