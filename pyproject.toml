@@ -50,7 +50,6 @@ dev = [
     "myst-nb",
     "pre-commit",
     "pytest",
-    "pytest-cov",
     "ruff",
     "sphinx",
     "sphinx_rtd_theme",
