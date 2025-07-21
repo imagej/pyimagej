@@ -1569,7 +1569,7 @@ def _guess_java_version() -> Optional[int]:
         # This is OK -- it just means no already installed Java is known.
         # But scyjava might download and cache a JDK, so we'll proceed with
         # that understanding.
-        _log_exception(_logger, e)
+        _logger.debug(e)
 
     # In scyjava 1.12.0+, if a JDK fetch is planned, the jvm_version()
     # result will be invalid because that function is reporting on an
