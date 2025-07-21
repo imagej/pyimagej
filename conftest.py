@@ -36,7 +36,7 @@ def pytest_addoption(parser):
     parser.addoption(
         "--java",
         action="store",
-        default=None,
+        default="11",
         help="version of Java to cache and use (e.g. 8, 11, 17, 21)",
     )
 
