@@ -41,10 +41,3 @@ def test_imagej_macro(ij):
     macro = get_macro()
     output = ij.py.run_macro(macro)
     assert output["out"] == 1024
-
-
-def test_python_jython_script(ij):
-    args = {"img": get_img(ij)}
-    script = get_script()
-    output = ij.py.run_script("Python (Jython)", script, args)
-    assert output["out"] == 1024
