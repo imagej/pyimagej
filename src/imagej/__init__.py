@@ -248,7 +248,9 @@ class ImageJPython:
 
         :param macro: The macro code/script as a string.
         :param args: A dictionary of macro arguments in key: valye pairs.
-        :return: Runs the specified macro with the given arguments.
+        :return: A Java map of output names and values, key: value pais. If no
+            arguments are provided, the macro will run and a Java map with the key
+            "result" and value "null" are returned.
 
         :example:
 
@@ -271,12 +273,15 @@ class ImageJPython:
 
         try:
             if args is None:
-                return self._ij.script().run("macro.ijm", macro, True).get()
+                return (
+                    self._ij.script().run("macro.ijm", macro, True).get().getOutputs()
+                )
             else:
                 return (
                     self._ij.script()
                     .run("macro.ijm", macro, True, self._ij.py.jargs(args))
                     .get()
+                    .getOutputs()
                 )
         except Exception as exc:
             _log_exception(_logger, exc)
@@ -331,7 +336,9 @@ class ImageJPython:
         :param language: The file extension for the scripting language.
         :param script: A string of the script code.
         :param args: A dictionary of macro arguments in key: value pairs.
-        :return: A Java map of output names and values, key: value pais.
+        :return: A Java map of output names and values, key: value pais. If no
+            arguments are provided, the script will run and a Java map with the key
+            "result" and value "null" are returned.
 
         :example:
 
@@ -364,11 +371,17 @@ class ImageJPython:
         ext = str(exts.get(0))
         try:
             if args is None:
-                return self._ij.script().run("script." + ext, script, True).get()
+                return (
+                    self._ij.script()
+                    .run("script." + ext, script, True)
+                    .get()
+                    .getOutputs()
+                )
             return (
                 self._ij.script()
                 .run("script." + ext, script, True, self._ij.py.jargs(args))
                 .get()
+                .getOutputs()
             )
         except Exception as exc:
             _log_exception(_logger, exc)
