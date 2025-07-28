@@ -1,6 +1,12 @@
 import scyjava as sj
+import pytest
 
 # -- Helpers --
+
+
+def ensure_legacy_enabled(ij):
+    if not ij.legacy or not ij.legacy.isActive():
+        pytest.skip("No original ImageJ. Skipping test.")
 
 
 def get_img(ij):
@@ -30,6 +36,7 @@ def test_groovy_script(ij):
 
 
 def test_imagej_macro(ij):
+    ensure_legacy_enabled(ij)
     _imp = ij.py.to_imageplus(get_img(ij)).show()
     macro = get_macro()
     output = ij.py.run_macro(macro)
