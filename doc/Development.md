@@ -24,7 +24,7 @@ make test
 ## Building the reference documentation
 
 ```
-make docs
+make html
 ```
 
 Results are generated to `doc/_build/html`.
