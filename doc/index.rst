@@ -48,6 +48,7 @@ scikit-image, CellProfiler, OpenCV, ITK and many more.
    :caption: 📚 Reference
 
    api
+   Citation
 
 Indices and tables
 ==================
