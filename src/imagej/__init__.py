@@ -357,18 +357,27 @@ class ImageJPython:
             script_result = ij.py.run_script(language, script, args)
             print(script_result["message"])
         """
+
+        # Retrieve ScriptLanguage matching the given language string.
         script_lang = self._ij.script().getLanguageByName(language)
         if script_lang is None:
             script_lang = self._ij.script().getLanguageByExtension(language)
         if script_lang is None:
             raise ValueError("Unknown script language: " + language)
+
+        # HACK: Use a synthetic script filename with the first file extension
+        # of the matching script language. This will need to change in future
+        # to disambiguate between languages with overlapping extensions, but
+        # for the moment, it mostly works.
         exts = script_lang.getExtensions()
         if exts.isEmpty():
             raise ValueError(
                 f"Script language '{script_lang.getLanguageName()}' has no extensions"
             )
         ext = str(exts.get(0))
+
         try:
+            # Launch the script.
             if args is None:
                 return (
                     self._ij.script()
