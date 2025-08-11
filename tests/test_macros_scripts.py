@@ -46,18 +46,20 @@ def test_imagej_macro(ij):
 
 
 def test_script_output_object(ij):
-    args = {"img": get_img(ij)}
+    input_img = get_img(ij)
+    args = {"img": input_img}
     script = get_script()
     output = ij.py.run_script("Groovy", script, args)
 
-    # check if output is a Java HashMap
-    hm = sj.jimport("java.util.HashMap")
-    assert isinstance(output, hm)
+    # check if output is a ScriptModuleDict adapter object
+    assert str(type(output)).endswith(".ScriptModuleDict'>")
 
-    # check if the HashMap has the ScriptModule patch methods
+    # check returned output value
+    assert output["out"] == 1024
+
+    # check if the returned object has the ScriptModule methods
     assert output.getOutput("out") == 1024
-    assert isinstance(output.getOutputs(), hm)
-    with pytest.raises(NotImplementedError):
-        output.getInput("out")
-    with pytest.raises(NotImplementedError):
-        output.getInputs()
+    assert output.getInput("img") == input_img
+    assert output.getReturnValue() == 1024
+    assert output.context() == ij.context()
+    assert "Groovy" in output.getEngine().getClass().getName()

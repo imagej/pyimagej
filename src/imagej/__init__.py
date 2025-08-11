@@ -378,19 +378,145 @@ class ImageJPython:
 
         try:
             # Launch the script.
-            if args is None:
-                return (
-                    self._ij.script()
-                    .run("script." + ext, script, True)
-                    .get()
-                    .getOutputs()
+            fakefile = "script." + ext
+            promise = (
+                self._ij.script().run(fakefile, script, True)
+                if args is None
+                else self._ij.script().run(
+                    fakefile, script, True, self._ij.py.jargs(args)
                 )
-            return (
-                self._ij.script()
-                .run("script." + ext, script, True, self._ij.py.jargs(args))
-                .get()
-                .getOutputs()
             )
+
+            # Wrapper adding SciJava ScriptModule methods onto the returned dict.
+            class ScriptModuleDict(dict):
+                def __init__(self, module):
+                    self.module = module
+                    self.update(module.getOutputs())
+
+                def _warn_deprecated(self, funcname: str):
+                    sys.stderr.write(
+                        dedent(f"""
+                        Warning: The {funcname} function is deprecated!
+                        Please use `ij.script().run` directly if you need
+                        access to the ScriptModule object.
+                    """).strip()
+                        + "\n"
+                    )
+
+                def preview(self):
+                    self._warn_deprecated("preview")
+                    self.module.preview()
+
+                def cancel(self):
+                    self._warn_deprecated("cancel")
+                    self.module.cancel()
+
+                def initialize(self):
+                    self._warn_deprecated("initialize")
+                    self.module.initialize()
+
+                def getInfo(self):
+                    self._warn_deprecated("getInfo")
+                    return self.module.getInfo()
+
+                def getDelegateObject(self):
+                    self._warn_deprecated("getDelegateObject")
+                    return self.module.getDelegateObject()
+
+                def getInput(self, name: str):
+                    self._warn_deprecated("getInput")
+                    return self.module.getInput(name)
+
+                def getOutput(self, name: str):
+                    self._warn_deprecated("getOutput")
+                    return self.module.getOutput(name)
+
+                def getInputs(self):
+                    self._warn_deprecated("getInputs")
+                    return self.module.getInputs()
+
+                def getOutputs(self):
+                    self._warn_deprecated("getOutputs")
+                    return self.module.getOutputs()
+
+                def setInput(self, name: str, value):
+                    self._warn_deprecated("setInput")
+                    self.module.setInput(name, value)
+
+                def setOutput(self, name: str, value):
+                    self._warn_deprecated("setOutput")
+                    self.module.setOutput(name, value)
+
+                def setInputs(self, inputs):
+                    self._warn_deprecated("setInputs")
+                    self.module.setInputs(inputs)
+
+                def setOutputs(self, outputs):
+                    self._warn_deprecated("setOutputs")
+                    self.module.setOutputs(outputs)
+
+                def isInputResolved(self, name: str):
+                    self._warn_deprecated("isInputResolved")
+                    return self.module.isInputResolved(name)
+
+                def isOutputResolved(self, name: str):
+                    self._warn_deprecated("isOutputResolved")
+                    return self.module.isOutputResolved(name)
+
+                def resolveInput(self, name: str):
+                    self._warn_deprecated("resolveInput")
+                    self.module.resolveInput(name)
+
+                def resolveOutput(self, name: str):
+                    self._warn_deprecated("resolveOutput")
+                    self.module.resolveOutput(name)
+
+                def unresolveInput(self, name: str):
+                    self._warn_deprecated("unresolveInput")
+                    self.module.unresolveInput(name)
+
+                def unresolveOutput(self, name: str):
+                    self._warn_deprecated("unresolveOutput")
+                    self.module.unresolveOutput(name)
+
+                def setOutputWriter(self, output):
+                    self._warn_deprecated("setOutputWriter")
+                    self.module.setOutputWriter(output)
+
+                def setErrorWriter(self, error):
+                    self._warn_deprecated("setErrorWriter")
+                    self.module.setErrorWriter(error)
+
+                def getEngine(self):
+                    self._warn_deprecated("getEngine")
+                    return self.module.getEngine()
+
+                def getReturnValue(self):
+                    self._warn_deprecated("getReturnValue")
+                    return self.module.getReturnValue()
+
+                def run(self):
+                    self._warn_deprecated("run")
+                    self.module.run()
+
+                def context(self):
+                    self._warn_deprecated("context")
+                    return self.module.context()
+
+                def getContext(self):
+                    self._warn_deprecated("getContext")
+                    return self.module.getContext()
+
+                def setContext(self, context):
+                    self._warn_deprecated("setContext")
+                    self.module.setContext(context)
+
+            # Wait for script execution to complete.
+            module = promise.get()
+
+            # Return the outputs in a Module/dict hybrid object.
+            return ScriptModuleDict(module)
+
         except Exception as exc:
             _log_exception(_logger, exc)
             raise exc
@@ -1150,61 +1276,6 @@ class ImagePlusAddons(object):
         :see: ij.ImagePlus#getDimensions()
         """
         return tuple(length for length in self.getDimensions() if length > 1)
-
-
-@JImplementationFor("java.util.HashMap")
-class JavaHashMapAddons:
-    """Java hash map addons.
-
-    This class should not be initialized manually. Upon initalization
-    the JavaHashMapAddons class automatically extends the Java hash map
-    type via JPype's class customization mechanism:
-
-    https://jpype.readthedocs.io/en/latest/userguide.html#class-customizers
-    """
-
-    def getInput(self, key: str):
-        """
-        getInput() is deprecated.
-        The "inputs" HashMap is not available.
-        """
-        _logger.warning(
-            'getInput() is deprecated. The "inputs" HashMap is not available.'
-        )
-
-        raise NotImplementedError(f"getInput is not implemented for {type(self)}.")
-
-    def getInputs(self):
-        """
-        getInputs() is deprecated.
-        The "inputs" HashMap is not available.
-        """
-        _logger.warning(
-            'getInputs() is deprecated. The "inputs" HashMap is not available.'
-        )
-
-        raise NotImplementedError(f"getInputs is not implemented for {type(self)}.")
-
-    def getOutput(self, key: str):
-        """
-        getOutputs() is deprecated.
-        Use the Java HashMap itself (e.g. data.get(key) or data[key]).
-        """
-        _logger.warning(
-            "getOutput() is deprecated. "
-            "Use the Java HashMap itself (e.g. data.get(key) or data[key])."
-        )
-
-        return self.get(key)
-
-    def getOutputs(self):
-        """
-        getOutputs() is deprecated.
-        Use the Java HashMap iteself.
-        """
-        _logger.warning("getOutputs() is deprecated. Use the Java HashMap itself.")
-
-        return self
 
 
 def init(
