@@ -336,9 +336,7 @@ class ImageJPython:
         :param language: The file extension for the scripting language.
         :param script: A string of the script code.
         :param args: A dictionary of macro arguments in key: value pairs.
-        :return: A Java map of output names and values, key: value pais. If no
-            arguments are provided, the script will run and a Java map with the key
-            "result" and value "null" are returned.
+        :return: A dictionary of output names and values as key/value pairs.
 
         :example:
 
@@ -349,14 +347,15 @@ class ImageJPython:
             script = \"""
             #@ String name
             #@ int age
-            output = name + " is " + age " years old."
+            #@output String message
+            message = name + " is " + age " years old."
             \"""
             args = {
                 "name": "Sean",
                 "age": 26
             }
             script_result = ij.py.run_script(language, script, args)
-            print(script_result.getOutput("output"))
+            print(script_result["message"])
         """
         script_lang = self._ij.script().getLanguageByName(language)
         if script_lang is None:
