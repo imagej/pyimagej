@@ -1144,6 +1144,49 @@ class ImagePlusAddons(object):
         return tuple(length for length in self.getDimensions() if length > 1)
 
 
+@JImplementationFor("java.util.HashMap")
+class JavaHashMapAddons:
+    """Java hash map addons.
+
+    This class should not be initialized manually. Upon initalization
+    the JavaHashMapAddons class automatically extends the Java hash map
+    type via JPype's class customization mechanism:
+
+    https://jpype.readthedocs.io/en/latest/userguide.html#class-customizers
+    """
+
+    def getInput(self, key: str):
+        """Get the value of the input with a given key.
+
+        This function is not implemented for Java HashMaps.
+
+        :param key: The key or name of the input value.
+        """
+        raise NotImplementedError(f"getInput is not implemented for {type(self)}.")
+
+    def getInputs(self):
+        """Get a Java HashMap of the input values.
+
+        This function is not implemented for Java HashMaps.
+        """
+        raise NotImplementedError(f"getInputs is not implemented for {type(self)}.")
+
+    def getOutput(self, key: str):
+        """Get the value of the output with a given key.
+
+        :param key: The key or name of the output value.
+        :return: The output value.
+        """
+        return self.get(key)
+
+    def getOutputs(self):
+        """Get a Java HashMap of the output values.
+
+        :return: A Java HasMap of the output values.
+        """
+        return self
+
+
 def init(
     ij_dir_or_version_or_endpoint=None,
     mode: Union[Mode, str] = Mode.HEADLESS,

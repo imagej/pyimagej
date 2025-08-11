@@ -32,6 +32,7 @@ def test_groovy_script(ij):
     args = {"img": get_img(ij)}
     script = get_script()
     output = ij.py.run_script("Groovy", script, args)
+
     assert output["out"] == 1024
 
 
@@ -40,4 +41,23 @@ def test_imagej_macro(ij):
     _imp = ij.py.to_imageplus(get_img(ij)).show()
     macro = get_macro()
     output = ij.py.run_macro(macro)
+
     assert output["out"] == 1024
+
+
+def test_script_output_object(ij):
+    args = {"img": get_img(ij)}
+    script = get_script()
+    output = ij.py.run_script("Groovy", script, args)
+
+    # check if output is a Java HashMap
+    hm = sj.jimport("java.util.HashMap")
+    assert isinstance(output, hm)
+
+    # check if the HashMap has the ScriptModule patch methods
+    assert output.getOutput("out") == 1024
+    assert isinstance(output.getOutputs(), hm)
+    with pytest.raises(NotImplementedError):
+        output.getInput("out")
+    with pytest.raises(NotImplementedError):
+        output.getInputs()
