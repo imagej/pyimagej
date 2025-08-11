@@ -1156,34 +1156,46 @@ class JavaHashMapAddons:
     """
 
     def getInput(self, key: str):
-        """Get the value of the input with a given key.
-
-        This function is not implemented for Java HashMaps.
-
-        :param key: The key or name of the input value.
         """
+        getInput() is deprecated.
+        The "inputs" HashMap is not available.
+        """
+        _logger.warning(
+            'getInput() is deprecated. The "inputs" HashMap is not available.'
+        )
+
         raise NotImplementedError(f"getInput is not implemented for {type(self)}.")
 
     def getInputs(self):
-        """Get a Java HashMap of the input values.
-
-        This function is not implemented for Java HashMaps.
         """
+        getInputs() is deprecated.
+        The "inputs" HashMap is not available.
+        """
+        _logger.warning(
+            'getInputs() is deprecated. The "inputs" HashMap is not available.'
+        )
+
         raise NotImplementedError(f"getInputs is not implemented for {type(self)}.")
 
     def getOutput(self, key: str):
-        """Get the value of the output with a given key.
-
-        :param key: The key or name of the output value.
-        :return: The output value.
         """
+        getOutputs() is deprecated.
+        Use the Java HashMap itself (e.g. data.get(key) or data[key]).
+        """
+        _logger.warning(
+            "getOutput() is deprecated. "
+            "Use the Java HashMap itself (e.g. data.get(key) or data[key])."
+        )
+
         return self.get(key)
 
     def getOutputs(self):
-        """Get a Java HashMap of the output values.
-
-        :return: A Java HasMap of the output values.
         """
+        getOutputs() is deprecated.
+        Use the Java HashMap iteself.
+        """
+        _logger.warning("getOutputs() is deprecated. Use the Java HashMap itself.")
+
         return self
 
 
