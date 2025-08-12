@@ -32,6 +32,7 @@ def test_groovy_script(ij):
     args = {"img": get_img(ij)}
     script = get_script()
     output = ij.py.run_script("Groovy", script, args)
+
     assert output["out"] == 1024
 
 
@@ -40,4 +41,25 @@ def test_imagej_macro(ij):
     _imp = ij.py.to_imageplus(get_img(ij)).show()
     macro = get_macro()
     output = ij.py.run_macro(macro)
+
     assert output["out"] == 1024
+
+
+def test_script_output_object(ij):
+    input_img = get_img(ij)
+    args = {"img": input_img}
+    script = get_script()
+    output = ij.py.run_script("Groovy", script, args)
+
+    # check if output is a ScriptModuleDict adapter object
+    assert str(type(output)).endswith(".ScriptModuleDict'>")
+
+    # check returned output value
+    assert output["out"] == 1024
+
+    # check if the returned object has the ScriptModule methods
+    assert output.getOutput("out") == 1024
+    assert output.getInput("img") == input_img
+    assert output.getReturnValue() == 1024
+    assert output.context() == ij.context()
+    assert "Groovy" in output.getEngine().getClass().getName()
