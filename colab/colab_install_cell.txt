@@ -1,0 +1,27 @@
+# Paste this whole block into a single Colab code cell (bash magic). It:
+# 1) installs Java for pyimagej, 2) upgrades pip, 3) downloads the helper script and runs it.
+
+# Install Java for PyImageJ (Colab usually allows apt)
+!apt-get update -qq && apt-get install -y -qq openjdk-11-jdk-headless
+
+# Upgrade pip & tools
+!python -m pip install -U pip setuptools wheel
+
+# Show Colab's preinstalled TensorFlow (if any)
+try:
+    import tensorflow as tf
+    print('Colab preinstalled TensorFlow:', tf.__version__)
+except Exception:
+    print('No TensorFlow preinstalled or import failed')
+
+# Download the helper script from the repository (assumes internet access)
+!mkdir -p /content/pyimagej_colab_helper
+!wget -q -O /content/pyimagej_colab_helper/find_compatible_versions.py "https://raw.githubusercontent.com/imagej/pyimagej/main/colab/find_compatible_versions.py"
+
+# Run the helper script (it will create virtualenvs and try installs). Adjust args if needed.
+!python3 /content/pyimagej_colab_helper/find_compatible_versions.py --max-versions 5
+
+# After it finishes, examine the printed JSON. Use the pinned versions it found to create a requirements.txt and re-run a cell that does:
+# !pip install -r requirements.txt
+
+# If you want to pin TensorFlow to the runtime's version, run the script with --use-colab-tf
