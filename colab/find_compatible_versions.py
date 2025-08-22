@@ -71,8 +71,22 @@ def run_in_venv(commands: List[str], venv_dir: str) -> subprocess.CompletedProce
 
 def create_venv(tmpdir: str) -> str:
     venv_dir = os.path.join(tmpdir, "venv")
-    subprocess.check_call([sys.executable, "-m", "venv", venv_dir])
-    return venv_dir
+    try:
+        subprocess.check_call([sys.executable, "-m", "venv", venv_dir])
+        return venv_dir
+    except subprocess.CalledProcessError:
+        # Some environments (Colab images) have Python built without ensurepip
+        # and venv creation fails. Fall back to virtualenv if available.
+        print("Warning: python -m venv failed, trying virtualenv fallback")
+        try:
+            subprocess.check_call([sys.executable, "-m", "virtualenv", venv_dir])
+            return venv_dir
+        except subprocess.CalledProcessError:
+            # Attempt to install virtualenv and retry
+            print("Attempting to install virtualenv into host and retry venv creation")
+            subprocess.check_call([sys.executable, "-m", "pip", "install", "--user", "virtualenv"]) 
+            subprocess.check_call([sys.executable, "-m", "virtualenv", venv_dir])
+            return venv_dir
 
 
 def try_install_and_import(venv_dir: str, install_pkgs: List[str], import_test: str, pip_extra: List[str]=None) -> Dict:
