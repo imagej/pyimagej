@@ -30,6 +30,7 @@ import sys
 import tempfile
 import urllib.request
 from typing import List, Dict
+from pkg_resources import parse_version
 
 # Top-level packages we care about. You can override via --packages.
 DEFAULT_PACKAGES = ["tensorflow", "csbdeep", "stardist", "cellpose", "pyimagej"]
@@ -51,8 +52,9 @@ def fetch_versions(package: str, max_versions: int) -> List[str]:
         with urllib.request.urlopen(PYPI_URL.format(package=package)) as r:
             data = json.load(r)
         versions = list(data.get("releases", {}).keys())
-        # sort loosely by version string (newest last in semantic order is hard—keep simple)
-        versions.sort(key=lambda s: tuple(int(x) if x.isdigit() else x for x in s.replace('-', '.').split('.')))
+        # Use pkg_resources.parse_version for robust version sorting
+        versions.sort(key=parse_version)
+        # Return the newest `max_versions` candidates, newest first
         return versions[-max_versions:][::-1]
     except Exception as e:
         print(f"Warning: couldn't fetch versions for {package}: {e}")
