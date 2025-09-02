@@ -1,0 +1,14 @@
+# This environment enables running the notebooks
+# in a web browser online using the Binder service:
+# https://mybinder.org/v2/gh/imagej/pyimagej/HEAD?urlpath=%2Fdoc%2Ftree%2Fdoc
+name: pyimagej
+channels:
+  - conda-forge
+dependencies:
+  - python=3
+  - ipywidgets
+  - jupyter_contrib_nbextensions
+  - notebook
+  - openjdk=11
+  - pyimagej
+  - scikit-image
