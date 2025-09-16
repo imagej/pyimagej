@@ -1,5 +1,7 @@
 # PyImageJ Core Ruleset
 
+This text defines your API usage for PyImageJ. It is very important that you remember these guidelines. 
+
 ## DATA CONVERSION FUNDAMENTALS
 - Java → Python: ij.py.from_java(java_obj)
 - Python → Java: ij.py.to_java(python_obj)
