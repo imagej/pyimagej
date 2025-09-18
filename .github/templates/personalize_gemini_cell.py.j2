@@ -6,8 +6,6 @@
 #@markdown Select your experience levels with the relevant tools, then run this cell to set Gemini's persona.
 #@markdown
 #@markdown 💡 Tip: Changing selections automatically updates the AI (after manually running once)
-#@markdown
-#@markdown 💡 Tip: Copy output text to use with other LLMs (ChatGPT, Claude, etc.)
 
 # AUTO-GENERATED CONTENT BELOW - DO NOT EDIT MANUALLY
 # This section is automatically updated based on files in doc/llms/personas/
@@ -89,32 +87,3 @@ if {{ category }}_level in {{ category }}_activities:
 
 # Register the persona with the LLM
 print(persona_text)
-
-# Add copy button for convenience
-from IPython.display import HTML, display
-import base64
-
-# Encode text as base64 to avoid all escaping issues
-persona_text_b64 = base64.b64encode(persona_text.encode('utf-8')).decode('ascii')
-
-copy_button_html = f'''
-<button onclick="
-    const encodedText = '{persona_text_b64}';
-    const byteChars = atob(encodedText);
-    const byteNumbers = new Array(byteChars.length);
-    for (let i = 0; i < byteChars.length; i++) {{{{
-        byteNumbers[i] = byteChars.charCodeAt(i);
-    }}}}
-    const byteArray = new Uint8Array(byteNumbers);
-    const decodedText = new TextDecoder('utf-8').decode(byteArray);
-
-    navigator.clipboard.writeText(decodedText).then(() => {{{{
-        this.innerHTML = '✅ Copied to clipboard!';
-        setTimeout(() => {{{{ this.innerHTML = '📋 Copy Persona Text'; }}}}, 2000);
-    }}}}).catch(() => {{{{
-        this.innerHTML = '❌ Copy failed - please copy manually from output above';
-        setTimeout(() => {{{{ this.innerHTML = '📋 Copy Persona Text'; }}}}, 3000);
-    }}}})
-">📋 Copy Persona Text</button>
-'''
-display(HTML(copy_button_html))
