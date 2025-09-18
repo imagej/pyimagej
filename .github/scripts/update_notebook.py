@@ -182,7 +182,7 @@ def main():
     notebook_path = repo_root / "doc" / "llms" / "pyimagej-ai-guide.ipynb"
     personas_dir = repo_root / "doc" / "llms" / "personas"
     rulesets_dir = repo_root / "doc" / "llms" / "rulesets"
-    templates_dir = script_dir / "templates"
+    templates_dir = script_dir.parent / "templates"  # .github/templates, not .github/scripts/templates
     
     # Get commit SHA and branch name from environment
     commit_sha = os.environ.get("COMMIT_SHA", "main")
