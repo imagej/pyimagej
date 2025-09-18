@@ -56,7 +56,7 @@ While designed for Gemini in Colab, you can use these files with any LLM:
 ### With ChatGPT, Claude, etc.
 
 1. **Run the Colab notebook** to generate your personalized content
-2. **Copy the output** using the provided copy buttons in the persona and rules cells
+2. **Copy the output** using the provided copy buttons ("📋 Copy AI Configuration for Other LLMs" cell)
 3. **Paste into your preferred LLM** as context
 
 Or manually combine files:
