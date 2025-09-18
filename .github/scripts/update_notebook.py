@@ -199,9 +199,21 @@ def main():
     print(f"From branch: {branch_name}")
     print(f"Commit prefix: {commit_prefix}")
     
+    # Check if notebook file exists
+    if not notebook_path.exists():
+        print(f"❌ Notebook file not found: {notebook_path}")
+        print("This might be expected if the notebook doesn't exist on this branch yet.")
+        print("Exiting gracefully - no updates needed.")
+        return
+
     # Load notebook
-    with open(notebook_path, "r", encoding="utf-8") as f:
-        notebook = nbformat.read(f, as_version=4)
+    try:
+        with open(notebook_path, "r", encoding="utf-8") as f:
+            notebook = nbformat.read(f, as_version=4)
+    except Exception as e:
+        print(f"❌ Failed to read notebook file: {e}")
+        print("Exiting gracefully - cannot process invalid notebook.")
+        return
     
     # Setup Jinja environment
     jinja_env = jinja2.Environment(
@@ -259,10 +271,13 @@ def main():
         print("❌ Failed to find Colab badge cell")
     
     # Save updated notebook
-    with open(notebook_path, "w", encoding="utf-8") as f:
-        nbformat.write(notebook, f, version=4)
-    
-    print("✅ Notebook update complete!")
+    try:
+        with open(notebook_path, "w", encoding="utf-8") as f:
+            nbformat.write(notebook, f, version=4)
+        print("✅ Notebook update complete!")
+    except Exception as e:
+        print(f"❌ Failed to save notebook: {e}")
+        return
 
 
 if __name__ == "__main__":
