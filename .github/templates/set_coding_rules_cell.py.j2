@@ -63,19 +63,19 @@ copy_button_html = f'''
     const encodedText = '{ruleset_text_b64}';
     const byteChars = atob(encodedText);
     const byteNumbers = new Array(byteChars.length);
-    for (let i = 0; i < byteChars.length; i++) {{
+    for (let i = 0; i < byteChars.length; i++) {{{{
         byteNumbers[i] = byteChars.charCodeAt(i);
-    }}
+    }}}}
     const byteArray = new Uint8Array(byteNumbers);
     const decodedText = new TextDecoder('utf-8').decode(byteArray);
 
-    navigator.clipboard.writeText(decodedText).then(() => {{
+    navigator.clipboard.writeText(decodedText).then(() => {{{{
         this.innerHTML = '✅ Copied to clipboard!';
-        setTimeout(() => {{ this.innerHTML = '📋 Copy Rules Text'; }}, 2000);
-    }}).catch(() => {{
+        setTimeout(() => {{{{ this.innerHTML = '📋 Copy Rules Text'; }}}}, 2000);
+    }}}}).catch(() => {{{{
         this.innerHTML = '❌ Copy failed - please copy manually from output above';
-        setTimeout(() => {{ this.innerHTML = '📋 Copy Rules Text'; }}, 3000);
-    }})
+        setTimeout(() => {{{{ this.innerHTML = '📋 Copy Rules Text'; }}}}, 3000);
+    }}}})
 ">📋 Copy Rules Text</button>
 '''
 display(HTML(copy_button_html))
