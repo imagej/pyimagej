@@ -44,7 +44,7 @@ activity_dir = 'activities/'
 
 from pathlib import Path
 def load_persona_file(filename):
-	"""Load a persona template file"""
+	"""Load a persona template file with clear section markers"""
 	try:
 		# First check if we're in a cloned pyimagej repo
 		persona_path = Path('/content/pyimagej/doc/llms/personas') / filename
@@ -53,16 +53,27 @@ def load_persona_file(filename):
 			persona_path = Path('./personas') / filename
 			
 		if persona_path.exists():
-			return persona_path.read_text(encoding='utf-8')
+			content = persona_path.read_text(encoding='utf-8')
+			# Add clear section markers for LLM parsing
+			base_name = filename.replace('.md', '')
+			# For activity files, remove experience level suffix and add "ACTIVITIES"
+			if '_beginner' in base_name or '_intermediate' in base_name or '_advanced' in base_name:
+				# Strip the last underscore and everything after it, then add "ACTIVITIES"
+				activity_name = base_name.rsplit('_', 1)[0].replace('_', ' ').upper()
+				section_name = f"{activity_name} ACTIVITIES"
+			else:
+				# Other files: use as-is
+				section_name = base_name.replace('_', ' ').upper()
+			return f"\n===== START OF {section_name} =====\n{content}\n===== END OF {section_name} =====\n"
 		else:
 			return f"# Template not found: {filename}\n(Using basic fallback)"
 	except Exception as e:
 		return f"# Error loading {filename}: {e}\n(Using basic fallback)"
 
-# Load base persona
-persona_text = "===START OF PERSONA TEXT===\n"
+# Load base persona with section markers
+persona_text = "===== START OF PERSONA TEXT =====\n"
 persona_text += load_persona_file('base_persona.md')
-persona_text += "\n===END OF PERSONA TEXT===\n\n"
+persona_text += "===== END OF PERSONA TEXT =====\n\n"
 
 # Get experience levels
 {% for category in categories.keys() %}
@@ -70,13 +81,11 @@ persona_text += "\n===END OF PERSONA TEXT===\n\n"
 {% endfor %}
 
 # Add activities based on experience levels
-persona_text = "===START OF ACTIVITY TEXT===\n"
 {% for category in categories.keys() %}
 if {{ category }}_level in {{ category }}_activities:
-	persona_text += "\n" + load_persona_file({{ category }}_activities[{{ category }}_level])
+	persona_text += load_persona_file({{ category }}_activities[{{ category }}_level])
 
 {% endfor %}
-persona_text += "\n===END OF ACTIVITY TEXT===\n\n"
 
 # Register the persona with the LLM
 print(persona_text)

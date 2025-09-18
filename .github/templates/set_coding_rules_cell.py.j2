@@ -25,7 +25,7 @@ environment_mapping = {
 from pathlib import Path
 
 def load_ruleset_template(filename):
-	"""Load a ruleset template file"""
+	"""Load a ruleset template file with clear section markers"""
 	try:
 		# First check if we're in a cloned pyimagej repo
 		ruleset_path = Path('/content/pyimagej/doc/llms/rulesets') / filename
@@ -34,19 +34,31 @@ def load_ruleset_template(filename):
 			ruleset_path = Path('./rulesets') / filename
 			
 		if ruleset_path.exists():
-			return ruleset_path.read_text(encoding='utf-8')
+			content = ruleset_path.read_text(encoding='utf-8')
+			# Add clear section markers for LLM parsing
+			base_name = filename.replace('.md', '')
+			if base_name.startswith('env_'):
+				# Environment files: strip "env_" prefix and add "ENVIRONMENT"
+				env_name = base_name[4:].replace('_', ' ').upper()
+				section_name = f"{env_name} ENVIRONMENT"
+			else:
+				# Other files: use as-is
+				section_name = base_name.replace('_', ' ').upper()
+			return f"\n===== START OF {section_name} RULES =====\n{content}\n===== END OF {section_name} RULES =====\n"
 		else:
 			return f"# Ruleset not found: {filename}\n(Using basic fallback)"
 	except Exception as e:
 		return f"# Error loading {filename}: {e}\n(Using basic fallback)"
 
-# Load core PyImageJ ruleset (always included)
-ruleset_text = load_ruleset_template('pyimagej_core.md')
+# Load core PyImageJ ruleset with section markers
+ruleset_text = "===== START OF PyImageJ RULES =====\n"
+ruleset_text += load_ruleset_template('pyimagej_core.md')
+ruleset_text += "===== END OF PyImageJ RULES =====\n\n"
 
-# Get environment-specific ruleset
+# Get environment-specific ruleset with section markers
 env_key = environment_mapping[environment]
 env_filename = f"{env_key}.md"
-ruleset_text += "\n" + load_ruleset_template(env_filename)
+ruleset_text += load_ruleset_template(env_filename)
 
 # Register the rulesets with the LLM
 print(ruleset_text)
