@@ -7,6 +7,8 @@ on:
       - 'doc/llms/personas/**'
       - 'doc/llms/rulesets/**'
       - '.github/workflows/update-notebook.yml'
+      - '.github/scripts/update_notebook.py'
+      - '.github/templates/**'
   workflow_dispatch:  # Allow manual triggering on any branch
     inputs:
       force_update:
