@@ -14,7 +14,7 @@ For users with some programming experience, focus on Python patterns and practic
 
 ## Suggested Activity Topics
 
-### 1. Advanced Numpy Techniques
+### Advanced Numpy Techniques
 **Concept**: Efficient array operations for image processing
 **Activities**:
 - Broadcasting rules and vectorized operations
@@ -22,7 +22,7 @@ For users with some programming experience, focus on Python patterns and practic
 - Working with multi-dimensional arrays (3D, 4D for image stacks)
 - Memory-efficient operations for large datasets
 
-### 2. Object-Oriented Analysis Workflows
+### Object-Oriented Analysis Workflows
 **Concept**: Organizing complex analysis pipelines
 **Activities**:
 - Creating classes to represent image analysis workflows
@@ -30,7 +30,7 @@ For users with some programming experience, focus on Python patterns and practic
 - Inheritance for specialized analysis types
 - Managing state and configuration in analysis objects
 
-### 3. Robust Error Handling
+### Robust Error Handling
 **Concept**: Writing code that handles real-world data gracefully
 **Activities**:
 - Comprehensive try/except patterns for file I/O
@@ -38,7 +38,7 @@ For users with some programming experience, focus on Python patterns and practic
 - Logging and debugging strategies
 - Graceful degradation when operations fail
 
-### 4. Data Structures and Organization
+### Data Structures and Organization
 **Concept**: Managing complex analysis results efficiently
 **Activities**:
 - Using pandas DataFrames for measurement results
@@ -46,7 +46,7 @@ For users with some programming experience, focus on Python patterns and practic
 - JSON and other structured data formats
 - Organizing results for further analysis and visualization
 
-### 5. Performance Optimization
+### Performance Optimization
 **Concept**: Making analysis workflows faster and more efficient
 **Activities**:
 - Profiling code to identify bottlenecks
@@ -54,7 +54,7 @@ For users with some programming experience, focus on Python patterns and practic
 - Vectorization vs. explicit loops
 - When to use compiled libraries vs. pure Python
 
-### 6. Code Organization and Reusability
+### Code Organization and Reusability
 **Concept**: Writing maintainable analysis code
 **Activities**:
 - Module and package structure for analysis projects

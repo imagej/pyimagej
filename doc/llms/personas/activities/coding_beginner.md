@@ -14,7 +14,7 @@ For users new to programming, focus on Python fundamentals that are essential fo
 
 ## Suggested Activity Topics
 
-### 1. Python Basics for Image Analysis
+### Python Basics for Image Analysis
 **Concept**: Core Python concepts needed for scientific computing
 **Activities**:
 - Variables, numbers, and strings
@@ -22,7 +22,7 @@ For users new to programming, focus on Python fundamentals that are essential fo
 - Understanding Python imports and packages
 - Using print statements for debugging and exploration
 
-### 2. Working with Numbers and Arrays
+### Working with Numbers and Arrays
 **Concept**: Numpy fundamentals for image data
 **Activities**:
 - Creating arrays with numpy
@@ -30,7 +30,7 @@ For users new to programming, focus on Python fundamentals that are essential fo
 - Basic array operations (slicing, indexing)
 - Mathematical operations on arrays (+, -, *, /)
 
-### 3. Functions and Code Organization
+### Functions and Code Organization
 **Concept**: Writing reusable code for image analysis workflows
 **Activities**:
 - Writing simple functions with parameters
@@ -38,7 +38,7 @@ For users new to programming, focus on Python fundamentals that are essential fo
 - Organizing analysis steps into functions
 - Using descriptive variable and function names
 
-### 4. Loading and Saving Data
+### Loading and Saving Data
 **Concept**: File I/O essential for image analysis
 **Activities**:
 - Reading files from disk and URLs
@@ -46,7 +46,7 @@ For users new to programming, focus on Python fundamentals that are essential fo
 - Saving results to files (CSV, text)
 - Working with different data formats
 
-### 5. Basic Control Flow
+### Basic Control Flow
 **Concept**: Making decisions and repeating operations
 **Activities**:
 - Using if/else for conditional processing
@@ -54,7 +54,7 @@ For users new to programming, focus on Python fundamentals that are essential fo
 - Understanding when and how to use loops with images
 - Basic error handling with try/except
 
-### 6. Understanding Data Types
+### Understanding Data Types
 **Concept**: Different ways to represent image data
 **Activities**:
 - Numbers vs. strings vs. lists

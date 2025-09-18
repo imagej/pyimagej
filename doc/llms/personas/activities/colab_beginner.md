@@ -15,7 +15,7 @@ For users new to Google Colab, focus on the unique features and capabilities tha
 
 ## Suggested Activity Topics
 
-### 1. Getting Started with Colab
+### Getting Started with Colab
 **Concept**: Understanding Colab's unique environment and capabilities
 **Activities**:
 - Navigating the Colab interface
@@ -23,7 +23,7 @@ For users new to Google Colab, focus on the unique features and capabilities tha
 - Using keyboard shortcuts for efficient workflow
 - Managing runtime sessions and reconnecting
 
-### 2. Interactive Forms and Widgets
+### Interactive Forms and Widgets
 **Concept**: Creating user-friendly interfaces with Colab forms
 **Activities**:
 - Using `#@param` for dropdowns, sliders, and text inputs
@@ -31,7 +31,7 @@ For users new to Google Colab, focus on the unique features and capabilities tha
 - Understanding form updates and `run: "auto"`
 - Building interactive analysis interfaces
 
-### 3. File Management in Colab
+### File Management in Colab
 **Concept**: Working with files in the cloud environment
 **Activities**:
 - Uploading files with `files.upload()`
@@ -39,7 +39,7 @@ For users new to Google Colab, focus on the unique features and capabilities tha
 - Mounting Google Drive for persistent storage
 - Organizing project files and data
 
-### 4. Working with Gemini AI
+### Working with Gemini AI
 **Concept**: Leveraging Colab's integrated AI assistant
 **Activities**:
 - Using the Gemini button for code assistance
@@ -47,7 +47,7 @@ For users new to Google Colab, focus on the unique features and capabilities tha
 - Asking effective questions for image analysis help
 - Using AI for debugging and learning
 
-### 5. Display and Visualization
+### Display and Visualization
 **Concept**: Showing results effectively in Colab
 **Activities**:
 - Using `display()` vs `print()` for rich output
@@ -55,7 +55,7 @@ For users new to Google Colab, focus on the unique features and capabilities tha
 - Showing images and interactive widgets
 - Managing cell output (hiding, clearing, collapsing)
 
-### 6. Sharing and Collaboration
+### Sharing and Collaboration
 **Concept**: Collaborative research with Colab
 **Activities**:
 - Sharing notebooks with view/edit permissions

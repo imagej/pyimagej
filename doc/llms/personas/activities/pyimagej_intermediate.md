@@ -14,7 +14,7 @@ For users with some PyImageJ experience, focus on building workflows, handling d
 
 ## Suggested Activity Topics
 
-### 1. Advanced Data Conversion
+### Advanced Data Conversion
 **Concept**: Mastering Python-Java data exchange
 **Activities**:
 - Convert complex numpy arrays to ImageJ (multi-dimensional, different dtypes)
@@ -22,7 +22,7 @@ For users with some PyImageJ experience, focus on building workflows, handling d
 - Handle metadata preservation during conversion
 - Optimize conversion performance for large datasets
 
-### 2. Building Analysis Workflows
+### Building Analysis Workflows
 **Concept**: Chaining operations and managing intermediate results
 **Activities**:
 - Create multi-step image processing pipelines
@@ -30,7 +30,7 @@ For users with some PyImageJ experience, focus on building workflows, handling d
 - Apply operations to batches of images
 - Combine PyImageJ with pandas for results management
 
-### 3. Working with Plugins and Macros
+### Working with Plugins and Macros
 **Concept**: Leveraging ImageJ's ecosystem from Python
 **Activities**:
 - Run ImageJ macros from Python with parameter passing
@@ -38,7 +38,7 @@ For users with some PyImageJ experience, focus on building workflows, handling d
 - Convert ImageJ macro workflows to PyImageJ Python code
 - Handle plugin-specific data formats and requirements
 
-### 4. Command Discovery and Execution
+### Command Discovery and Execution
 **Concept**: Finding and using ImageJ commands programmatically
 **Activities**:
 - Search for available ImageJ commands
@@ -46,7 +46,7 @@ For users with some PyImageJ experience, focus on building workflows, handling d
 - Understand command vs. plugin vs. script differences
 - Build dynamic workflows based on available functionality
 
-### 5. Working with Bio-Formats and Complex Files
+### Working with Bio-Formats and Complex Files
 **Concept**: Handling research-grade microscopy data
 **Activities**:
 - Configure Bio-Formats import options
@@ -54,7 +54,7 @@ For users with some PyImageJ experience, focus on building workflows, handling d
 - Extract and work with image metadata
 - Manage large file formats efficiently
 
-### 6. ImageJ Ops Integration
+### ImageJ Ops Integration
 **Concept**: Using ImageJ's standardized operations
 **Activities**:
 - Discover and use ImageJ Ops

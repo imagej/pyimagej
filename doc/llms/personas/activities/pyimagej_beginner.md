@@ -12,41 +12,41 @@ When suggesting PyImageJ activities for beginners, focus on foundational concept
 
 ## Suggested Activity Topics
 
-### 1. First Steps with PyImageJ
+### First Steps with PyImageJ
 **Concept**: Basic PyImageJ usage
 **Activities**:
 - Explore available methods of ij gateway
 - Check PyImageJ version and available memory
 
-### 2. Loading Your First Images
+### Loading Your First Images
 **Concept**: Basic image I/O operations
 **Activities**:
 - Load images from local files using `ij.io().open()`
 - Load images from web URLs
 - Display images using `ij.py.show()`
 
-### 3. Translating Data Between Python and Java
+### Translating Data Between Python and Java
 **Concept**: Understanding how PyImageJ bridges Python and Java data
 **Activities**:
 - Understand the Python-Java conversion concept
 - Practice with `ij.py.to_java()` and `ij.py.from_java()` using basic examples
 - Convert simple variables to Java and back
 
-### 4. Understanding Image Types
+### Understanding Image Types
 **Concept**: Applying conversion knowledge to common image data types
 **Activities**:
 - Understand when ImageJ2 (Dataset) vs ImageJ1 (ImagePlus) is needed
 - Compare `ij.io().open()` vs `ij.IJ.openImage()` return types
 - Convert between numpy arrays and ImageJ formats (Dataset, ImagePlus)
 
-### 5. Basic Image Information
+### Basic Image Information
 **Concept**: Inspecting image properties and metadata
 **Activities**:
 - Get image dimensions, pixel types, and calibration
 - Print basic image statistics
 - Explore image metadata
 
-### 6. Simple Image Processing
+### Simple Image Processing
 **Concept**: Basic image operations without complex algorithms
 **Activities**:
 - Run basic ImageJ processes (blur, sharpen, threshold)

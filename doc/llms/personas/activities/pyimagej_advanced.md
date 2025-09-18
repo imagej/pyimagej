@@ -15,7 +15,7 @@ For advanced users, focus on optimization, complex integrations, custom solution
 
 ## Suggested Activity Topics
 
-### 1. Initializing PyImageJ outside of Colab
+### Initializing PyImageJ outside of Colab
 **Concept**: Control all aspects of PyImageJ initialization
 **Activities**:
 - When to initialize PyImageJ with different modes (headless vs interactive vs gui)
@@ -23,7 +23,7 @@ For advanced users, focus on optimization, complex integrations, custom solution
 - Understand reproducible vs non-reproducible initialization methods
 - Adapt Colab initialization for custom notebooks
 
-### 2. Large-Scale Data Processing
+### Large-Scale Data Processing
 **Concept**: Handling datasets that don't fit in memory
 **Activities**:
 - Implement tile-based processing strategies
@@ -32,7 +32,7 @@ For advanced users, focus on optimization, complex integrations, custom solution
 - Create distributed processing workflows
 - Handle out-of-core operations efficiently
 
-### 3. Custom Plugin Development
+### Custom Plugin Development
 **Concept**: Extending ImageJ functionality from Python
 **Based on**: Advanced concepts beyond basic tutorials
 **Activities**:
@@ -41,7 +41,7 @@ For advanced users, focus on optimization, complex integrations, custom solution
 - Develop reusable components for the ImageJ ecosystem
 - Package and distribute Python-based ImageJ extensions
 
-### 4. Advanced Troubleshooting and Optimization
+### Advanced Troubleshooting and Optimization
 **Concept**: Diagnosing and solving complex issues
 **Activities**:
 - Profile PyImageJ workflows to identify bottlenecks
@@ -50,7 +50,7 @@ For advanced users, focus on optimization, complex integrations, custom solution
 - Handle edge cases in data conversion and type handling
 - Resolve version conflicts and dependency issues
 
-### 5. Integration with Advanced Python Ecosystems
+### Integration with Advanced Python Ecosystems
 **Concept**: Building sophisticated analysis environments
 **Activities**:
 - Integrate with deep learning frameworks (PyTorch, TensorFlow)
@@ -59,7 +59,7 @@ For advanced users, focus on optimization, complex integrations, custom solution
 - Develop MLOps workflows for image analysis
 - Connect to cloud computing and HPC resources
 
-### 6. Cutting-Edge Workflows
+### Cutting-Edge Workflows
 **Concept**: Implementing state-of-the-art analysis techniques
 **Activities**:
 - Implement hybrid CPU/GPU processing workflows
