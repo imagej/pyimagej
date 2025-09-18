@@ -128,18 +128,35 @@ def build_persona_template_data(category_mappings: Dict[str, Dict[str, str]]) ->
 
 
 def update_notebook_cell(notebook: nbformat.NotebookNode, cell_id: str, new_content: str) -> bool:
-    """Update a specific cell in the notebook by ID."""
+    """Update a specific cell in the notebook by ID or title pattern."""
+    # First try to find by ID (for GitHub Actions)
     for cell in notebook.cells:
         if cell.get("id") == cell_id:
             cell["source"] = new_content
             return True
-    return False
 
+    # Fall back to finding by title pattern (for local testing)
+    title_patterns = {
+        "#VSC-672bc454": "🤖 Personalize Gemini",
+        "#VSC-382943dc": "⚖️ Set Coding Rules",
+        "#VSC-b7af7e7c": "📦 Download PyImageJ Source",
+        "#VSC-8ce7bebd": "colab.research.google.com"  # Colab badge cell
+    }
+
+    if cell_id in title_patterns:
+        pattern = title_patterns[cell_id]
+        for cell in notebook.cells:
+            if pattern in cell.source:
+                cell["source"] = new_content
+                return True
+
+    return False
 
 def update_colab_badge_cell(notebook: nbformat.NotebookNode, branch_name: str, notebook_filename: str) -> bool:
     """Update the Colab badge cell to point to the correct branch and filename."""
     badge_cell_id = "#VSC-8ce7bebd"  # The badge cell ID from the notebook
-    
+
+    # First try to find by ID (for GitHub Actions)
     for cell in notebook.cells:
         if cell.get("id") == badge_cell_id:
             source = cell["source"]
@@ -152,13 +169,25 @@ def update_colab_badge_cell(notebook: nbformat.NotebookNode, branch_name: str, n
             )
             cell["source"] = updated_source
             return True
-    return False
 
+    # Fall back to finding by content pattern (for local testing)
+    for cell in notebook.cells:
+        if "colab.research.google.com" in cell.source:
+            source = cell["source"]
+            updated_source = re.sub(
+                r'https://colab\.research\.google\.com/github/imagej/pyimagej/blob/[^/]+/doc/llms/[^"]+',
+                f'https://colab.research.google.com/github/imagej/pyimagej/blob/{branch_name}/doc/llms/{notebook_filename}',
+                source
+            )
+            cell["source"] = updated_source
+            return True
+    return False
 
 def update_download_cell(notebook: nbformat.NotebookNode, commit_sha: str, branch_name: str) -> bool:
     """Update the download cell to checkout the specific commit."""
     download_cell_id = "#VSC-b7af7e7c"  # The download cell ID from the notebook
-    
+
+    # First try to find by ID (for GitHub Actions)
     for cell in notebook.cells:
         if cell.get("id") == download_cell_id:
             source = cell["source"]
@@ -170,8 +199,19 @@ def update_download_cell(notebook: nbformat.NotebookNode, commit_sha: str, branc
             )
             cell["source"] = updated_source
             return True
-    return False
 
+    # Fall back to finding by content pattern (for local testing)
+    for cell in notebook.cells:
+        if "📦 Download PyImageJ Source" in cell.source:
+            source = cell["source"]
+            updated_source = re.sub(
+                r'!cd /content/pyimagej && git checkout \S+',
+                f'!cd /content/pyimagej && git checkout {commit_sha}',
+                source
+            )
+            cell["source"] = updated_source
+            return True
+    return False
 
 def main():
     """Main script execution."""
