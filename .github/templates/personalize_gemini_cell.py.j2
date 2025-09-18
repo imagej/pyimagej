@@ -53,7 +53,7 @@ def load_persona_file(filename):
 		if persona_path.exists():
 			content = persona_path.read_text(encoding='utf-8')
 			# Add clear section markers for LLM parsing
-			base_name = filename.replace('.md', '')
+			base_name = Path(filename).stem  # Remove directory and .md extension
 			# For activity files, remove experience level suffix and add "ACTIVITIES"
 			if '_beginner' in base_name or '_intermediate' in base_name or '_advanced' in base_name:
 				# Strip the last underscore and everything after it, then add "ACTIVITIES"
@@ -69,9 +69,7 @@ def load_persona_file(filename):
 		return f"# Error loading {filename}: {e}\n(Using basic fallback)"
 
 # Load base persona with section markers
-persona_text = "===== START OF PERSONA TEXT =====\n"
 persona_text += load_persona_file('base_persona.md')
-persona_text += "===== END OF PERSONA TEXT =====\n\n"
 
 # Get experience levels
 {% for category in categories.keys() %}

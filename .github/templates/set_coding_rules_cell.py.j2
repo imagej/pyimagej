@@ -34,7 +34,7 @@ def load_ruleset_template(filename):
 		if ruleset_path.exists():
 			content = ruleset_path.read_text(encoding='utf-8')
 			# Add clear section markers for LLM parsing
-			base_name = filename.replace('.md', '')
+			base_name = Path(filename).stem  # Remove directory and .md extension
 			if base_name.startswith('env_'):
 				# Environment files: strip "env_" prefix and add "ENVIRONMENT"
 				env_name = base_name[4:].replace('_', ' ').upper()
@@ -49,9 +49,7 @@ def load_ruleset_template(filename):
 		return f"# Error loading {filename}: {e}\n(Using basic fallback)"
 
 # Load core PyImageJ ruleset with section markers
-ruleset_text = "===== START OF PyImageJ RULES =====\n"
 ruleset_text += load_ruleset_template('pyimagej_core.md')
-ruleset_text += "===== END OF PyImageJ RULES =====\n\n"
 
 # Get environment-specific ruleset with section markers
 env_key = environment_mapping[environment]
