@@ -21,10 +21,10 @@ def scan_persona_files(personas_dir: Path) -> Dict[str, Dict[str, str]]:
     """
     activities_dir = personas_dir / "activities"
     category_mappings = {}
-    
+
     if not activities_dir.exists():
         return category_mappings
-    
+
     # Scan all activity files and group by category
     for file_path in sorted(activities_dir.glob("*.md")):
         stem = file_path.stem
@@ -33,7 +33,7 @@ def scan_persona_files(personas_dir: Path) -> Dict[str, Dict[str, str]]:
             if category not in category_mappings:
                 category_mappings[category] = {}
             category_mappings[category][level] = file_path.name
-    
+
     return category_mappings
 
 
@@ -44,10 +44,10 @@ def scan_ruleset_files(rulesets_dir: Path) -> Dict[str, str]:
     """
     env_dir = rulesets_dir / "environments"
     environment_mapping = {}
-    
+
     if not env_dir.exists():
         return environment_mapping
-    
+
     # Scan environment files
     for file_path in sorted(env_dir.glob("env_*.md")):
         env_name = file_path.stem
@@ -55,7 +55,7 @@ def scan_ruleset_files(rulesets_dir: Path) -> Dict[str, str]:
             # Convert env_colab -> Google Colab, env_script_editor -> Fiji Script Editor, etc.
             display_name = format_environment_name(env_name[4:])  # Remove "env_" prefix
             environment_mapping[display_name] = env_name
-    
+
     return environment_mapping
 
 
@@ -72,35 +72,35 @@ def format_environment_name(env_key: str) -> str:
 
 def build_persona_template_data(category_mappings: Dict[str, Dict[str, str]]) -> Dict:
     """Build template data for persona cell."""
-    
+
     # Create categories with their options
     categories = {}
     experience_levels = {}
-    
+
     level_mapping = {
         "beginner": "beginner",
         "intermediate": "intermediate", 
         "advanced": "advanced"
     }
-    
+
     # Build categories and experience level mappings in desired order
     # Define preferred order for known categories, but include any new ones automatically
     preferred_order = ["colab", "coding", "pyimagej"]
-    
+
     # Start with preferred categories in order, then add any new ones alphabetically
     ordered_categories = []
     for category in preferred_order:
         if category in category_mappings:
             ordered_categories.append(category)
-    
+
     # Add any categories not in preferred_order (future categories)
     remaining_categories = sorted([cat for cat in category_mappings.keys() if cat not in preferred_order])
     ordered_categories.extend(remaining_categories)
-    
+
     for category in ordered_categories:
         levels = category_mappings[category]
         category_key = f"{category}"
-        
+
         # Create display options for this category in specific order
         level_order = ["beginner", "intermediate", "advanced"]  # Define desired order
         options = []
@@ -113,13 +113,13 @@ def build_persona_template_data(category_mappings: Dict[str, Dict[str, str]]) ->
                     display_name = f"{'New to PyImageJ' if level == 'beginner' else 'Some PyImageJ experience' if level == 'intermediate' else 'PyImageJ expert'}"
                 elif category == "colab":
                     display_name = f"{'New to Google Colab' if level == 'beginner' else 'Some Colab experience' if level == 'intermediate' else 'Colab expert'}"
-                
+
                 options.append(display_name)
                 experience_levels[display_name] = level_mapping[level]
-        
+
         if options:
             categories[category_key] = options
-    
+
     return {
         "categories": categories,
         "experience_levels": experience_levels,
@@ -175,7 +175,7 @@ def update_download_cell(notebook: nbformat.NotebookNode, commit_sha: str, branc
 
 def main():
     """Main script execution."""
-    
+
     # Setup paths
     script_dir = Path(__file__).parent
     repo_root = script_dir.parent.parent
@@ -183,22 +183,22 @@ def main():
     personas_dir = repo_root / "doc" / "llms" / "personas"
     rulesets_dir = repo_root / "doc" / "llms" / "rulesets"
     templates_dir = script_dir.parent / "templates"  # .github/templates, not .github/scripts/templates
-    
+
     # Get commit SHA and branch name from environment
     commit_sha = os.environ.get("COMMIT_SHA", "main")
     branch_name = os.environ.get("BRANCH_NAME", "main")
-    
+
     # Determine commit message prefix based on branch
     if branch_name == "main":
         commit_prefix = "Auto-update"
     else:
         commit_prefix = "WIP: Auto-update"
-    
+
     print(f"Updating notebook: {notebook_path}")
     print(f"Using commit SHA: {commit_sha}")
     print(f"From branch: {branch_name}")
     print(f"Commit prefix: {commit_prefix}")
-    
+
     # Check if notebook file exists
     if not notebook_path.exists():
         print(f"❌ Notebook file not found: {notebook_path}")
@@ -214,62 +214,62 @@ def main():
         print(f"❌ Failed to read notebook file: {e}")
         print("Exiting gracefully - cannot process invalid notebook.")
         return
-    
+
     # Setup Jinja environment
     jinja_env = jinja2.Environment(
         loader=jinja2.FileSystemLoader(templates_dir),
         trim_blocks=True,
         lstrip_blocks=True
     )
-    
+
     # Scan and update persona cell
     category_mappings = scan_persona_files(personas_dir)
     if category_mappings:
         print(f"Found persona categories: {list(category_mappings.keys())}")
-        
+
         template_data = build_persona_template_data(category_mappings)
         template = jinja_env.get_template("personalize_gemini_cell.py.j2")
         new_content = template.render(**template_data)
-        
+
         # Update the persona cell
         persona_cell_id = "#VSC-672bc454"
         if update_notebook_cell(notebook, persona_cell_id, new_content):
             print("✅ Updated Personalize Gemini cell")
         else:
             print("❌ Failed to find Personalize Gemini cell")
-    
+
     # Scan and update ruleset cell  
     environment_mapping = scan_ruleset_files(rulesets_dir)
     if environment_mapping:
         print(f"Found environments: {list(environment_mapping.keys())}")
-        
+
         template_data = {
             "environments": sorted(environment_mapping.keys()),
             "environment_mapping": environment_mapping
         }
         template = jinja_env.get_template("set_coding_rules_cell.py.j2")
         new_content = template.render(**template_data)
-        
+
         # Update the rules cell
         rules_cell_id = "#VSC-382943dc"
         if update_notebook_cell(notebook, rules_cell_id, new_content):
             print("✅ Updated Set Coding Rules cell")
         else:
             print("❌ Failed to find Set Coding Rules cell")
-    
+
     # Update download cell with commit SHA
     if update_download_cell(notebook, commit_sha, branch_name):
         print(f"✅ Updated Download cell to use commit {commit_sha}")
     else:
         print("❌ Failed to find Download cell")
-    
+
     # Update Colab badge cell with correct branch and filename
     notebook_filename = notebook_path.name
     if update_colab_badge_cell(notebook, branch_name, notebook_filename):
         print(f"✅ Updated Colab badge to use branch {branch_name}")
     else:
         print("❌ Failed to find Colab badge cell")
-    
+
     # Save updated notebook
     try:
         with open(notebook_path, "w", encoding="utf-8") as f:
