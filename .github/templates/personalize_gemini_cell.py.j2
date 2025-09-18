@@ -1,0 +1,111 @@
+#@title 🤖 Personalize Gemini { display-mode: "form", run: "auto" }
+#@markdown This cell tailors Gemini's persona based on your selected experience levels.
+#@markdown
+#@markdown This takes advantage of Gemini's "knowledge" of all cell outputs in the notebook: all we need to do is print the persona (or rule) text, and Gemini will automatically pick it up.
+#@markdown
+#@markdown Select your experience levels with the relevant tools, then run this cell to set Gemini's persona.
+#@markdown
+#@markdown 💡 Tip: Changing selections automatically updates the AI (after manually running once)
+#@markdown
+#@markdown 💡 Tip: Copy output text to use with other LLMs (ChatGPT, Claude, etc.)
+
+# AUTO-GENERATED CONTENT BELOW - DO NOT EDIT MANUALLY
+# This section is automatically updated based on files in doc/llms/personas/
+
+# Experience level parameters (Colab forms)
+{% for category, options in categories.items() %}
+{{ category }}_experience = "{{ options[0] }}" #@param {{ options | tojson }}
+{% endfor %}
+
+beginner = "beginner"
+intermediate = "intermediate"
+advanced = "advanced"
+
+# Convert display names to internal values
+experience_mapping = {
+{% for category, options in categories.items() %}
+{% for option in options %}
+	"{{ option }}": {{ experience_levels[option] }},
+{% endfor %}
+{% endfor %}
+}
+
+# Template file mapping for different experience categories
+activity_dir = 'activities/'
+
+{% for category, mapping in category_mappings.items() %}
+{{ category }}_activities = {
+{% for level, filename in mapping.items() %}
+	{{ level }}: activity_dir + '{{ filename }}',
+{% endfor %}
+}
+
+{% endfor %}
+
+from pathlib import Path
+def load_persona_file(filename):
+	"""Load a persona template file"""
+	try:
+		# First check if we're in a cloned pyimagej repo
+		persona_path = Path('/content/pyimagej/doc/llms/personas') / filename
+		if not persona_path.exists():
+			# Fall back to current directory structure
+			persona_path = Path('./personas') / filename
+			
+		if persona_path.exists():
+			return persona_path.read_text(encoding='utf-8')
+		else:
+			return f"# Template not found: {filename}\n(Using basic fallback)"
+	except Exception as e:
+		return f"# Error loading {filename}: {e}\n(Using basic fallback)"
+
+# Load base persona
+persona_text = "===START OF PERSONA TEXT===\n"
+persona_text += load_persona_file('base_persona.md')
+persona_text += "\n===END OF PERSONA TEXT===\n\n"
+
+# Get experience levels
+{% for category in categories.keys() %}
+{{ category }}_level = experience_mapping[{{ category }}_experience]
+{% endfor %}
+
+# Add activities based on experience levels
+persona_text = "===START OF ACTIVITY TEXT===\n"
+{% for category in categories.keys() %}
+if {{ category }}_level in {{ category }}_activities:
+	persona_text += "\n" + load_persona_file({{ category }}_activities[{{ category }}_level])
+
+{% endfor %}
+persona_text += "\n===END OF ACTIVITY TEXT===\n\n"
+
+# Register the persona with the LLM
+print(persona_text)
+
+# Add copy button for convenience
+from IPython.display import HTML, display
+import base64
+
+# Encode text as base64 to avoid all escaping issues
+persona_text_b64 = base64.b64encode(persona_text.encode('utf-8')).decode('ascii')
+
+copy_button_html = f'''
+<button onclick="
+    const encodedText = '{persona_text_b64}';
+    const byteChars = atob(encodedText);
+    const byteNumbers = new Array(byteChars.length);
+    for (let i = 0; i < byteChars.length; i++) {{
+        byteNumbers[i] = byteChars.charCodeAt(i);
+    }}
+    const byteArray = new Uint8Array(byteNumbers);
+    const decodedText = new TextDecoder('utf-8').decode(byteArray);
+
+    navigator.clipboard.writeText(decodedText).then(() => {{
+        this.innerHTML = '✅ Copied to clipboard!';
+        setTimeout(() => {{ this.innerHTML = '📋 Copy Persona Text'; }}, 2000);
+    }}).catch(() => {{
+        this.innerHTML = '❌ Copy failed - please copy manually from output above';
+        setTimeout(() => {{ this.innerHTML = '📋 Copy Persona Text'; }}, 3000);
+    }})
+">📋 Copy Persona Text</button>
+'''
+display(HTML(copy_button_html))

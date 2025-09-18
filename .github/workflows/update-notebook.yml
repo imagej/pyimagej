@@ -1,0 +1,96 @@
+name: Update PyImageJ AI Guide Notebook
+
+on:
+  push:
+    branches: [ main ]  # Only auto-run on main
+    paths:
+      - 'doc/llms/personas/**'
+      - 'doc/llms/rulesets/**'
+      - '.github/workflows/update-notebook.yml'
+  workflow_dispatch:  # Allow manual triggering on any branch
+    inputs:
+      force_update:
+        description: 'Force update even if no changes detected'
+        required: false
+        default: 'false'
+
+jobs:
+  update-notebook:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0  # Need full history to check for changes
+        token: ${{ secrets.GITHUB_TOKEN }}
+    
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.10'
+    
+    - name: Install dependencies
+      run: |
+        pip install jinja2 nbformat
+    
+    - name: Check for changes in personas/rulesets
+      id: check_changes
+      run: |
+        # For workflow_dispatch with force_update, skip change check
+        if [ "${{ github.event.inputs.force_update }}" = "true" ]; then
+          echo "Force update requested, proceeding..."
+          echo "has_changes=true" >> $GITHUB_OUTPUT
+          exit 0
+        fi
+        
+        # Get the last commit that updated the notebook
+        LAST_UPDATE=$(git log -1 --format="%H" --grep="Auto-update notebook" || echo "")
+        
+        if [ -z "$LAST_UPDATE" ]; then
+          echo "No previous auto-update found, proceeding with update"
+          echo "has_changes=true" >> $GITHUB_OUTPUT
+        else
+          # Check if there are changes in personas or rulesets since last update
+          CHANGES=$(git diff --name-only $LAST_UPDATE..HEAD -- doc/llms/personas/ doc/llms/rulesets/)
+          if [ -n "$CHANGES" ]; then
+            echo "Changes detected in personas/rulesets:"
+            echo "$CHANGES"
+            echo "has_changes=true" >> $GITHUB_OUTPUT
+          else
+            echo "No changes in personas/rulesets since last update"
+            echo "has_changes=false" >> $GITHUB_OUTPUT
+          fi
+        fi
+    
+    - name: Update notebook
+      if: steps.check_changes.outputs.has_changes == 'true'
+      run: |
+        python .github/scripts/update_notebook.py
+      env:
+        COMMIT_SHA: ${{ github.sha }}
+        BRANCH_NAME: ${{ github.ref_name }}
+    
+    - name: Commit and push changes
+      if: steps.check_changes.outputs.has_changes == 'true'
+      run: |
+        git config --local user.email "action@github.com"
+        git config --local user.name "GitHub Action"
+        
+        # Check if there are changes to commit
+        if git diff --quiet; then
+          echo "No changes to commit"
+        else
+          # Determine commit message prefix based on branch
+          if [ "${{ github.ref_name }}" = "main" ]; then
+            COMMIT_PREFIX="Auto-update"
+          else
+            COMMIT_PREFIX="WIP: Auto-update"
+          fi
+          
+          git add doc/llms/pyimagej-ai-guide.ipynb
+          git commit -m "${COMMIT_PREFIX} notebook cells based on personas/rulesets changes
+          
+          Updated from commit: ${{ github.sha }}"
+          git push
+        fi

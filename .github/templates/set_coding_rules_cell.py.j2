@@ -1,0 +1,81 @@
+#@title ⚖️ Set Coding Rules { display-mode: "form", run: "auto" }
+#@markdown This cell tells Gemini how to *use* PyImageJ when it creates or suggests code.
+#@markdown
+#@markdown This allows Gemini to help you write workflows for a variety of use-cases, beyond Colab itself.
+#@markdown
+#@markdown Select your target environment, then run this cell to load the appropriate rulesets.
+#@markdown
+#@markdown 💡 Tip: Changing selections automatically updates the AI (after manually running once)
+#@markdown
+#@markdown 💡 Tip: Copy output text to use with other LLMs (ChatGPT, Claude, etc.)
+
+# AUTO-GENERATED CONTENT BELOW - DO NOT EDIT MANUALLY
+# This section is automatically updated based on files in doc/llms/rulesets/
+
+# Environment parameters (Colab forms)
+environment = "{{ environments[0] }}" #@param {{ environments | tojson }}
+
+# Convert display names to internal values
+environment_mapping = {
+{% for env_display, env_file in environment_mapping.items() %}
+	"{{ env_display }}": "{{ env_file }}",
+{% endfor %}
+}
+
+from pathlib import Path
+
+def load_ruleset_template(filename):
+	"""Load a ruleset template file"""
+	try:
+		# First check if we're in a cloned pyimagej repo
+		ruleset_path = Path('/content/pyimagej/doc/llms/rulesets') / filename
+		if not ruleset_path.exists():
+			# Fall back to current directory structure
+			ruleset_path = Path('./rulesets') / filename
+			
+		if ruleset_path.exists():
+			return ruleset_path.read_text(encoding='utf-8')
+		else:
+			return f"# Ruleset not found: {filename}\n(Using basic fallback)"
+	except Exception as e:
+		return f"# Error loading {filename}: {e}\n(Using basic fallback)"
+
+# Load core PyImageJ ruleset (always included)
+ruleset_text = load_ruleset_template('pyimagej_core.md')
+
+# Get environment-specific ruleset
+env_key = environment_mapping[environment]
+env_filename = f"{env_key}.md"
+ruleset_text += "\n" + load_ruleset_template(env_filename)
+
+# Register the rulesets with the LLM
+print(ruleset_text)
+
+# Add copy button for convenience
+from IPython.display import HTML, display
+import base64
+
+# Encode text as base64 to avoid all escaping issues
+ruleset_text_b64 = base64.b64encode(ruleset_text.encode('utf-8')).decode('ascii')
+
+copy_button_html = f'''
+<button onclick="
+    const encodedText = '{ruleset_text_b64}';
+    const byteChars = atob(encodedText);
+    const byteNumbers = new Array(byteChars.length);
+    for (let i = 0; i < byteChars.length; i++) {{
+        byteNumbers[i] = byteChars.charCodeAt(i);
+    }}
+    const byteArray = new Uint8Array(byteNumbers);
+    const decodedText = new TextDecoder('utf-8').decode(byteArray);
+
+    navigator.clipboard.writeText(decodedText).then(() => {{
+        this.innerHTML = '✅ Copied to clipboard!';
+        setTimeout(() => {{ this.innerHTML = '📋 Copy Rules Text'; }}, 2000);
+    }}).catch(() => {{
+        this.innerHTML = '❌ Copy failed - please copy manually from output above';
+        setTimeout(() => {{ this.innerHTML = '📋 Copy Rules Text'; }}, 3000);
+    }})
+">📋 Copy Rules Text</button>
+'''
+display(HTML(copy_button_html))

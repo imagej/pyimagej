@@ -1,0 +1,41 @@
+name: Check for WIP commits
+
+on:
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  check-wip-commits:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0  # Need full history to check commits
+    
+    - name: Check for WIP/TEMP commits
+      run: |
+        # Get all commits in this PR
+        BASE_SHA="${{ github.event.pull_request.base.sha }}"
+        HEAD_SHA="${{ github.event.pull_request.head.sha }}"
+        
+        echo "Checking commits from $BASE_SHA to $HEAD_SHA"
+        
+        # Look for commits with WIP or TEMP in the message
+        WIP_COMMITS=$(git log --oneline --grep="^WIP:" --grep="^TEMP:" $BASE_SHA..$HEAD_SHA || true)
+        
+        if [ -n "$WIP_COMMITS" ]; then
+          echo "❌ Found WIP/TEMP commits in this PR:"
+          echo "$WIP_COMMITS"
+          echo ""
+          echo "These commits should not be merged to main."
+          echo "Please either:"
+          echo "1. Squash/rebase to remove WIP commits, or"
+          echo "2. Change commit messages to remove WIP/TEMP prefixes"
+          echo ""
+          echo "WIP commits are meant for development branches only."
+          exit 1
+        else
+          echo "✅ No WIP/TEMP commits found - PR is clean for merge"
+        fi
