@@ -53,7 +53,9 @@ def scan_ruleset_files(rulesets_dir: Path) -> Dict[str, str]:
         if env_name.startswith("env_"):
             # Convert env_colab -> Google Colab, env_scripting -> Fiji Script Editor, etc.
             display_name = format_environment_name(env_name[4:])  # Remove "env_" prefix
-            environment_mapping[display_name] = env_name
+            # Store the full relative path from rulesets directory
+            relative_path = f"environments/{env_name}"
+            environment_mapping[display_name] = relative_path
 
     return environment_mapping
 

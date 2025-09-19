@@ -52,8 +52,9 @@ def load_ruleset_template(filename):
 ruleset_text = load_ruleset_template('pyimagej_core.md')
 
 # Get environment-specific ruleset with section markers
-env_key = environment_mapping[environment]
-env_filename = f"{env_key}.md"
+env_val = environment_mapping[environment]
+# Strip any leading subdirectories from the path
+env_filename = f"{env_val}.md"
 ruleset_text += load_ruleset_template(env_filename)
 
 # Register the rulesets with the LLM
