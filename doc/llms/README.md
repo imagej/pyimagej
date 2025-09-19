@@ -90,35 +90,32 @@ To extend this framework:
 
 The framework includes GitHub Actions automation to keep the notebook synchronized with persona and ruleset files:
 
-**How it works:**
 1. **Auto-detection**: GitHub Action triggers on commits to `main` that modify `personas/` or `rulesets/` files
 2. **Smart updates**: Uses Jinja templates to regenerate the "Personalize Gemini" and "Set Coding Rules" cells
 3. **Commit tracking**: Updates the download cell to use the exact commit SHA that triggered the update
 4. **Zero maintenance**: Persona dropdowns and environment options automatically reflect new files
 5. **Branch safety**: Builds on development branches must be triggered manually. The commit is generated as a `WIP`, which is blocked from merging by PR
 
-**File naming requirements:**
+#### File naming requirements
 - **Personas**: `personas/activities/{category}_{level}.md` where level is `beginner`, `intermediate`, or `advanced`
   - You can create just one level (e.g., only `statistics_beginner.md`) or any combination
   - Missing levels are automatically skipped - no need to create all three
 - **Rulesets**: `rulesets/environments/env_{environment}.md` for new target environments
 - **Ordering**: Categories appear in order: `colab` → `coding` → `pyimagej` → (new categories alphabetically)
 
-**To add new categories:**
+#### To add new categories
 1. Create activity files: `newcategory_beginner.md` (and optionally `_intermediate.md`, `_advanced.md`)
 2. Commit to trigger the automation
 3. The notebook will automatically include the new category with only the levels you created
 
-**Template locations:**
+#### Template locations
 - Automation scripts: `.github/workflows/update-notebook.yml`
 - Jinja templates: `.github/templates/`
 - Update logic: `.github/scripts/update_notebook.py`
 
 ### 🌿 Branch Development Workflow
-
 **Automatic updates only run on `main`** to keep the main branch history clean. For development:
 
-**Working on branches:**
 1. Edit persona/ruleset files on your feature branch
 2. Manually test automation by going to **Actions** → **Update PyImageJ AI Guide Notebook** → **Run workflow** → select your branch
 3. This creates `WIP: Auto-update...` commits on your branch (clearly marked as temporary)
@@ -138,11 +135,10 @@ COMMIT_SHA={commit} BRANCH_NAME={branch} python .github/scripts/update_notebook.
 2. Create PR to `main` - the **Check for WIP commits** workflow will verify no temporary commits remain
 3. After merge, automation runs automatically and creates a clean `Auto-update...` commit on `main`
 
-**Emergency options:**
+### Emergency options
 - Add `[skip-automation]` to any commit message to prevent automation
 - Use `workflow_dispatch` with "force update" to regenerate the notebook anytime
 
 ## 📚 Learn More
-
 - [ImageJ Community Forum](https://forum.image.sc/)
 - [PyImageJ Documentation](https://pyimagej.readthedocs.io/)
