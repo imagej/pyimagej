@@ -47,7 +47,7 @@ Technical guidelines for how AI should write PyImageJ code. Select the ruleset a
   - `environments/env_colab.md` - Google Colab considerations
   - `environments/env_interactive.md` - Desktop GUI environments
   - `environments/env_headless.md` - Server/cluster environments
-  - `environments/env_script_editor.md` - Fiji Script Editor integration
+  - `environments/env_scripteditor.md` - Fiji Script Editor integration
 
 ## 🔧 Using with Other LLMs
 

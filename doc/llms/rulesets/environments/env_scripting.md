@@ -1,4 +1,4 @@
-# Fiji Script Editor Environment Ruleset
+t# Fiji Script Editor Environment Ruleset
 
 ## FIJI PYTHON SCRIPT MODE
 - Scripts run inside Fiji's "Python mode" (Edit > Options > Python...)
