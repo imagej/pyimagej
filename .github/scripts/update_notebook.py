@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Script to automatically update PyImageJ AI Guide notebook cells based on 
+Script to automatically update PyImageJ AI Guide notebook cells based on
 personas and rulesets files.
 """
 
@@ -64,7 +64,7 @@ def format_environment_name(env_key: str) -> str:
     mapping = {
         "colab": "Google Colab",
         "interactive": "Interactive Desktop",
-        "headless": "True Headless", 
+        "headless": "True Headless",
         "script_editor": "Fiji Script Editor"
     }
     return mapping.get(env_key, env_key.replace("_", " ").title())
@@ -329,7 +329,7 @@ def main():
         else:
             print("❌ Failed to find Personalize Gemini cell")
 
-    # Scan and update ruleset cell  
+    # Scan and update ruleset cell
     environment_mapping = scan_ruleset_files(rulesets_dir)
     if environment_mapping:
         print(f"Found environments: {list(environment_mapping.keys())}")
