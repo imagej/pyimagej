@@ -4,11 +4,10 @@ Script to automatically update PyImageJ AI Guide notebook cells based on
 personas and rulesets files.
 """
 
-import json
 import os
 import re
 from pathlib import Path
-from typing import Dict, List, Tuple
+from typing import Dict
 
 import jinja2
 import nbformat
