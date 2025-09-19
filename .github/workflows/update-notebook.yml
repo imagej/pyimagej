@@ -31,10 +31,15 @@ jobs:
       uses: actions/setup-python@v4
       with:
         python-version: '3.10'
-    
+
+    - name: Install system dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y graphviz
+
     - name: Install dependencies
       run: |
-        pip install jinja2 nbformat
+        pip install jinja2 nbformat graphviz
     
     - name: Check for changes in personas/rulesets
       id: check_changes
@@ -94,5 +99,11 @@ jobs:
           git commit -m "${COMMIT_PREFIX} notebook cells
           
           Updated from commit: ${{ github.sha }}"
+
+          git add doc/llms/graphs
+          git commit -m "${COMMIT_PREFIX} activity graphs
+          
+          Updated from commit: ${{ github.sha }}"
+
           git push
         fi
