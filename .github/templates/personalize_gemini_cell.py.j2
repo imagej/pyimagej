@@ -69,7 +69,7 @@ def load_persona_file(filename):
 		return f"# Error loading {filename}: {e}\n(Using basic fallback)"
 
 # Load base persona with section markers
-persona_text += load_persona_file('base_persona.md')
+persona_text = load_persona_file('base_persona.md')
 
 # Get experience levels
 {% for category in categories.keys() %}

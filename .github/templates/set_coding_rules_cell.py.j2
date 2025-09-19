@@ -49,7 +49,7 @@ def load_ruleset_template(filename):
 		return f"# Error loading {filename}: {e}\n(Using basic fallback)"
 
 # Load core PyImageJ ruleset with section markers
-ruleset_text += load_ruleset_template('pyimagej_core.md')
+ruleset_text = load_ruleset_template('pyimagej_core.md')
 
 # Get environment-specific ruleset with section markers
 env_key = environment_mapping[environment]
