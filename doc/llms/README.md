@@ -124,7 +124,14 @@ The framework includes GitHub Actions automation to keep the notebook synchroniz
 3. This creates `WIP: Auto-update...` commits on your branch (clearly marked as temporary)
 4. Continue development normally
 
-**Merging to main:**
+##### Running the automation manually
+You can also manually apply the `update_notebook` script from the repository root:
+
+```bash
+COMMIT_SHA={commit} BRANCH_NAME={branch} python .github/scripts/update_notebook.py
+```
+
+#### Merging to main
 1. Before creating a PR, ensure no `WIP:` commits will be merged:
    - Option A: Rebase/squash to remove WIP commits  
    - Option B: Manually change commit messages to remove `WIP:` prefix
