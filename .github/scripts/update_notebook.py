@@ -51,9 +51,11 @@ def scan_ruleset_files(rulesets_dir: Path) -> Dict[str, str]:
     for file_path in sorted(env_dir.glob("env_*.md")):
         env_name = file_path.stem
         if env_name.startswith("env_"):
-            # Convert env_colab -> Google Colab, env_script_editor -> Fiji Script Editor, etc.
+            # Convert env_colab -> Google Colab, env_scripting -> Fiji Script Editor, etc.
             display_name = format_environment_name(env_name[4:])  # Remove "env_" prefix
-            environment_mapping[display_name] = env_name
+            # Store the full relative path from rulesets directory
+            relative_path = f"environments/{env_name}"
+            environment_mapping[display_name] = relative_path
 
     return environment_mapping
 
@@ -64,7 +66,7 @@ def format_environment_name(env_key: str) -> str:
         "colab": "Google Colab",
         "interactive": "Interactive Desktop",
         "headless": "True Headless",
-        "script_editor": "Fiji Script Editor"
+        "scripteditor": "Fiji Script Editor"
     }
     return mapping.get(env_key, env_key.replace("_", " ").title())
 

@@ -91,7 +91,7 @@ jobs:
           fi
           
           git add doc/llms/pyimagej-ai-guide.ipynb
-          git commit -m "${COMMIT_PREFIX} notebook cells based on personas/rulesets changes
+          git commit -m "${COMMIT_PREFIX} notebook cells
           
           Updated from commit: ${{ github.sha }}"
           git push
