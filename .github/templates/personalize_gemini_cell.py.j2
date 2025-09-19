@@ -28,7 +28,7 @@ experience_mapping = {
 {% endfor %}
 }
 
-# Template file mapping for different experience categories
+# Activity file mapping for different experience categories
 activity_dir = 'activities/'
 
 {% for category, mapping in category_mappings.items() %}
@@ -64,7 +64,7 @@ def load_persona_file(filename):
 				section_name = base_name.replace('_', ' ').upper()
 			return f"\n===== START OF {section_name} =====\n{content}\n===== END OF {section_name} =====\n"
 		else:
-			return f"# Template not found: {filename}\n(Using basic fallback)"
+			return f"# Persona file not found: {filename}\n(Using basic fallback)"
 	except Exception as e:
 		return f"# Error loading {filename}: {e}\n(Using basic fallback)"
 
