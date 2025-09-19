@@ -79,7 +79,58 @@ def build_persona_template_data(category_mappings: Dict[str, Dict[str, str]]) ->
 
     level_mapping = {
         "beginner": "beginner",
-        "intermediate": "intermediate", 
+        "intermediate": "intermediate",
+        "advanced": "advanced"
+    }
+
+    # Build categories and experience level mappings in desired order
+    # Define preferred order for known categories, but include any new ones automatically
+    preferred_order = ["colab", "coding", "pyimagej"]
+
+    # Start with preferred categories in order, then add any new ones alphabetically
+    ordered_categories = []
+    for category in preferred_order:
+        if category in category_mappings:
+            ordered_categories.append(category)
+
+    # Add any categories not in preferred_order (future categories)
+    remaining_categories = sorted([cat for cat in category_mappings.keys() if cat not in preferred_order])
+    ordered_categories.extend(remaining_categories)
+
+
+def order_environments(environment_mapping: Dict[str, str]) -> list:
+    """Return environment names in preferred order: Colab > Headless > Desktop > Script Editor."""
+    # Define preferred order based on user requirements
+    preferred_order = [
+        "Google Colab",
+        "True Headless",
+        "Interactive Desktop",
+        "Fiji Script Editor"
+    ]
+
+    # Start with preferred environments in order
+    ordered_environments = []
+    for env in preferred_order:
+        if env in environment_mapping:
+            ordered_environments.append(env)
+
+    # Add any environments not in preferred_order (future environments)
+    remaining_environments = sorted([env for env in environment_mapping.keys() if env not in preferred_order])
+    ordered_environments.extend(remaining_environments)
+
+    return ordered_environments
+
+
+def build_persona_template_data(category_mappings: Dict[str, Dict[str, str]]) -> Dict:
+    """Build template data for persona cell."""
+
+    # Create categories with their options
+    categories = {}
+    experience_levels = {}
+
+    level_mapping = {
+        "beginner": "beginner",
+        "intermediate": "intermediate",
         "advanced": "advanced"
     }
 
@@ -284,7 +335,7 @@ def main():
         print(f"Found environments: {list(environment_mapping.keys())}")
 
         template_data = {
-            "environments": sorted(environment_mapping.keys()),
+            "environments": order_environments(environment_mapping),
             "environment_mapping": environment_mapping
         }
         template = jinja_env.get_template("set_coding_rules_cell.py.j2")
