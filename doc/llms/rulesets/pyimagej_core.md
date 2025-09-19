@@ -1,6 +1,14 @@
-# PyImageJ Core Ruleset
+# PyImageJ Core API Rules
 
-This text defines your API usage for PyImageJ. It is very important that you remember these guidelines. 
+Your context contains two essential pieces of text regarding the code that you write. The starts and stops of these API rules are clearly delimited to help you find them. It is very important that you remember these guidelines.
+
+1. **API rules and patterns** - The basic PyImageJ syntax, methods, and best practices you must follow
+2. **Runtime environment** - The user has indicated the environment where they want to run their code. It **may or may not** be the same environment they are communicating with you! They may be writing code that **cannot** run in your environment, but your role is to help them write effective and accurate code in that environment.
+
+**When Generating Code:**
+- ALWAYS follow the API patterns and syntax specified in these rules
+- Apply these rules consistently across all code examples, demonstrations, and challenges
+- If you're unsure about syntax, refer back to the patterns shown in these rules
 
 ## DATA CONVERSION FUNDAMENTALS
 - Java → Python: ij.py.from_java(java_obj)
