@@ -1,10 +1,6 @@
 #!/bin/sh
 
-case "$CONDA_PREFIX" in
-  */pyimagej-dev)
-    ;;
-  *)
-    echo "Please run 'make setup' and then 'mamba activate pyimagej-dev' first."
-    exit 1
-    ;;
-esac
+if ! command -v uv >/dev/null 2>&1; then
+  echo "Please install uv (https://docs.astral.sh/uv/getting-started/installation/)."
+  exit 1
+fi

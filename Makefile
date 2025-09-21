@@ -10,19 +10,19 @@ help:
 clean:
 	bin/clean.sh
 
-lint:
+check:
+	@bin/check.sh
+
+lint: check
 	bin/lint.sh
 
-fmt:
-	bin/fmt.sh
-
-test:
+test: check
 	bin/test.sh
 
 docs:
 	cd doc && $(MAKE) html
 
-dist: clean
+dist: check clean
 	uv run python -m build
 
 .PHONY: tests
