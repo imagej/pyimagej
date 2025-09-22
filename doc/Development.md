@@ -5,16 +5,6 @@ if you want to hack on the PyImageJ code itself. If your goal
 is only to *use* PyImageJ to call ImageJ and friends from
 Python, you do not need to follow any of these instructions.
 
-## Configuring a conda environment for development
-
-Install [Miniforge3](https://github.com/conda-forge/miniforge#miniforge3).
-Then:
-
-```
-mamba env create -f dev-environment.yml
-mamba activate pyimagej-dev
-```
-
 ## Running the automated tests
 
 ```
