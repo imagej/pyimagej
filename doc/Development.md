@@ -25,12 +25,6 @@ If you are testing a project that *uses* `pyimagej` and need to see how changes 
 1. A `uv`-managed virual environment, e.g. `uv venv`
 1. A [mamba](https://mamba.readthedocs.io/en/latest/user_guide/mamba.html)-managed environment
 
-## Running the automated tests
-
-```
-make test
-```
-
 ## Building the reference documentation
 
 The documentation has its own `Makefile` in the `/docs` directory. From there:
@@ -48,6 +42,12 @@ make docs
 Results are generated to `doc/_build/html`.
 Production documentation is available online at
 [https://pyimagej.readthedocs.io/](https://pyimagej.readthedocs.io/).
+
+## Running the automated tests
+
+```
+make test
+```
 
 ## Formatting the code
 
