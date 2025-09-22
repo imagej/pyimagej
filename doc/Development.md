@@ -13,8 +13,16 @@ make test
 
 ## Building the reference documentation
 
+The documentation has its own `Makefile` in the `/docs` directory. From there:
+
 ```
 make html
+```
+
+Alternatively, from the project root:
+
+```
+make docs
 ```
 
 Results are generated to `doc/_build/html`.
