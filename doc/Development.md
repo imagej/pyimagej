@@ -27,7 +27,7 @@ If you are testing a project that *uses* `pyimagej` and need to see how changes 
 
 ## Building the reference documentation
 
-The documentation has its own `Makefile` in the `/docs` directory. From there:
+PyImageJ documentation is built as a [Sphinx](https://www.sphinx-doc.org/en/master/)-built [ReadTheDocs](https://about.readthedocs.com/) site. The documentation has its own `Makefile` in the `/docs` directory. From there:
 
 ```
 make html
