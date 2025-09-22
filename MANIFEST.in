@@ -6,10 +6,6 @@ include README.md
 include conftest.py
 include pyproject.toml
 
-# Conda Environment Files
-include environment.yml
-include dev-environment.yml
-
 # Directory inclusion
 graft src
 graft tests
