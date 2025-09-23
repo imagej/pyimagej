@@ -32,7 +32,7 @@ PyImageJ documentation is built as a [Sphinx](https://www.sphinx-doc.org/en/mast
 To build the documentation, **you must create a `uv` virtual environment** with the additional development dependencies:
 
 ```bash
-uv run pip install -e ".[dev]"
+uv pip install -e ".[dev]"
 ```
 
 Then, you can either use the documentation's own `Makefile` in the `/docs` directory:
