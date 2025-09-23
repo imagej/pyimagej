@@ -14,14 +14,14 @@ other tools available from the Python software ecosystem, including NumPy, SciPy
 scikit-image, CellProfiler, OpenCV, ITK and many more.
 
 .. toctree::
-   :maxdepth: 3
+   :maxdepth: 2
    :caption: 🚀 Getting Started
 
    Install
    Initialization
 
 .. toctree::
-   :maxdepth: 3
+   :maxdepth: 2
    :caption: 🪄 How-to guides
 
    notebooks
@@ -29,7 +29,7 @@ scikit-image, CellProfiler, OpenCV, ITK and many more.
    Troubleshooting
 
 .. toctree::
-   :maxdepth: 3
+   :maxdepth: 2
    :caption: 🔬 Use cases
 
    imagej-ops <imagej-ops-use-cases>
@@ -38,13 +38,13 @@ scikit-image, CellProfiler, OpenCV, ITK and many more.
    other_use_cases
 
 .. toctree::
-   :maxdepth: 3
+   :maxdepth: 2
    :caption: 🛠️ Development
 
    Development
 
 .. toctree::
-   :maxdepth: 3
+   :maxdepth: 2
    :caption: 📚 Reference
 
    api
