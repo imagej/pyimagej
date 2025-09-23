@@ -20,7 +20,7 @@ test: check
 	bin/test.sh
 
 docs:
-	cd doc && $(MAKE) html
+	uv run make -C doc html
 
 dist: check clean
 	uv run python -m build

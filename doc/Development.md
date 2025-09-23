@@ -27,15 +27,23 @@ If you are testing a project that *uses* `pyimagej` and need to see how changes 
 
 ## Building the reference documentation
 
-PyImageJ documentation is built as a [Sphinx](https://www.sphinx-doc.org/en/master/)-built [ReadTheDocs](https://about.readthedocs.com/) site. The documentation has its own `Makefile` in the `/docs` directory. From there:
+PyImageJ documentation is built as a [Sphinx](https://www.sphinx-doc.org/en/master/)-built [ReadTheDocs](https://about.readthedocs.com/) site.
 
+To build the documentation, **you must create a `uv` virtual environment** with the additional development dependencies:
+
+```bash
+uv run pip install -e ".[dev]"
 ```
+
+Then, you can either use the documentation's own `Makefile` in the `/docs` directory:
+
+```bash
 make html
 ```
 
-Alternatively, from the project root:
+Alternatively, from the project root `Makefile`:
 
-```
+```bash
 make docs
 ```
 
@@ -45,18 +53,18 @@ Production documentation is available online at
 
 ## Running the automated tests
 
-```
+```bash
 make test
 ```
 
 ## Formatting the code
 
-```
+```bash
 make lint
 ```
 
 ## Building distribution bundles
 
-```
+```bash
 make dist
 ```

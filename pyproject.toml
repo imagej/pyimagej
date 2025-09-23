@@ -52,7 +52,9 @@ dev = [
     "pytest",
     "ruff",
     "sphinx",
+    "sphinx-copybutton",
     "sphinx_rtd_theme",
+    "readthedocs-sphinx-search",
     "validate-pyproject[all]",
 ]
 
