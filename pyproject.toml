@@ -43,7 +43,7 @@ dependencies = [
     "xarray",
 ]
 
-[dependency-groups]
+[project.optional-dependencies]
 # Development tools
 dev = [
     "build",
@@ -57,8 +57,6 @@ dev = [
     "readthedocs-sphinx-search",
     "validate-pyproject[all]",
 ]
-
-[project.optional-dependencies]
 # Matplotlib display backend
 matplotlib = [
     "matplotlib",
