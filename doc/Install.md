@@ -106,64 +106,6 @@ PyImageJ-enabled notebook is run. See [this itkwidgets example
 notebook](https://github.com/InsightSoftwareConsortium/itkwidgets/blob/v0.24.2/examples/ImageJImgLib2.ipynb)
 for an example.
 
-## Dynamic installation within Google Colab
-
-It is possible to dynamically install PyImageJ on
-[Google Colab](https://colab.research.google.com/).
-A major advantage of Google Colab is free GPU in the cloud.
-
-Here is an example set of notebook cells to run PyImageJ
-on Google Colab with a wrapped local Fiji installation:
-
-1.  Install [condacolab](https://pypi.org/project/condacolab/):
-    ```bash
-    !pip install -q condacolab
-    import condacolab
-    condacolab.install()
-    ```
-
-2.  Verify that the installation is functional:
-    ```python
-    import condacolab
-    condacolab.check()
-    ```
-
-3.  Install PyImageJ:
-    ```bash
-    !mamba install pyimagej openjdk=11
-    ```
-    You can also install other deps here as well (scikit-image, opencv, etc).
-
-4.  Download and install Fiji, and optionally custom plugins as well:
-    ```bash
-    !wget https://downloads.imagej.net/fiji/latest/fiji-linux64.zip > /dev/null && unzip fiji-linux64.zip > /dev/null
-    !rm fiji-linux64.zip
-    !wget  https://imagej.net/ij/plugins/download/Filter_Rank.class > /dev/null
-    !mv Filter_Rank.class Fiji.app/plugins
-    ```
-
-5.  Set `JAVA_HOME`:
-    ```python
-    import os
-    os.environ['JAVA_HOME']='/usr/local'
-    ```
-    We need to do this so that the openjdk installed by mamba gets used,
-    since a conda env is not actually active in this scenario.
-
-6.  Start PyImageJ wrapping the local Fiji:
-    ```python
-    import imagej
-    ij = imagej.init("/content/Fiji.app")
-    print(ij.getVersion())
-    ```
-
-7.  Start running plugins, even custom plugins:
-    ```python
-    imp = ij.IJ.openImage("http://imagej.net/images/blobs.gif")
-    ij.py.run_plugin("Filter Rank", {"window": 3, "randomise": True}, imp=imp)
-    ij.IJ.resetMinAndMax(imp)
-    ij.py.run_plugin("Enhance Contrast", {"saturated": 0.35}, imp=imp)
-    ```
 ## Install pyimagej in Docker
 We leverage [Micromamba-docker](https://github.com/mamba-org/micromamba-docker) since `conda activate` will not work. Note that running Python scripts during build is extremely slow.
 ```dockerfile

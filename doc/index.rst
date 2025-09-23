@@ -15,7 +15,15 @@ scikit-image, CellProfiler, OpenCV, ITK and many more.
 
 .. toctree::
    :maxdepth: 2
-   :caption: 🚀 Getting Started
+   :caption: 🤖 Getting Started with AI
+
+   AI-Tutorial-Notebook
+   Google-Colab-Basics
+   Prompt-Engineering
+
+.. toctree::
+   :maxdepth: 2
+   :caption: 🚀 Getting Started (Traditional)
 
    Install
    Initialization
