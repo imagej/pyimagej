@@ -48,6 +48,7 @@ exclude_patterns = [
     ".DS_Store",
     "README.md",
     "examples/README.md",
+    "llms/**", 
 ]
 
 # -- MyST-Parser/MyST-NB configuration ---------------------------------------
