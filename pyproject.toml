@@ -53,7 +53,6 @@ dev = [
     "validate-pyproject[all]",
 ]
 # Local ReadTheDocs building
-# NOTE: duplicated in project.optional-dependencies
 docs = [
     "myst-nb",
     "sphinx",
@@ -72,17 +71,6 @@ notebooks = [
     "notebook < 7.0.0",
     "pooch", # for scikit image
     "scikit-image",
-]
-
-# Remote ReadTheDocs building
-# NOTE: duplicated in dependency-groups
-[project.optional-dependencies]
-docs = [
-    "myst-nb",
-    "sphinx",
-    "sphinx-copybutton",
-    "sphinx_rtd_theme",
-    "readthedocs-sphinx-search",
 ]
 
 [project.scripts]
