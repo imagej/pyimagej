@@ -9,7 +9,7 @@ build:
    tools:
       python: "3.12"
    jobs:
-      post-install:
+      post_install:
          - python -m pip --version
          - python -m pip install -e --group docs
 
