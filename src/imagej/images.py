@@ -51,15 +51,15 @@ _imglib2_types = {
 def is_arraylike(arr):
     """
     Return True iff the object is arraylike: possessing
-    .shape, .dtype, .__array__, and .ndim attributes.
+    .shape, .dtype, and .ndim attributes.
 
     :param arr: The object to check for arraylike properties
     :return: True iff the object is arraylike
     """
     return (
-        hasattr(arr, "shape")
+        not sj.isjava(arr)
+        and hasattr(arr, "shape")
         and hasattr(arr, "dtype")
-        and hasattr(arr, "__array__")
         and hasattr(arr, "ndim")
     )
 
