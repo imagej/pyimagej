@@ -12,7 +12,6 @@ import numpy as np
 import scyjava as sj
 import xarray as xr
 from jpype import JByte, JException, JFloat, JLong, JObject, JShort
-from labeling import Labeling
 
 import imagej.dims as dims
 import imagej.images as images
@@ -20,6 +19,17 @@ from imagej._java import jc
 from imagej._java import log_exception as _log_exception
 
 _logger = logging.getLogger(__name__)
+
+# Enable labeling conversions if labeling package is installed.
+_labeling_support = False
+try:
+    from labeling import Labeling
+    _labeling_support = True
+except Exception:
+    _logger.warning(
+        "The labeling package is not available. "
+        "Conversion of labelings is disabled."
+    )
 
 
 ###############
@@ -351,7 +361,7 @@ def realtype_to_ctype(realtype: "jc.RealType"):
     raise ValueError(f"Cannot convert RealType {value}")
 
 
-def supports_ctype_to_realtype(obj):
+def supports_ctype_to_realtype(obj) -> bool:
     """
     Return True iff the given object is convertible to an ImgLib2 RealType
     via the ctype_to_realtype function.
@@ -362,7 +372,7 @@ def supports_ctype_to_realtype(obj):
     return type(obj) in _ctype_map
 
 
-def supports_realtype_to_ctype(obj):
+def supports_realtype_to_ctype(obj) -> bool:
     """
     Return True iff the given object is convertible to a Python ctype
     via the realtype_to_ctype function.
@@ -381,7 +391,7 @@ def supports_realtype_to_ctype(obj):
 ############################
 
 
-def labeling_to_imglabeling(ij: "jc.ImageJ", labeling: Labeling):
+def labeling_to_imglabeling(ij: "jc.ImageJ", labeling: "Labeling") -> "jc.ImgLabeling":
     """
     Convert a Python Labeling to an equivalent Java ImgLabeling.
 
@@ -408,7 +418,7 @@ def labeling_to_imglabeling(ij: "jc.ImageJ", labeling: Labeling):
     return imglabeling
 
 
-def imglabeling_to_labeling(ij: "jc.ImageJ", imglabeling: "jc.ImgLabeling"):
+def imglabeling_to_labeling(ij: "jc.ImageJ", imglabeling: "jc.ImgLabeling") -> "Labeling":
     """
     Convert a Java ImgLabeling to an equivalent Python Labeling.
 
@@ -437,28 +447,28 @@ def imglabeling_to_labeling(ij: "jc.ImageJ", imglabeling: "jc.ImgLabeling"):
     return labeling
 
 
-def supports_labeling_to_imglabeling(obj):
+def supports_labeling_to_imglabeling(obj) -> bool:
     """
-    Return True iff the given object is convertible to an ImgLib2 ImgLabeling
-    via the labeling_to_imglabeling function.
+    Return True iff the labeling package is available and the given object is
+    convertible to an ImgLib2 ImgLabeling via the labeling_to_imglabeling function.
 
     :param ij: The ImageJ2 gateway (see imagej.init)
     :param obj: The object to check for convertibility
     :return: True iff conversion to an ImgLib2 ImgLabeling is possible
     """
-    return isinstance(obj, Labeling)
+    return _labeling_support and isinstance(obj, Labeling)
 
 
-def supports_imglabeling_to_labeling(obj):
+def supports_imglabeling_to_labeling(obj) -> bool:
     """
-    Return True iff the given object is convertible to a Python Labeling
-    via the imglabeling_to_labeling function.
+    Return True iff the labeling package is available and the given object is
+    convertible to a Python Labeling via the imglabeling_to_labeling function.
 
     :param ij: The ImageJ2 gateway (see imagej.init)
     :param obj: The object to check for convertibility
     :return: True iff conversion to a Python Labeling is possible
     """
-    return isinstance(obj, jc.ImgLabeling)
+    return _labeling_support and isinstance(obj, jc.ImgLabeling)
 
 
 #######################
