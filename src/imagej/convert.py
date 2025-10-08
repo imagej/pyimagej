@@ -310,7 +310,7 @@ _realtype_casters: Dict[str, type] = {
 }
 
 
-def ctype_to_realtype(ctype: ctypes._SimpleCData):
+def ctype_to_realtype(ctype: ctypes._SimpleCData) -> "jc.RealType":
     """
     Convert the given Python ctype into an ImgLib2 RealType.
 
@@ -332,7 +332,7 @@ def ctype_to_realtype(ctype: ctypes._SimpleCData):
     return realtype_class(jtype_raw)
 
 
-def realtype_to_ctype(realtype: "jc.RealType"):
+def realtype_to_ctype(realtype: "jc.RealType") -> ctypes._SimpleCData:
     """
     Convert the given ImgLib2 RealType into a Python ctype.
 
@@ -351,7 +351,7 @@ def realtype_to_ctype(realtype: "jc.RealType"):
     raise ValueError(f"Cannot convert RealType {value}")
 
 
-def supports_ctype_to_realtype(obj):
+def supports_ctype_to_realtype(obj) -> bool:
     """
     Return True iff the given object is convertible to an ImgLib2 RealType
     via the ctype_to_realtype function.
@@ -362,7 +362,7 @@ def supports_ctype_to_realtype(obj):
     return type(obj) in _ctype_map
 
 
-def supports_realtype_to_ctype(obj):
+def supports_realtype_to_ctype(obj) -> bool:
     """
     Return True iff the given object is convertible to a Python ctype
     via the realtype_to_ctype function.
@@ -381,7 +381,7 @@ def supports_realtype_to_ctype(obj):
 ############################
 
 
-def labeling_to_imglabeling(ij: "jc.ImageJ", labeling: Labeling):
+def labeling_to_imglabeling(ij: "jc.ImageJ", labeling: Labeling) -> "jc.ImgLabeling":
     """
     Convert a Python Labeling to an equivalent Java ImgLabeling.
 
@@ -408,7 +408,7 @@ def labeling_to_imglabeling(ij: "jc.ImageJ", labeling: Labeling):
     return imglabeling
 
 
-def imglabeling_to_labeling(ij: "jc.ImageJ", imglabeling: "jc.ImgLabeling"):
+def imglabeling_to_labeling(ij: "jc.ImageJ", imglabeling: "jc.ImgLabeling") -> Labeling:
     """
     Convert a Java ImgLabeling to an equivalent Python Labeling.
 
@@ -437,7 +437,7 @@ def imglabeling_to_labeling(ij: "jc.ImageJ", imglabeling: "jc.ImgLabeling"):
     return labeling
 
 
-def supports_labeling_to_imglabeling(obj):
+def supports_labeling_to_imglabeling(obj) -> bool:
     """
     Return True iff the given object is convertible to an ImgLib2 ImgLabeling
     via the labeling_to_imglabeling function.
@@ -449,7 +449,7 @@ def supports_labeling_to_imglabeling(obj):
     return isinstance(obj, Labeling)
 
 
-def supports_imglabeling_to_labeling(obj):
+def supports_imglabeling_to_labeling(obj) -> bool:
     """
     Return True iff the given object is convertible to a Python Labeling
     via the imglabeling_to_labeling function.
@@ -540,7 +540,7 @@ def _get_contours(
 #######################
 
 
-def image_metadata_to_dict(ij: "jc.ImageJ", image_meta: "jc.ImageMetadata"):
+def image_metadata_to_dict(ij: "jc.ImageJ", image_meta: "jc.ImageMetadata") -> Dict:
     """
     Converts an io.scif.ImageMetadata to a Python dict.
     The components should be enough to create a new ImageMetadata.
@@ -564,7 +564,9 @@ def image_metadata_to_dict(ij: "jc.ImageJ", image_meta: "jc.ImageMetadata"):
     }
 
 
-def metadata_wrapper_to_dict(ij: "jc.ImageJ", metadata_wrapper: "jc.MetadataWrapper"):
+def metadata_wrapper_to_dict(
+    ij: "jc.ImageJ", metadata_wrapper: "jc.MetadataWrapper"
+) -> Dict:
     """
     Converts a io.scif.filters.MetadataWrapper to a Python Dict.
     The components should be enough to create a new MetadataWrapper
@@ -603,7 +605,7 @@ def results_table_to_scijava_table(
 ####################
 
 
-def _assign_dataset_metadata(dataset: "jc.Dataset", attrs):
+def _assign_dataset_metadata(dataset: "jc.Dataset", attrs) -> None:
     """
     :param dataset: ImageJ2 Dataset
     :param attrs: Dictionary containing metadata
@@ -611,7 +613,9 @@ def _assign_dataset_metadata(dataset: "jc.Dataset", attrs):
     dataset.getProperties().putAll(sj.to_java(attrs))
 
 
-def _permute_rai_to_python(rich_rai: "jc.RandomAccessibleInterval"):
+def _permute_rai_to_python(
+    rich_rai: "jc.RandomAccessibleInterval",
+) -> "jc.RandomAccessibleInterval":
     """Permute a RandomAccessibleInterval to the python reference order.
 
     Permute a RandomAccessibleInterval to the Python reference order of
@@ -643,7 +647,7 @@ def _permute_rai_to_python(rich_rai: "jc.RandomAccessibleInterval"):
     return permuted_rai
 
 
-def _rename_dataset_dims(ds, new_dims: Sequence[str]):
+def _rename_dataset_dims(ds, new_dims: Sequence[str]) -> "jc.Dataset":
     """
     Rename, without reshaping, a Dataset's dimension labels.
 
@@ -667,7 +671,7 @@ def _rename_dataset_dims(ds, new_dims: Sequence[str]):
     return ds
 
 
-def _rename_xarray_dims(xarr, new_dims: Sequence[str]):
+def _rename_xarray_dims(xarr, new_dims: Sequence[str]) -> xr.DataArray:
     """
     Rename, without reshaping, an xarray's dimension labels.
 
@@ -687,7 +691,7 @@ def _rename_xarray_dims(xarr, new_dims: Sequence[str]):
     return xarr.rename(dim_map)
 
 
-def _delete_labeling_files(filepath):
+def _delete_labeling_files(filepath) -> None:
     """
     Removes any Labeling data left over at filepath
     :param filepath: the filepath where Labeling (might have) saved data
@@ -700,7 +704,7 @@ def _delete_labeling_files(filepath):
         os.remove(pth_json)
 
 
-def _dim_order(hints: Dict):
+def _dim_order(hints: Dict) -> Union[str | None]:
     """
     Extract the dim_order from the hints kwargs.
     """
