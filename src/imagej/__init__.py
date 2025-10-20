@@ -66,13 +66,9 @@ _init_callbacks = []
 _rai_lock = threading.Lock()
 
 # Enable debug logging if DEBUG environment variable is set.
-try:
-    debug = os.environ["DEBUG"]
-    if debug:
-        _logger.setLevel(logging.DEBUG)
-        dims._logger.setLevel(logging.DEBUG)
-except KeyError:
-    pass
+if os.environ.get("DEBUG"):
+    _logger.setLevel(logging.DEBUG)
+    dims._logger.setLevel(logging.DEBUG)
 
 
 class Mode(Enum):
