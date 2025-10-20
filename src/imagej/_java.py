@@ -46,7 +46,9 @@ def unlock_modules(logger: logging.Logger) -> None:
             for package in module.getPackages():
                 try:
                     addOpens.invoke(module, package, unnamed)
+                    logger.debug(f"--add-opens {module}/{package}={unnamed}")
                     addExports.invoke(module, package, unnamed)
+                    logger.debug(f"--add-exports {module}/{package}={unnamed}")
                 except Exception as e:
                     # Continue with other packages
                     log_exception(logger, e)
