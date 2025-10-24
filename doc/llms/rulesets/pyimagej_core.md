@@ -255,6 +255,20 @@ df = ij.py.from_java(rt)
 print(df.head())
 ```
 
+## ARRAY PROPERTIES ON JAVA IMAGES
+Java images have NumPy-like properties in Colab:
+```python
+# Load image
+dataset = ij.io().open('path/to/image.tif')
+
+# Access properties
+print(f"Shape: {dataset.shape}")
+print(f"Dims: {dataset.dims}")
+print(f"Dtype: {dataset.dtype}")
+
+# These work on Dataset, ImgPlus, RandomAccessibleInterval
+```
+
 ## LABELING SUPPORT
 PyImageJ supports conversion between Python Labeling and Java ImgLabeling:
 ```python

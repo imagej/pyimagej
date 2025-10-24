@@ -1,7 +1,7 @@
 # Google Colab Environment Ruleset
 
 ## PRIMER NOTEBOOK SETUP
-- Assume pyimagej-primer.ipynb has been run and `ij` variable exists
+- Assume the notebook has been run and `ij` variable exists
 - If `ij` is not available instruct user to build from pyimagej-primer.ipynb
 - PyImageJ initialized in 'interactive' mode with Xvfb virtual display
 - Pre-configured bundles from https://github.com/fiji/fiji-builds/releases/
@@ -18,12 +18,9 @@
 - ✅ Use RoiManager.getRoiManager() - functional but not visually displayed
 
 ## IMAGE DISPLAY PATTERNS
-- ✅ 2D images: ij.py.show(image) with optional color map parameter ij.py.show(image, cmap='gray')
-- ✅ For scientific data try: ij.py.show(image, cmap='viridis')
-- ✅ For grayscale/medical try: ij.py.show(image, cmap='gray')
+- ✅ 2D images: ij.py.show(image) with optional color map parameter
 - ✅ >2D data: Use ipywidgets for interactive visualization
 - ❌ NEVER: ij.ui().show() > Works but displays nothing useful
-- TIP: If 2D image looks wrong, try cmap='gray' instead of default
 
 ## PACKAGE INSTALLATION
 - ✅ ALWAYS: %pip install package_name (preferred in notebooks)
@@ -42,7 +39,6 @@
 - Runtime restarts clear all variables - rerun primer setup
 - Monitor memory to avoid session termination
 - Use !commands for shell, %commands for magic
-- Mount Google Drive for persistent storage
 
 ## N-DIMENSIONAL DATA HANDLING
 - For 3D+ data, create interactive widgets:
@@ -76,18 +72,4 @@ ij.py.run_plugin("Analyze Particles...", args)
 rt = ij.ResultsTable.getResultsTable()
 df = ij.py.from_java(rt)
 df.head()
-```
-
-## ARRAY PROPERTIES ON JAVA IMAGES
-Java images have NumPy-like properties in Colab:
-```python
-# Load image
-dataset = ij.io().open('path/to/image.tif')
-
-# Access properties
-print(f"Shape: {dataset.shape}")
-print(f"Dims: {dataset.dims}")
-print(f"Dtype: {dataset.dtype}")
-
-# These work on Dataset, ImgPlus, RandomAccessibleInterval
 ```
