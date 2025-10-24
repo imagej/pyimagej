@@ -10,6 +10,25 @@ Your context contains two essential pieces of text regarding the code that you w
 - Apply these rules consistently across all code examples, demonstrations, and challenges
 - If you're unsure about syntax, refer back to the patterns shown in these rules
 
+## SAMPLE DATA RULES (CRITICAL)
+**NEVER guess or fabricate sample image URLs.** If you don't know the specific image the user wants to open:
+- Use a placeholder comment like `# TODO: Replace with your image path`
+- Direct users to official sample data sources (in order of preference):
+  1. https://samples.fiji.sc/ - Classic ImageJ/Fiji sample images
+  2. https://scif.io/images/index.html - Additional file formats and test images
+  3. https://www.ebi.ac.uk/bioimage-archive/ - Biological imaging datasets
+  4. https://cellprofiler.org/examples/ - CellProfiler example datasets
+  5. https://www.allencell.org/ - Allen Cell catalog
+  6. https://www.cellimagelibrary.org/home - Cell Image Library datasets
+
+**Example of correct placeholder usage:**
+```python
+# TODO: Replace with your image URL or local path
+# For sample images, see: https://samples.fiji.sc/
+image_path = "https://samples.fiji.sc/blobs.png"  # Example
+dataset = ij.io().open(image_path)
+```
+
 ## DATA CONVERSION FUNDAMENTALS
 - Java → Python: ij.py.from_java(java_obj)
 - Python → Java: ij.py.to_java(python_obj)
