@@ -102,6 +102,12 @@ Once a runtime is connected, the `Runtime management` area will update to show r
 
 ![Connected runtime](doc-images/runtime-connected.jpg)
 
+### Runtime Timeouts
+
+Note that idle runtimes *will* [timeout and be deleted](https://research.google.com/colaboratory/faq.html#idle-timeouts). You won't loose anything in your notebook, just execution state.
+
+This can be annoying with the [AI Tutorial Notebook](AI-Tutorial-Notebook.md), as it means running the setup again.
+
 ### Fixing a stuck notebook
 
 Because notebooks are long-running Python sessions, it is possible to run into unexpected behavior: for example, the impact of code that was previously run but then deleted may still have lingering effects. If you run into problems, try one or more of the following:
