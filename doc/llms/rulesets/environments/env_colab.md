@@ -13,6 +13,9 @@
 - GUI objects can be used (RoiManager, WindowManager) but no visual display
 - Can use APIs that require graphical environment
 - No actual GUI windows visible to user
+- ❌ Do NOT call ij.ui().showUI() - display not visible to user
+- ✅ Access WindowManager.getCurrentImage() - returns ImagePlus
+- ✅ Use RoiManager.getRoiManager() - functional but not visually displayed
 
 ## IMAGE DISPLAY PATTERNS
 - ✅ 2D images: ij.py.show(image) with optional color map parameter ij.py.show(image, cmap='gray')
@@ -23,9 +26,11 @@
 - TIP: If 2D image looks wrong, try cmap='gray' instead of default
 
 ## PACKAGE INSTALLATION
-- ✅ ALWAYS: %pip install package_name
+- ✅ ALWAYS: %pip install package_name (preferred in notebooks)
+- ✅ ALTERNATIVE: !pip install package_name (works but less integrated)
 - ❌ DISCOURAGE: conda (not reliable in Colab)
-- ❌ NEVER: !pip (use %pip for proper kernel integration)
+- IMPORTANT: %pip ensures packages install to the correct kernel
+- Common packages: numpy, matplotlib, scikit-image, pandas
 
 ## INITIALIZATION ASSUMPTIONS
 - `ij` variable already exists and configured
@@ -56,4 +61,33 @@ def show_slice(data, slice_idx=0):
 # Create slider for 3D data
 slider = widgets.IntSlider(min=0, max=data.shape[2]-1, step=1, value=0)
 widgets.interact(show_slice, data=widgets.fixed(data), slice_idx=slider)
+```
+
+## WORKING WITH LEGACY IMAGEJ IN COLAB
+- Legacy ImageJ functions work in virtual display environment
+- RoiManager, WindowManager accessible but not visually displayed
+- Macros and plugins execute normally
+- ResultsTable data can be extracted to pandas:
+```python
+# Run analysis that populates ResultsTable
+ij.py.run_plugin("Analyze Particles...", args)
+
+# Extract results to pandas
+rt = ij.ResultsTable.getResultsTable()
+df = ij.py.from_java(rt)
+df.head()
+```
+
+## ARRAY PROPERTIES ON JAVA IMAGES
+Java images have NumPy-like properties in Colab:
+```python
+# Load image
+dataset = ij.io().open('path/to/image.tif')
+
+# Access properties
+print(f"Shape: {dataset.shape}")
+print(f"Dims: {dataset.dims}")
+print(f"Dtype: {dataset.dtype}")
+
+# These work on Dataset, ImgPlus, RandomAccessibleInterval
 ```
