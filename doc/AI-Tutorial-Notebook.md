@@ -1,4 +1,4 @@
-# Google Colab Notebook
+# The PyImageJ AI Notebook
 
 This document is designed to supplement your use of our PyImageJ + Large Language Model (LLM) Google Colab Notebook:
 
