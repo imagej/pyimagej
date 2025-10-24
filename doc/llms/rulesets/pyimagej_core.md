@@ -85,6 +85,38 @@ options.setId("/path/to/series.ext")
 imps = BF.openImagePlus(options)
 ```
 
+## DUPLICATING IMAGES BEFORE MODIFICATION
+⚠️ **CRITICAL**: Many ImageJ operations modify images in-place. Always duplicate before destructive operations!
+
+```python
+# ✅ CORRECT: Duplicate before modifying
+original = ij.IJ.openImage("https://samples.fiji.sc/blobs.png")
+copy = original.duplicate()  # ImagePlus
+ij.py.run_plugin("Gaussian Blur...", {"sigma": 3.0}, imp=copy)
+# Now 'original' is unchanged, 'copy' is blurred
+
+# ✅ CORRECT: Duplicate Dataset
+dataset = ij.io().open("path/to/image.tif")
+copy = dataset.duplicate()
+# Process 'copy' while preserving 'original'
+
+# ❌ WRONG: Modifying without duplicating
+img = ij.IJ.openImage("https://samples.fiji.sc/blobs.png")
+ij.py.run_plugin("Gaussian Blur...", {"sigma": 3.0}, imp=img)
+# 'img' is now permanently blurred - original data lost!
+```
+
+**When to duplicate:**
+- ✅ Before running plugins that modify pixel values
+- ✅ Before thresholding, filtering, or mathematical operations
+- ✅ When you need to compare before/after results
+- ✅ When processing in a loop where original data is reused
+
+**When duplication is NOT needed:**
+- Operations that create new images (e.g., `ij.op().filter().gauss()` returns new image)
+- Read-only operations (e.g., measurements, analysis)
+- Final processing steps where original is no longer needed
+
 ## RUNNING MACROS WITH ARGUMENTS
 ```python
 macro = """
