@@ -71,7 +71,7 @@ If you want to dig into the internals of the notebook itself, any cell with a `S
 
 ![Show/Hide Code](doc-images/nb-show-code.png)
 
-The following cells have <span style="color: green;"># --UPDATE</span> comments marking areas for regular update:
+The following cells have <span style="color: green;"># --UPDATE</span> comments marking areas with simple edits to influence Notebook reproducibility:
 
 * `📦 Download PyImageJ Source`: specify [the commit](https://github.com/imagej/pyimagej) for the LLM instruction files.
 * `🏝️ Setup Fiji Bundle`: specify [the bundle ID](https://github.com/fiji/fiji-builds/releases) for the Fiji download.
