@@ -1,4 +1,4 @@
-# The PyImageJ AI Notebook
+# Google Colab Notebook
 
 This document is designed to supplement your use of our PyImageJ + Large Language Model (LLM) Google Colab Notebook:
 
@@ -10,7 +10,7 @@ This document is designed to supplement your use of our PyImageJ + Large Languag
 If any of these topics are new to you:
    * Colab → check out [our overview](Google-Colab-Basics.md)
    * LLMs → read through [prompt engineering basics](Prompt-Engineering.md)
-   * Python → browse an overview, like [W3 schools](https://www.w3schools.com/python/)
+   * Python → browse an overview, like [W3 schools](https://www.w3schools.com/python/) or any listed on [pythyon.org](https://wiki.python.org/moin/BeginnersGuide/NonProgrammers)
 
 ## Learning Goals
 
