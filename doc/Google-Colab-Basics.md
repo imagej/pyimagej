@@ -102,6 +102,14 @@ Once a runtime is connected, the `Runtime management` area will update to show r
 
 ![Connected runtime](doc-images/runtime-connected.jpg)
 
+### Fixing a stuck notebook
+
+Because notebooks are long-running Python sessions, it is possible to run into unexpected behavior: for example, the impact of code that was previously run but then deleted may still have lingering effects. If you run into problems, try one or more of the following:
+
+* In the `Command toolbar`, use the `Run all` button's drop-down menu to restart the session
+* Use the `Runtime` section to delete the runtime and start a new one
+* Reload the page
+
 ### Connecting Files
 
 Using the `Files` sidebar tab will open a file browser *on the remote runtime*. This section also contains two buttons for bringing data into your notebook:
@@ -212,11 +220,3 @@ In our experience, these are some of the main limitations of using the integrate
 * Known to hallucinate on cell output when cells are "wrong" but code compiled and ran without an error
 
 If you are unsatisfied with Gemini's abilities, we do make it easy to copy over configuration text for other LLMs (all of which should understand Colab and Jupyter Notebook syntax - sometimes better than Gemini!).
-
-## Notebook Troubleshooting
-
-Because notebooks are long-running Python sessions, it is possible to run into unexpected behavior: for example, the impact of code that was previously run but then deleted may still have lingering effects. If you run into problems, try one or more of the following:
-
-* In the `Command toolbar`, use the `Run all` button's drop-down menu to restart the session
-* Delete the runtime and start a new one
-* Reload the page
