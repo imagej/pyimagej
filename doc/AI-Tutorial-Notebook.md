@@ -47,7 +47,7 @@ Here's an overview of key steps:
 * **Initializing PyImageJ** starts up a running instance of Fiji, which you can then access through the `ij` variable.
 * ⚠️**Warning:** The only verified method of [initialization](Initialization.md) in Google Colab are using local bundles from [fiji-builds](https://github.com/fiji/fiji-builds/releases) ⚠️
 
-Once the progress bar status shows `✅ Setup complete!`, your notebook is ready to go! You can start coding, or tell Gemini what you'd like to learn.
+Once the progress bar status shows `✅ Setup complete!`, your notebook is ready to go! You can start coding in the blank code cell at the bottom of the notebook, or start a conversation with Gemini and describe what you'd like to accomplish or learn.
 
 ![Start Coding](doc-images/nb-start-coding.jpg)
 
