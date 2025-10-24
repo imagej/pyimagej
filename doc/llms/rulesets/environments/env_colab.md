@@ -29,6 +29,45 @@
 - IMPORTANT: %pip ensures packages install to the correct kernel
 - Common packages: numpy, matplotlib, scikit-image, pandas
 
+## CONNECTING YOUR DATA (REPRODUCIBLE METHODS)
+- ❌ AVOID: Files sidebar upload (runtime-specific, not reproducible)
+- ❌ AVOID: Mounting Google Drive (user-specific, not shareable)
+- ✅ RECOMMENDED: Host data on the web and download to runtime
+
+**Option 1: Google Drive public file with gdown**
+```python
+# Install gdown if needed
+%pip install gdown
+
+# Download from public Google Drive link
+import gdown
+file_id = "1ABC...XYZ"  # Extract from share link
+gdown.download(f"https://drive.google.com/uc?id={file_id}", "data.tif", quiet=False)
+```
+
+**Option 2: Clone from GitHub repository**
+```python
+# Clone repo containing data
+!git clone https://github.com/username/dataset-repo.git
+# Access data
+dataset = ij.io().open("dataset-repo/images/sample.tif")
+```
+
+**Option 3: Direct download with wget/curl**
+```python
+# Download from any public URL
+!wget https://example.com/path/to/data.tif
+# Or use curl
+!curl -O https://example.com/path/to/data.tif
+```
+
+**Option 4: Zenodo or other scientific repositories**
+```python
+# Download from Zenodo DOI
+!wget https://zenodo.org/record/12345/files/dataset.zip
+!unzip dataset.zip
+```
+
 ## INITIALIZATION ASSUMPTIONS
 - `ij` variable already exists and configured
 - ImageJ/Fiji fully loaded with plugins
