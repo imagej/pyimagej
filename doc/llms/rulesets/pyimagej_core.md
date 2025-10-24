@@ -287,12 +287,29 @@ python_labeling = ij.py.from_java(java_imglabeling)
 
 ## IMAGE DISPLAY & COLORMAPS
 - ✅ Default: ij.py.show(image) # Uses image's natural appearance
+- ✅ Works with ALL image types: Dataset, ImgPlus, ImagePlus, numpy, xarray (auto-converts)
 - ✅ For scientific visualization: ij.py.show(image, cmap='viridis')
 - ✅ For grayscale images: ij.py.show(image, cmap='gray') # Preserves original appearance
 - ✅ For medical/microscopy: ij.py.show(image, cmap='gray') # Often most appropriate
 - ✅ For fluorescence: ij.py.show(image, cmap='green') or cmap='red'
 - Common colormaps: 'gray', 'viridis', 'plasma', 'inferno', 'magma', 'jet'
 - ⚠️ RULE: If image looks unnatural, try cmap='gray' first
+- ❌ NEVER use image.show() - always use ij.py.show(image)
+
+**Examples:**
+```python
+# ✅ CORRECT: Works with ImagePlus (auto-converts)
+img = ij.IJ.openImage("https://samples.fiji.sc/blobs.png")
+ij.py.show(img)  # No manual conversion needed!
+
+# ✅ CORRECT: Works with Dataset
+dataset = ij.io().open("path/to/image.tif")
+ij.py.show(dataset, cmap='gray')
+
+# ❌ WRONG: Unnecessary conversion
+img = ij.IJ.openImage("https://samples.fiji.sc/blobs.png")
+ij.py.show(ij.py.from_java(img))  # Don't do this - ij.py.show auto-converts!
+```
 
 ## ERROR PATTERNS
 - "Operating in headless mode" warnings are normal

@@ -114,3 +114,33 @@ rt = ij.ResultsTable.getResultsTable()
 df = ij.py.from_java(rt)
 df.head()
 ```
+
+## WINDOWMANAGER USAGE PATTERNS
+**Most plugins modify images IN PLACE - no WindowManager needed:**
+```python
+# ✅ CORRECT: Plugin modifies image in place
+img = ij.IJ.openImage("https://samples.fiji.sc/blobs.png")
+ij.py.run_plugin("Gaussian Blur...", args={"sigma": 3}, imp=img)
+# img is now blurred - show it directly (auto-converts ImagePlus)
+ij.py.show(img)
+```
+
+**Only use WindowManager when plugins CREATE new images:**
+```python
+# ✅ CORRECT: Stitching creates a new image
+tile1 = ij.IJ.createImage("Tile1", "8-bit random", 512, 512, 1)
+tile2 = ij.IJ.createImage("Tile2", "8-bit random", 512, 512, 1)
+args = {"first_image": tile1.getTitle(), "second_image": tile2.getTitle()}
+ij.py.run_plugin("Pairwise stitching", args)
+# New image was created, retrieve it
+result = ij.WindowManager.getCurrentImage()
+ij.py.show(result)  # Auto-converts ImagePlus to display
+```
+
+**❌ Common mistake - unnecessary WindowManager use:**
+```python
+# ❌ WRONG: Don't need WindowManager for in-place modifications
+img = ij.IJ.openImage("https://samples.fiji.sc/blobs.png")
+ij.py.run_plugin("Gaussian Blur...", args={"sigma": 3}, imp=img)
+result = ij.WindowManager.getCurrentImage()  # Unnecessary!
+```
