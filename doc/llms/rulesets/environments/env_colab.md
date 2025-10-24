@@ -21,6 +21,8 @@
 - ✅ 2D images: ij.py.show(image) with optional color map parameter
 - ✅ >2D data: Use ipywidgets for interactive visualization
 - ❌ NEVER: ij.ui().show() > Works but displays nothing useful
+- ❌ NEVER: image.show() > Use ij.py.show(image) instead
+- ⚠️ If you see `TypeError: Invalid shape (...) for image data` > Image is 3D+, use ipywidgets pattern below
 
 ## PACKAGE INSTALLATION
 - ✅ ALWAYS: %pip install package_name (preferred in notebooks)
