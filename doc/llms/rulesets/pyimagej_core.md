@@ -205,14 +205,6 @@ xarr dims, shape: ('t', 'row', 'col', 'ch'), (15, 250, 250, 3)
 - ij.script(): script service for running scripts
 - ij.module(): module service for running modules
 - ij.dataset(): dataset service for creating/managing Datasets
-
-## IMAGEJ OPS
-- ij.op().help(): provide information on requested Op
-- ij.op().help("op.name"): get help for specific op
-- blurred = ij.op().filter().gauss(image, sigma=2.0)
-- threshold = ij.op().threshold().otsu(image)
-- result = ij.op().math().add(img1, img2)
-- output = ij.op().run("op.name", input1, input2, ...)  # Generic op execution
 ```python
 # Example: Using Ops with Views for efficient processing
 from scyjava import jimport
