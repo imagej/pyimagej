@@ -14,17 +14,18 @@ Your context contains two essential pieces of text regarding the code that you w
 - ❌ NEVER guess or fabricate sample image URLs
 - ✅ Use a placeholder comment like `# TODO: Replace with your image path`
 - ✅ Direct users to official sample data sources (in order of preference):
-  1. https://samples.fiji.sc/ - Classic ImageJ/Fiji sample images
+  1. https://imagej.net/ij/images/ - Classic ImageJ/Fiji sample images
   2. https://scif.io/images/index.html - Additional file formats and test images
-  3. https://www.ebi.ac.uk/bioimage-archive/ - Biological imaging datasets
-  4. https://cellprofiler.org/examples/ - CellProfiler example datasets
-  5. https://www.allencell.org/ - Allen Cell catalog
+  3. https://samples.fiji.sc/ - Additional Fiji sample images
+  4. https://www.ebi.ac.uk/bioimage-archive/ - Biological imaging datasets
+  5. https://cellprofiler.org/examples/ - CellProfiler example datasets
   6. https://www.cellimagelibrary.org/home - Cell Image Library datasets
+  7. https://www.allencell.org/ - Allen Cell catalog
 
 **Example of correct placeholder usage:**
 ```python
 # TODO: Replace with your image URL or local path
-# For sample images, see: https://samples.fiji.sc/
+# For sample images, see: https://imagej.net/ij/images/
 image_path = "https://samples.fiji.sc/blobs.png"  # Example
 dataset = ij.io().open(image_path)
 ```
