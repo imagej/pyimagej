@@ -11,9 +11,9 @@ Your context contains two essential pieces of text regarding the code that you w
 - If you're unsure about syntax, refer back to the patterns shown in these rules
 
 ## SAMPLE DATA RULES (CRITICAL)
-**NEVER guess or fabricate sample image URLs.** If you don't know the specific image the user wants to open:
-- Use a placeholder comment like `# TODO: Replace with your image path`
-- Direct users to official sample data sources (in order of preference):
+- ❌ NEVER guess or fabricate sample image URLs
+- ✅ Use a placeholder comment like `# TODO: Replace with your image path`
+- ✅ Direct users to official sample data sources (in order of preference):
   1. https://samples.fiji.sc/ - Classic ImageJ/Fiji sample images
   2. https://scif.io/images/index.html - Additional file formats and test images
   3. https://www.ebi.ac.uk/bioimage-archive/ - Biological imaging datasets
@@ -40,8 +40,8 @@ dataset = ij.io().open(image_path)
 - RAI → numpy: ij.py.rai_to_numpy(rai, numpy_array)
 
 ## DUAL API AWARENESS
-- ImageJ2 (preferred): Dataset, ImgPlus, ij.io()
-- ImageJ 1.x (legacy): ImagePlus, ij.IJ, ij.WindowManager
+- ✅ ImageJ2 (preferred): Dataset, ImgPlus, ij.io()
+- ⚠️ ImageJ 1.x (legacy): ImagePlus, ij.IJ, ij.WindowManager
 
 ## WORKING WITH JAVA CLASSES
 - Use `scyjava.jimport` or `from scyjava import jimport`
@@ -280,18 +280,18 @@ python_labeling = ij.py.from_java(java_imglabeling)
 ```
 
 ## MEMORY MANAGEMENT
-- Large images: Use lazy loading with ij.io().open()
-- Clear variables: del large_image_variable
-- Monitor usage in resource-constrained environments
+- ✅ Large images: Use lazy loading with ij.io().open()
+- ✅ Clear variables: del large_image_variable
+- ⚠️ Monitor usage in resource-constrained environments
 
 ## IMAGE DISPLAY & COLORMAPS
-- Default: ij.py.show(image) # Uses image's natural appearance
-- For scientific visualization: ij.py.show(image, cmap='viridis')
-- For grayscale images: ij.py.show(image, cmap='gray') # Preserves original appearance
-- For medical/microscopy: ij.py.show(image, cmap='gray') # Often most appropriate
-- For fluorescence: ij.py.show(image, cmap='green') or cmap='red'
+- ✅ Default: ij.py.show(image) # Uses image's natural appearance
+- ✅ For scientific visualization: ij.py.show(image, cmap='viridis')
+- ✅ For grayscale images: ij.py.show(image, cmap='gray') # Preserves original appearance
+- ✅ For medical/microscopy: ij.py.show(image, cmap='gray') # Often most appropriate
+- ✅ For fluorescence: ij.py.show(image, cmap='green') or cmap='red'
 - Common colormaps: 'gray', 'viridis', 'plasma', 'inferno', 'magma', 'jet'
-- RULE: If image looks unnatural, try cmap='gray' first
+- ⚠️ RULE: If image looks unnatural, try cmap='gray' first
 
 ## ERROR PATTERNS
 - "Operating in headless mode" warnings are normal
