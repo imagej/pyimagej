@@ -230,13 +230,6 @@ shapes.add(HyperSphereShape(5))
 ij.op().morphology().topHat(java_out, java_in, shapes)
 ```
 
-## CORE ImageJ 1.x OBJECT ACCESS
-- Check if active: ij.legacy.isActive()
-- ij.IJ: Access to ImageJ 1.x IJ class
-- ij.ResultsTable: Access to ImageJ 1.x ResultsTable (converts to pandas DataFrame)
-- ij.RoiManager: Access to ImageJ 1.x ROI Manager
-- ij.WindowManager: Access to ImageJ 1.x Window Manager
-
 ## JAVA IMAGE PROPERTIES (added by PyImageJ)
 When working with Java images, PyImageJ adds these NumPy-like properties:
 - image.shape: Tuple of dimensions (like NumPy)
@@ -319,7 +312,7 @@ python_labeling = ij.py.from_java(java_imglabeling)
 
 ## IMAGE DISPLAY & COLORMAPS
 - ✅ Default: ij.py.show(image) # Uses image's natural appearance
-- ✅ Works with ALL image types: Dataset, ImgPlus, ImagePlus, numpy, xarray (auto-converts)
+- ✅ Works with ALL image types: Dataset, ImgPlus, ImagePlus, numpy, xarray (auto-converts most types as needed)
 - ✅ For scientific visualization: ij.py.show(image, cmap='viridis')
 - ✅ For grayscale images: ij.py.show(image, cmap='gray') # Preserves original appearance
 - ✅ For medical/microscopy: ij.py.show(image, cmap='gray') # Often most appropriate
