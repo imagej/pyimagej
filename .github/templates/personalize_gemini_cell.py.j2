@@ -29,12 +29,12 @@ experience_mapping = {
 }
 
 # Activity file mapping for different experience categories
-activity_dir = 'activities/'
+activity_dir = 'activities'
 
 {% for category, mapping in category_mappings.items() %}
 {{ category }}_activities = {
 {% for level, filename in mapping.items() %}
-	{{ level }}: activity_dir + '{{ filename }}',
+	{{ level }}: activity_dir / '{{ filename }}',
 {% endfor %}
 }
 
@@ -70,6 +70,7 @@ def load_persona_file(filename):
 
 # Load base persona with section markers
 persona_text = load_persona_file('base_persona.md')
+persona_text += load_persona_file(activity_dir / 'base_persona.md')
 
 # Get experience levels
 {% for category in categories.keys() %}

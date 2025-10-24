@@ -271,7 +271,7 @@ def main():
     # Setup paths
     script_dir = Path(__file__).parent
     repo_root = script_dir.parent.parent
-    notebook_path = repo_root / "doc" / "llms" / "pyimagej-ai-guide.ipynb"
+    notebook_path = repo_root / "doc" / "llms" / "custom-pyimagej-ai-guide.ipynb"
     personas_dir = repo_root / "doc" / "llms" / "personas"
     rulesets_dir = repo_root / "doc" / "llms" / "rulesets"
     templates_dir = script_dir.parent / "templates"  # .github/templates, not .github/scripts/templates

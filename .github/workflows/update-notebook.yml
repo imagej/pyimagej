@@ -2,7 +2,7 @@ name: Update PyImageJ AI Guide Notebook
 
 on:
   push:
-    branches: [ main ]  # Only auto-run on main
+    branches: [ none ]  # Turn off auto-runs for now
     paths:
       - 'doc/llms/personas/**'
       - 'doc/llms/rulesets/**'
