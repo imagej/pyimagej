@@ -1,35 +1,5 @@
 # PyImageJ Core API Rules
 
-Your context contains two essential pieces of text regarding the code that you write. The starts and stops of these API rules are clearly delimited to help you find them. It is very important that you remember these guidelines.
-
-1. **API rules and patterns** - The basic PyImageJ syntax, methods, and best practices you must follow
-2. **Runtime environment** - The user has indicated the environment where they want to run their code. It **may or may not** be the same environment they are communicating with you! They may be writing code that **cannot** run in your environment, but your role is to help them write effective and accurate code in that environment.
-
-**When Generating Code:**
-- ALWAYS follow the API patterns and syntax specified in these rules
-- Apply these rules consistently across all code examples, demonstrations, and challenges
-- If you're unsure about syntax, refer back to the patterns shown in these rules
-
-## SAMPLE DATA RULES (CRITICAL)
-- ❌ NEVER guess or fabricate sample image URLs
-- ✅ Use a placeholder comment like `# TODO: Replace with your image path`
-- ✅ Direct users to official sample data sources (in order of preference):
-  1. https://imagej.net/ij/images/ - Classic ImageJ/Fiji sample images
-  2. https://scif.io/images/index.html - Additional file formats and test images
-  3. https://samples.fiji.sc/ - Additional Fiji sample images
-  4. https://www.ebi.ac.uk/bioimage-archive/ - Biological imaging datasets
-  5. https://cellprofiler.org/examples/ - CellProfiler example datasets
-  6. https://www.cellimagelibrary.org/home - Cell Image Library datasets
-  7. https://www.allencell.org/ - Allen Cell catalog
-
-**Example of correct placeholder usage:**
-```python
-# TODO: Replace with your image URL or local path
-# For sample images, see: https://imagej.net/ij/images/
-image_path = "https://samples.fiji.sc/blobs.png"  # Example
-dataset = ij.io().open(image_path)
-```
-
 ## DATA CONVERSION FUNDAMENTALS
 - Java → Python: ij.py.from_java(java_obj)
 - Python → Java: ij.py.to_java(python_obj)
@@ -39,10 +9,6 @@ dataset = ij.io().open(image_path)
 - Any → Img: ij.py.to_img(data)
 - Any → xarray: ij.py.to_xarray(data)
 - RAI → numpy: ij.py.rai_to_numpy(rai, numpy_array)
-
-## DUAL API AWARENESS
-- ✅ ImageJ2 (preferred): Dataset, ImgPlus, ij.io()
-- ⚠️ ImageJ 1.x (legacy): ImagePlus, ij.IJ, ij.WindowManager
 
 ## WORKING WITH JAVA CLASSES
 - Use `scyjava.jimport` or `from scyjava import jimport`
@@ -68,38 +34,38 @@ custom_axis = Axes.get("custom_name")
 ```
 
 ## WORKING WITH IMAGES
-- Dataset:  ij.io().open(path)
-- ImagePlus: ij.IJ.openImage(url_or_path)
-- BioFormats (opens an ImagePlus[]):
+- Dataset:  `ij.io().open(url_or_path)`. Best if using mostly ImageJ2 API (like ij.op())
+- ImagePlus: `ij.IJ.openImage(url_or_path)`. Best if using mostly ImageJ 1.x API (like ij.IJ)
+
+## SAMPLE DATA RULES (CRITICAL)
+When generating code to open images:
+- ❌ NEVER guess or fabricate sample image URLs
+- ✅ If the user didn't specify an image, use a descriptive placeholder with a comment
+
+Example placeholder use:
 ```python
-import scyjava as sj
-
-# get the BioFormats Importer
-BF = sj.jimport('loci.plugins.BF')
-options = sj.jimport('loci.plugins.in.ImporterOptions')() # import and initialize ImporterOptions
-options.setOpenAllSeries(True)
-options.setVirtual(True)
-options.setId("/path/to/series.ext")
-
-# open the series
-imps = BF.openImagePlus(options)
+img = ij.IJ.openImage("path/to/your/image.tif")  # Replace with your image path or URL
 ```
 
 ## DUPLICATING IMAGES BEFORE MODIFICATION
-⚠️ **CRITICAL**: Many ImageJ operations modify images in-place. Always duplicate before destructive operations!
+⚠️ **CRITICAL**: Many ImageJ operations modify images in-place. Always duplicate before one or more destructive operations!
 
 ```python
 # ✅ CORRECT: Duplicate before modifying
 original = ij.IJ.openImage("https://samples.fiji.sc/blobs.png")
 copy = original.duplicate()  # ImagePlus
 ij.py.run_plugin("Gaussian Blur...", {"sigma": 3.0}, imp=copy)
-# Now 'original' is unchanged, 'copy' is blurred
+```
+Now 'original' is unchanged, 'copy' is blurred
 
+```python
 # ✅ CORRECT: Duplicate Dataset
 dataset = ij.io().open("path/to/image.tif")
 copy = dataset.duplicate()
 # Process 'copy' while preserving 'original'
+```
 
+```python
 # ❌ WRONG: Modifying without duplicating
 img = ij.IJ.openImage("https://samples.fiji.sc/blobs.png")
 ij.py.run_plugin("Gaussian Blur...", {"sigma": 3.0}, imp=img)
@@ -183,9 +149,6 @@ xarr dims, shape: ('t', 'row', 'col', 'ch'), (15, 250, 250, 3)
 ```
 
 ## ADDITIONAL IMPORTANT ij.py METHODS
-- run_macro: Run an ImageJ macro
-- run_script: Run a SciJava (ImageJ2/Fiji) script
-- run_plugin: Run ImageJ 1.x or ImageJ2/Fiji plugins/commands
 - initialize_numpy_image: Create new numpy image with shape of input
 - sync_image: Synchronize ImageJ 1.x and ImageJ2 data structures
 - active_dataset: Get active image as an ImageJ2 Dataset
@@ -205,22 +168,6 @@ xarr dims, shape: ('t', 'row', 'col', 'ch'), (15, 250, 250, 3)
 - ij.script(): script service for running scripts
 - ij.module(): module service for running modules
 - ij.dataset(): dataset service for creating/managing Datasets
-```python
-# Example: Using Ops with Views for efficient processing
-from scyjava import jimport
-Views = jimport('net.imglib2.view.Views')
-HyperSphereShape = jimport('net.imglib2.algorithm.neighborhood.HyperSphereShape')
-
-# Create output and wrap as iterable
-output = ij.py.initialize_numpy_image(input_img)
-java_out = Views.iterable(ij.py.to_java(output))
-java_in = ij.py.to_java(input_img)
-
-# Run morphology operation
-shapes = jimport('java.util.ArrayList')()
-shapes.add(HyperSphereShape(5))
-ij.op().morphology().topHat(java_out, java_in, shapes)
-```
 
 ## JAVA IMAGE PROPERTIES (added by PyImageJ)
 When working with Java images, PyImageJ adds these NumPy-like properties:
@@ -249,7 +196,7 @@ result = img1 * img2  # Multiplication
 result = img1 / img2  # Division
 ```
 
-## WORKING WITH VIEWS (ImgLib2)
+## WORKING WITH VIEWS (ImageJ2)
 Use Views for efficient image manipulation without copying:
 ```python
 from scyjava import jimport
@@ -262,7 +209,24 @@ iterable = Views.iterable(img)  # For iteration
 extended = Views.extendBorder(img)  # Extend with border values
 ```
 
-## WORKING WITH RESULTS TABLES
+```python
+# Example: Using Ops with Views for efficient processing
+from scyjava import jimport
+Views = jimport('net.imglib2.view.Views')
+HyperSphereShape = jimport('net.imglib2.algorithm.neighborhood.HyperSphereShape')
+
+# Create output and wrap as iterable
+output = ij.py.initialize_numpy_image(input_img)
+java_out = Views.iterable(ij.py.to_java(output))
+java_in = ij.py.to_java(input_img)
+
+# Run morphology operation
+shapes = jimport('java.util.ArrayList')()
+shapes.add(HyperSphereShape(5))
+ij.op().morphology().topHat(java_out, java_in, shapes)
+```
+
+## WORKING WITH RESULTS TABLES (ImageJ 1.x)
 ImageJ 1.x ResultsTable automatically converts to pandas DataFrame:
 ```python
 # Get ResultsTable from ImageJ
@@ -315,17 +279,17 @@ python_labeling = ij.py.from_java(java_imglabeling)
 
 **Examples:**
 ```python
-# ✅ CORRECT: Works with ImagePlus (auto-converts)
+# ✅ CORRECT: open as ImagePlus
 img = ij.IJ.openImage("https://samples.fiji.sc/blobs.png")
 ij.py.show(img)  # No manual conversion needed!
 
-# ✅ CORRECT: Works with Dataset
+# ✅ CORRECT: open as Dataset
 dataset = ij.io().open("path/to/image.tif")
 ij.py.show(dataset, cmap='gray')
 
 # ❌ WRONG: Unnecessary conversion
 img = ij.IJ.openImage("https://samples.fiji.sc/blobs.png")
-ij.py.show(ij.py.from_java(img))  # Don't do this - ij.py.show auto-converts!
+ij.py.show(ij.py.to_dataset(img))  # Don't do this - ij.py.show auto-converts!
 ```
 
 ## ERROR PATTERNS

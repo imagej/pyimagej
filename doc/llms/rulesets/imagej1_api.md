@@ -1,6 +1,5 @@
 # ImageJ 1.x API Supplement
-
-Supplements `pyimagej_core.md` with ImageJ 1.x specifics for image processing workflows. **Only includes what's not already covered in core docs.**
+ImageJ 1.x presents a substantial API for working with ImagePlus
 
 ## CORE ImageJ 1.x OBJECT ACCESS
 - Check if active: `ij.legacy.isActive()`
@@ -14,6 +13,77 @@ Supplements `pyimagej_core.md` with ImageJ 1.x specifics for image processing wo
 ⚠️ **ImageJ 1.x uses 1-BASED indexing** for stacks (slices, channels, frames)
 - Slice 1 is the first slice (NOT slice 0)
 - Python is 0-based, ImageJ 1.x is 1-based - be careful!
+
+## THRESHOLDING
+
+ImageJ 1.x provides automatic and manual thresholding via `ij.IJ` methods.
+
+```python
+# Auto threshold (applies to ImagePlus, modifies display LUT)
+ij.IJ.setAutoThreshold(img, "Default dark")  # Dark background
+ij.IJ.setAutoThreshold(img, "Li")            # Bright background (default)
+ij.IJ.setAutoThreshold(img, "Otsu dark")     # Otsu with dark background
+
+# Available methods: Default, Huang, Intermodes, IsoData, Li, 
+#                    MaxEntropy, Mean, MinError, Minimum, Moments,
+#                    Otsu, Percentile, RenyiEntropy, Shanbhag,
+#                    Triangle, Yen
+
+# Reset threshold
+ij.IJ.resetThreshold(img)
+
+# Manual threshold (min and max pixel values)
+img.getProcessor().setThreshold(lower, upper, ij.ImagePlus.RED_LUT)
+# LUT options: NO_LUT_UPDATE, RED_LUT, BLACK_AND_WHITE_LUT, OVER_UNDER_LUT
+
+# Get threshold values
+ip = img.getProcessor()
+lower = ip.getMinThreshold()
+upper = ip.getMaxThreshold()
+
+# Check if thresholded
+if ip.getMinThreshold() != ij.ImagePlus.NO_THRESHOLD:
+    print(f"Image is thresholded: {lower} - {upper}")
+
+# Convert to binary mask (creates new 8-bit image)
+# ⚠️ Make sure image is thresholded first!
+ij.IJ.run(img, "Convert to Mask", "")  # In place, destructive!
+
+# Or threshold and convert in one step
+binary = img.duplicate()  # Make copy first
+ij.IJ.setAutoThreshold(binary, "Li dark")
+ij.IJ.run(binary, "Convert to Mask", "")
+
+# Stack thresholding (all slices)
+ij.IJ.run(img, "Auto Threshold", "method=Li white stack")
+# Options: white (bright background) or dark (dark background)
+#          stack (apply to all slices)
+```
+
+### Thresholding Workflow Example
+```python
+# Load image
+img = ij.IJ.openImage("https://imagej.net/images/blobs.gif")
+
+# Apply auto threshold
+ij.IJ.setAutoThreshold(img, "Default dark")
+
+# Get threshold values that were chosen
+ip = img.getProcessor()
+lower = ip.getMinThreshold()
+upper = ip.getMaxThreshold()
+print(f"Threshold range: {lower} - {upper}")
+
+# Create binary mask
+binary = img.duplicate()
+binary.setTitle("Binary Mask")
+ij.IJ.setAutoThreshold(binary, "Default dark")
+ij.IJ.run(binary, "Convert to Mask", "")
+
+# Now binary is a true binary image (0 or 255 pixels)
+# Can use for measurements, particle analysis, etc.
+```
+
 
 ## IMAGEPLUS STACK NAVIGATION
 

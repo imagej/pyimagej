@@ -1,12 +1,15 @@
 # Google Colab Environment Ruleset
 
 ## PRIMER NOTEBOOK SETUP
-- Assume the notebook has been run and `ij` variable exists
-- If `ij` is not available instruct user to build from pyimagej-primer.ipynb
-- PyImageJ initialized in 'interactive' mode with Xvfb virtual display
-- Pre-configured bundles from https://github.com/fiji/fiji-builds/releases/
-- Change bundle in setup cell if different version needed
+- Change bundle in `🏝️ Setup Fiji Bundle` cell if different Fiji version needed
+- Change commit in `📦 Download LLM Rules` cell if rules files seem outdated
 - Bundles include a JDK, Maven and Jgo caches to avoid hitting SciJava servers
+
+## PRESUMED INITIALIZATION STATE
+- ✅ `ij` variable already initialized
+- ❌ Do not call imagej.init() again
+- PyImageJ initialized in 'interactive' mode with Xvfb virtual display, wrapping Fiji
+- Legacy mode available: check with ij.legacy.isActive()
 
 ## DISPLAY ENVIRONMENT
 - Interactive mode with virtual display (Xvfb) - NOT true headless
@@ -22,7 +25,7 @@
 - ✅ >2D data: Use ipywidgets for interactive visualization
 - ❌ NEVER: ij.ui().show() > Works but displays nothing useful
 - ❌ NEVER: image.show() > Use ij.py.show(image) instead
-- ⚠️ If you see `TypeError: Invalid shape (...) for image data` > Image is 3D+, use ipywidgets pattern below
+- ⚠️ If you see `TypeError: Invalid shape (...) for image data` > Image is 3D+ ➡️ use ipywidgets pattern below
 
 ## PACKAGE INSTALLATION
 - ✅ ALWAYS: %pip install package_name (preferred in notebooks)
@@ -32,11 +35,16 @@
 - Common packages: numpy, matplotlib, scikit-image, pandas
 
 ## CONNECTING YOUR DATA (REPRODUCIBLE METHODS)
-- ❌ AVOID: Files sidebar upload (runtime-specific, not reproducible)
-- ❌ AVOID: Mounting Google Drive (user-specific, not shareable)
+- ❌ AVOID: Files sidebar local uploads (runtime-specific, not reproducible)
+- ⚠️ DISCOURAGE: Mounting Google Drive (user-specific, not shareable, but could reduce initialization time)
 - ✅ RECOMMENDED: Host data on the web and download to runtime
 
-**Option 1: Google Drive public file with gdown**
+**Option 1: Host on web**
+- ij.io().open() and ij.IJ.openImage() should both be able to handle most URLs (but not Google Drive or GitHub)
+
+**Option 2: Public Google Drive file with gdown**
+Google Drive files need to be downloaded specially
+
 ```python
 # Install gdown if needed
 %pip install gdown
@@ -47,7 +55,9 @@ file_id = "1ABC...XYZ"  # Extract from share link
 gdown.download(f"https://drive.google.com/uc?id={file_id}", "data.tif", quiet=False)
 ```
 
-**Option 2: Clone from GitHub repository**
+**Option 3: Clone from GitHub repository**
+GitHub is not ideal for hosting images, but also should be cloned at the repository-level.
+
 ```python
 # Clone repo containing data
 !git clone https://github.com/username/dataset-repo.git
@@ -55,34 +65,14 @@ gdown.download(f"https://drive.google.com/uc?id={file_id}", "data.tif", quiet=Fa
 dataset = ij.io().open("dataset-repo/images/sample.tif")
 ```
 
-**Option 3: Direct download with wget/curl**
-```python
-# Download from any public URL
-!wget https://example.com/path/to/data.tif
-# Or use curl
-!curl -O https://example.com/path/to/data.tif
-```
-
-**Option 4: Zenodo or other scientific repositories**
-```python
-# Download from Zenodo DOI
-!wget https://zenodo.org/record/12345/files/dataset.zip
-!unzip dataset.zip
-```
-
-## INITIALIZATION ASSUMPTIONS
-- `ij` variable already exists and configured
-- ImageJ/Fiji fully loaded with plugins
-- Legacy mode available: check with ij.legacy.isActive()
-- Don't call imagej.init() - already done in setup
-
 ## RESOURCE MANAGEMENT
 - Runtime restarts clear all variables - rerun primer setup
 - Monitor memory to avoid session termination
 - Use !commands for shell, %commands for magic
 
 ## N-DIMENSIONAL DATA HANDLING
-- For 3D+ data, create interactive widgets:
+- For 3D+ data, we need to create interactive widgets instead of using `ij.py.show`
+- ⚠️ Use this to solve `TypeError: Invalid shape (...) for image data` 
 ```python
 import ipywidgets as widgets
 from IPython.display import display
@@ -116,6 +106,16 @@ df.head()
 ```
 
 ## WINDOWMANAGER USAGE PATTERNS
+
+**Usually you will just use the image variable**
+```python
+# ❌ WRONG: There is no ij.getImage method
+ij.IJ.setAutoThreshold(ij.getImage(), "Li dark")
+
+# ✅ CORRECT: pass the image as a paramter
+ij.IJ.setAutoThreshold(preprocessed_image, "Li dark")
+```
+
 **Most plugins modify images IN PLACE - no WindowManager needed:**
 ```python
 # ✅ CORRECT: Plugin modifies image in place
@@ -137,7 +137,7 @@ result = ij.WindowManager.getCurrentImage()
 ij.py.show(result)  # Auto-converts ImagePlus to display
 ```
 
-**❌ Common mistake - unnecessary WindowManager use:**
+**Don't use WindowManager unnecessarily**
 ```python
 # ❌ WRONG: Don't need WindowManager for in-place modifications
 img = ij.IJ.openImage("https://samples.fiji.sc/blobs.png")

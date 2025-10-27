@@ -1,9 +1,7 @@
 # ImageJ Ops API Guide for PyImageJ
-
-ImageJ Ops provides a library of image processing operations accessed through `ij.op()`. This guide focuses on practical usage patterns for image analysis workflows.
+ImageJ Ops is an ImageJ2 library of image processing algorithms and operations.
 
 ## OP TYPES
-
 Ops are classified by how they handle inputs and outputs:
 
 ### Function
