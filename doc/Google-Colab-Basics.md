@@ -112,9 +112,9 @@ This can be annoying with the [AI Tutorial Notebook](AI-Tutorial-Notebook.md), a
 
 Because notebooks are long-running Python sessions, it is possible to run into unexpected behavior: for example, the impact of code that was previously run but then deleted may still have lingering effects. If you run into problems, try one or more of the following:
 
-* In the `Command toolbar`, use the `Run all` button's drop-down menu to restart the session
-* Use the `Runtime` section to delete the runtime and start a new one
-* Reload the page
+* The first thing to try is the `Restart session` option under `Run all` in the `Command toolbar`. This just restarts the Python kernel and **does not delete your remote instance**, keeping your downloaded files intact
+* If needed, use the `Runtime` section to delete the runtime and start a new one (you will have to re-download and re-install things)
+* Reload the page. This will discard any notebook changes and chatbot conversation history
 
 ### Connecting Files
 
