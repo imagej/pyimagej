@@ -5,6 +5,7 @@ Utility functions for converting objects between types.
 import ctypes
 import logging
 import os
+import tempfile
 from typing import Dict, List, Sequence, Union
 
 import imglyb
@@ -391,19 +392,15 @@ def labeling_to_imglabeling(ij: "jc.ImageJ", labeling: Labeling):
     """
     labeling_io_service = ij.context().service(jc.LabelingIOService)
 
-    # Save the image on the Python side
-    tmp_pth = "./tmp"
-    _delete_labeling_files(tmp_pth)
-    labeling.save_result(tmp_pth)
+    # Create a unique temporary directory to avoid file collisions
+    with tempfile.TemporaryDirectory(prefix="pyimagej_labeling_") as tmp_dir:
+        # Save the image on the Python side
+        tmp_pth = os.path.join(tmp_dir, "labeling")
+        labeling.save_result(tmp_pth)
 
-    # Load the labeling on the Java side
-    try:
+        # Load the labeling on the Java side
         tmp_pth_json = tmp_pth + ".lbl.json"
         imglabeling = labeling_io_service.load(tmp_pth_json, JObject, JObject)
-    except JException as exc:
-        _delete_labeling_files(tmp_pth)
-        raise exc
-    _delete_labeling_files(tmp_pth)
 
     return imglabeling
 
@@ -418,22 +415,19 @@ def imglabeling_to_labeling(ij: "jc.ImageJ", imglabeling: "jc.ImgLabeling"):
     """
     labeling_io_service = ij.context().service(jc.LabelingIOService)
 
-    # Save the image on the Python side
-    tmp_pth = os.getcwd() + "/tmp"
-    tmp_pth_json = tmp_pth + ".lbl.json"
-    tmp_pth_tif = tmp_pth + ".tif"
-    try:
-        _delete_labeling_files(tmp_pth)
-        imglabeling = ij.convert().convert(imglabeling, jc.ImgLabeling)
-        labeling_io_service.save(
-            imglabeling, tmp_pth_tif
-        )  # TODO: improve, likely utilizing the ImgLabeling's name
-    except JException:
-        print("Failed to save the data")
+    # Create a unique temporary directory to avoid file collisions
+    with tempfile.TemporaryDirectory(prefix="pyimagej_labeling_") as tmp_dir:
+        # Save the labeling on the Java side
+        tmp_pth = os.path.join(tmp_dir, "labeling")
+        tmp_pth_json = tmp_pth + ".lbl.json"
+        tmp_pth_tif = tmp_pth + ".tif"
 
-    # Load the labeling on the python side
-    labeling = Labeling.from_file(tmp_pth_json)
-    _delete_labeling_files(tmp_pth)
+        imglabeling = ij.convert().convert(imglabeling, jc.ImgLabeling)
+        labeling_io_service.save(imglabeling, tmp_pth_tif)
+
+        # Load the labeling on the Python side
+        labeling = Labeling.from_file(tmp_pth_json)
+
     return labeling
 
 
@@ -685,19 +679,6 @@ def _rename_xarray_dims(xarr, new_dims: Sequence[str]):
         dim_map[curr_dims[i]] = new_dims[i]
 
     return xarr.rename(dim_map)
-
-
-def _delete_labeling_files(filepath):
-    """
-    Removes any Labeling data left over at filepath
-    :param filepath: the filepath where Labeling (might have) saved data
-    """
-    pth_json = filepath + ".lbl.json"
-    pth_tif = filepath + ".tif"
-    if os.path.exists(pth_tif):
-        os.remove(pth_tif)
-    if os.path.exists(pth_json):
-        os.remove(pth_json)
 
 
 def _dim_order(hints: Dict):
