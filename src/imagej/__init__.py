@@ -1708,15 +1708,16 @@ def _create_jvm(
 def _guess_java_version() -> Optional[int]:
     # Ask scyjava what version of Java will be used.
     version_digits = None
-    try:
-        version_digits = sj.jvm_version()
-        _logger.debug(f"Detected existing Java version: {version_digits}")
-        major_version = version_digits[0]
-    except JVMNotFoundException as e:
-        # This is OK -- it just means no already installed Java is known.
-        # But scyjava might download and cache a JDK, so we'll proceed with
-        # that understanding.
-        _logger.debug(e)
+    if sj.jvm_started():
+        try:
+            version_digits = sj.jvm_version()
+            _logger.debug(f"Detected existing Java version: {version_digits}")
+            major_version = version_digits[0]
+        except JVMNotFoundException as e:
+            # This is OK -- it just means no already installed Java is known.
+            # But scyjava might download and cache a JDK, so we'll proceed with
+            # that understanding.
+            _logger.debug(e)
 
     # In scyjava 1.12.0+, if a JDK fetch is planned, the jvm_version()
     # result will be invalid because that function is reporting on an
