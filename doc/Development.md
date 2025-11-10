@@ -43,7 +43,7 @@ make docs
 
 Results are generated to `doc/_build/html`.
 Production documentation is available online at
-[https://pyimagej.readthedocs.io/](https://pyimagej.readthedocs.io/).
+[https://py.imagej.net/](https://py.imagej.net/).
 
 ## Running the automated tests
 

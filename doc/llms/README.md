@@ -141,4 +141,4 @@ COMMIT_SHA={commit} BRANCH_NAME={branch} python .github/scripts/update_notebook.
 
 ## 📚 Learn More
 - [ImageJ Community Forum](https://forum.image.sc/)
-- [PyImageJ Documentation](https://pyimagej.readthedocs.io/)
+- [PyImageJ Documentation](https://py.imagej.net/)

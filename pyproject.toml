@@ -78,7 +78,7 @@ imagej = "imagej:imagej_main"
 
 [project.urls]
 homepage = "https://github.com/imagej/pyimagej"
-documentation = "https://pyimagej.readthedocs.io/"
+documentation = "https://py.imagej.net/"
 source = "https://github.com/imagej/pyimagej"
 download = "https://pypi.org/project/pyimagej/"
 tracker = "https://github.com/imagej/pyimagej/issues"

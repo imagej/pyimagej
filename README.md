@@ -2,7 +2,7 @@
 
 [![Image.sc Forum](https://img.shields.io/badge/dynamic/json.svg?label=forum&url=https%3A%2F%2Fforum.image.sc%2Ftags%2Fpyimagej.json&query=%24.topic_list.tags.0.topic_count&colorB=brightgreen&suffix=%20topics&logo=data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAA4AAAAOCAYAAAAfSC3RAAABPklEQVR42m3SyyqFURTA8Y2BER0TDyExZ+aSPIKUlPIITFzKeQWXwhBlQrmFgUzMMFLKZeguBu5y+//17dP3nc5vuPdee6299gohUYYaDGOyyACq4JmQVoFujOMR77hNfOAGM+hBOQqB9TjHD36xhAa04RCuuXeKOvwHVWIKL9jCK2bRiV284QgL8MwEjAneeo9VNOEaBhzALGtoRy02cIcWhE34jj5YxgW+E5Z4iTPkMYpPLCNY3hdOYEfNbKYdmNngZ1jyEzw7h7AIb3fRTQ95OAZ6yQpGYHMMtOTgouktYwxuXsHgWLLl+4x++Kx1FJrjLTagA77bTPvYgw1rRqY56e+w7GNYsqX6JfPwi7aR+Y5SA+BXtKIRfkfJAYgj14tpOF6+I46c4/cAM3UhM3JxyKsxiOIhH0IO6SH/A1Kb1WBeUjbkAAAAAElFTkSuQmCC)](https://forum.image.sc/tag/pyimagej)
 [![Build Status](https://github.com/imagej/pyimagej/actions/workflows/build.yml/badge.svg?branch=main)](https://github.com/imagej/pyimagej/actions/workflows/build.yml)
-[![Read the Docs](https://readthedocs.org/projects/pyimagej/badge/?version=latest)](https://pyimagej.readthedocs.io/en/latest/?badge=latest)
+[![Read the Docs](https://readthedocs.org/projects/pyimagej/badge/?version=latest)](https://py.imagej.net/en/latest/?badge=latest)
 [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/imagej/pyimagej/HEAD?urlpath=%2Fdoc%2Ftree%2Fdoc)
 
 PyImageJ provides a set of wrapper functions for integration between [ImageJ2]
@@ -14,7 +14,7 @@ SciPy, scikit-image, [CellProfiler], [OpenCV], [ITK] and many more.
 
 ## Quick Start
 
-Jump into the [documentation and tutorials](https://pyimagej.readthedocs.io/) to get started!
+Jump into the [documentation and tutorials](https://py.imagej.net/) to get started!
 
 ## System Requirements
 
@@ -73,7 +73,7 @@ takes an additional ~30 seconds to ~2-3 minutes (depending on bandwidth)
 while it downloads and caches the needed Java libraries.
 
 For detailed installation instructions and requirements, see
-[Installation](https://pyimagej.readthedocs.io/en/latest/Install.html).
+[Installation](https://py.imagej.net/en/latest/Install.html).
 
 ## Usage
 
@@ -84,7 +84,7 @@ plus utility functions for translating between Python (NumPy, xarray,
 pandas, etc.) and Java (ImageJ2, ImgLib2, etc.) structures.
 
 For instructions on how to start up the gateway for various settings, see
-[How to initialize PyImageJ](https://pyimagej.readthedocs.io/en/latest/Initialization.html).
+[How to initialize PyImageJ](https://py.imagej.net/en/latest/Initialization.html).
 
 Here is an example of opening an image using ImageJ2 and displaying it:
 
@@ -106,12 +106,12 @@ ij.py.show(image, cmap='gray')
 ```
 
 For more, see the
-[tutorial notebooks](https://pyimagej.readthedocs.io/en/latest/notebooks.html).
+[tutorial notebooks](https://py.imagej.net/en/latest/notebooks.html).
 
 ## API Reference
 
 For a complete reference of the PyImageJ API, please see the
-[API Reference](https://pyimagej.readthedocs.io/en/latest/api.html).
+[API Reference](https://py.imagej.net/en/latest/api.html).
 
 ## Getting Help
 
@@ -131,7 +131,7 @@ You can also reach the developers at the
 [Image.sc Zulip chat](https://imagesc.zulipchat.com/#narrow/stream/328100-scyjava).
 
 For details on how to develop the PyImageJ codebase, see
-[Development.md](https://pyimagej.readthedocs.io/en/latest/Development.html).
+[Development.md](https://py.imagej.net/en/latest/Development.html).
 
 ------------------------------------------------------------------------------
 
