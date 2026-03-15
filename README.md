@@ -141,7 +141,7 @@ For details on how to develop the PyImageJ codebase, see
 [OpenCV]: https://imagej.net/software/opencv
 [ITK]: https://imagej.net/software/itk
 [imglyb]: https://github.com/imglib/imglyb
-[jgo]: https://github.com/scijava/jgo
+[jgo]: https://github.com/apposed/jgo
 [JPype]: https://jpype.readthedocs.io/
 [labeling]: https://github.com/Labelings/Labeling
 [matplotlib]: https://matplotlib.org/

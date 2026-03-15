@@ -90,16 +90,6 @@ def checkup(output=print):
 
     output("")
 
-    output("Checking Maven:")
-
-    mvn_executable = shutil.which("mvn")
-    output(f"--> Maven executable = {mvn_executable or 'NOT FOUND!'}")
-    if mvn_executable:
-        output(f"$ mvn -v\n{_execute([mvn_executable, '-v'])}")
-        output("")
-    else:
-        advice.append("Install maven using conda or your system package manager")
-
     output("Checking Java:")
 
     if "JAVA_HOME" in os.environ:
@@ -149,7 +139,7 @@ def debug_to_stderr(logger=None, debug_maven=False):
                         True for more details on where things go wrong.
     """
     if logger is None:
-        debug_to_stderr("jgo.jgo._logger")
+        debug_to_stderr(logging.getLogger("jgo"))
         debug_to_stderr("scyjava._logger")
         debug_to_stderr("scyjava.config._logger")
         debug_to_stderr("imagej._logger")

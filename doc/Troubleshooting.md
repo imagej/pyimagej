@@ -135,17 +135,6 @@ emits output to the standard error stream.
 
 ## Common Errors
 
-### jgo.jgo.ExecutableNotFound: mvn not found on path ...
-
-This indicates the Maven executable wasn't found on your system.
-
-* If you [installed Maven manually](https://maven.apache.org/install.html), make sure the `bin` directory is actually on your `PATH` and start a fresh terminal session.
-* If you installed via conda/mamba and are on Windows, you maven have an old `maven` installation from when it [was broken](https://github.com/conda-forge/maven-feedstock/issues/23). You should be able to simply update with `conda update -n pyimagej maven` (adjusted if you named your environment something other than `pyimagej`).
-
-### <JAVA_HOME>/lib/ext exists, extensions mechanism no longer supported; Use -classpath instead.
-
-If you installed `maven` via conda/mamba on Windows, you may have gotten a version that was [briefly broken](https://github.com/conda-forge/maven-feedstock/issues/26). You should be able to simply update with `conda update -n pyimagej maven` (adjusted if you named your environment something other than `pyimagej`).
-
 ### Command died with Signals.SIGKILL: 9
 
 If you see an error like:
@@ -157,35 +146,6 @@ Unfortunately, Version 8 of OpenJDK from conda-forge is known to be broken on Ma
 
 Try `mamba install openjdk=11` to update to version 11, and this problem should go away.
 
-### Error in "mvn.CMD -B -f pom.xml" dependency:resolve: 1
-
-This indicates a problem running Maven on your system.
-Maven is needed to fetch Java libraries from the Internet.
-
-Two common problems are:
-
-* [Could not transfer artifact](#could-not-transfer-artifact).
-  You might be behind a firewall.
-* [Unable to find valid certification path](#unable-to-find-valid-certification-path).
-  Your version of OpenJDK might be too old.
-
-Details on how to address these two scenarios are below.
-
-Or it might be something else, in which case it will require more debugging
-effort. Please post [on the forum](https://forum.image.sc/tag/pyimagej) and
-include the results of re-running the same `imagej.init` call after:
-
-1. Deleting your `~/.jgo` directory; and
-2. [Enabling debug logging](#enabling-debug-logging) by adding:
-   ```python
-   import imagej.doctor
-   imagej.doctor.debug_to_stderr(debug_maven=True)
-   ```
-   to the top of your script. You can try first without `debug_maven=True`,
-   but if you still don't get any useful hints in the output, add the
-   `debug_maven=True` so that `mvn` runs with the `-X` flag to provide us
-   with the copious amounts of output our bodies crave.
-
 #### Could not transfer artifact
 
 If the debugging output includes notices such as:
@@ -194,8 +154,8 @@ If the debugging output includes notices such as:
 DEBUG:jgo: [ERROR] Non-resolvable import POM: Could not transfer artifact net.imglib2:imglib2-imglyb:pom:1.0.1 from/to scijava.public (https://maven.scijava.org/content/groups/public): Transfer failed for https://maven.scijava.org/content/groups/public/net/imglib2/imglib2-imglyb/1.0.1/imglib2-imglyb-1.0.1.pom @ line 8, column 29: Connect to maven.scijava.org:443 [maven.scijava.org/144.92.48.199] failed: Connection timed out:
 ```
 
-This suggests you may be behind a firewall that is preventing Maven from
-downloading the necessary components. In this case you have a few options
+This suggests you may be behind a firewall that is preventing necessary
+components from being downloaded. In this case you have a few options
 to try:
 
 1. Tell Java to use your system proxy settings:
@@ -218,29 +178,14 @@ to try:
    )
    ```
 
-3. Configure your proxy settings
-   [through Maven](https://www.baeldung.com/maven-behind-proxy) by editing the
-   `<settings>..</settings>` block of your `$HOME/.m2/settings.xml` file:
-   ```
-   <proxies>
-     <proxy>
-       <id>Your company proxy</id>
-       <active>true</active>
-       <protocol>https</protocol>
-       <host>example.com</host>
-       <port>8080</port>
-     </proxy>
-   </proxies>
-   ```
-
-4. [Initialize with a local `Fiji.app` installation](Initialization.md#from-a-local-installation),
+3. [Initialize with a local Fiji installation](Initialization.md#from-a-local-installation),
    so that PyImageJ does not need to download anything else from the Internet.
    In this case you will also have to manually download the latest `.jar` files
    for
    [imglib2-unsafe](https://maven.scijava.org/#nexus-search;quick~imglib2-unsafe)
    and
    [imglib2-imglyb](https://maven.scijava.org/#nexus-search;quick~imglib2-imglyb)
-   and place them in your local `Fiji.app/jars` directory, as these are
+   and place them in your local `Fiji/jars` directory, as these are
    required for PyImageJ but not part of the standard Fiji distribution.
 
 #### Unable to find valid certification path
