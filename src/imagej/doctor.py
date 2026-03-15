@@ -16,11 +16,14 @@ To enable debug-level logging:
 """
 
 import importlib
+import importlib.metadata
 import logging
 import os
 import shutil
 import subprocess
 import sys
+import urllib.error
+import urllib.request
 from pathlib import Path
 
 
@@ -33,6 +36,22 @@ def _execute(command):
         return str(e)
 
 
+def _check_url(url, timeout=5):
+    """Try to reach a URL, returning True if the host is accessible.
+
+    An HTTP error response (e.g. 403, 404) still counts as accessible,
+    since the server responded. Only a connection failure or timeout means
+    the host is unreachable.
+    """
+    try:
+        urllib.request.urlopen(url, timeout=timeout)
+        return True
+    except urllib.error.HTTPError:
+        return True  # Server responded; host is reachable
+    except Exception:
+        return False
+
+
 def checkup(output=print):
     """
     Check your environment for health problems that could prevent PyImageJ from
@@ -41,10 +60,14 @@ def checkup(output=print):
     output("")
     advice = []
 
-    output("Checking Python:")
+    # -- Python --
 
+    output("Checking Python:")
+    output(f"--> Python {sys.version}")
     output(f"--> Python executable = {sys.executable}")
     output("")
+
+    # -- Environment --
 
     output("Checking environment:")
 
@@ -67,10 +90,23 @@ def checkup(output=print):
                 + indent
                 + indent.join(map(str, expected_exes))
             )
+        if not shutil.which("mamba") and not shutil.which("micromamba"):
+            advice.append(
+                "Consider using mamba or micromamba instead of conda "
+                "for faster package installation: https://mamba.readthedocs.io/"
+            )
+    elif "VIRTUAL_ENV" in os.environ:
+        output(f"--> VIRTUAL_ENV = {os.environ['VIRTUAL_ENV']}")
+        output("--> Running inside a Python virtual environment.")
     else:
-        output("--> It looks like you are NOT running inside a Conda environment.")
-        advice.append("Did you intend to activate a Conda environment?")
+        output("--> No virtual environment detected (no CONDA_PREFIX or VIRTUAL_ENV).")
+        advice.append(
+            "No virtual environment is active. Using a Conda environment or "
+            "Python venv is recommended to avoid dependency conflicts."
+        )
     output("")
+
+    # -- Python dependencies --
 
     output("Checking Python dependencies:")
 
@@ -78,44 +114,97 @@ def checkup(output=print):
         "jgo": "jgo",
         "scyjava": "scyjava",
         "imglyb": "imglyb",
+        "jpype1": "jpype",
         "pyimagej": "imagej",
     }
     for package_name, module_name in dependencies.items():
         try:
             m = importlib.import_module(module_name)
-            output(f"--> {package_name}: {m.__file__}")
+            try:
+                version = importlib.metadata.version(package_name)
+                output(f"--> {package_name} {version}: {m.__file__}")
+            except importlib.metadata.PackageNotFoundError:
+                output(f"--> {package_name}: {m.__file__}")
         except ImportError:
             output(f"--> {package_name}: MISSING")
             advice.append(f"Are you sure the {package_name} package is installed?")
 
     output("")
 
+    # -- Java --
+
     output("Checking Java:")
 
-    if "JAVA_HOME" in os.environ:
-        output(f"--> JAVA_HOME = {os.environ['JAVA_HOME']}")
+    java_home = os.environ.get("JAVA_HOME")
+    if java_home:
+        output(f"--> JAVA_HOME = {java_home}")
+        if not Path(java_home).is_dir():
+            output(f"--> JAVA_HOME directory does NOT exist!")
+            advice.append(
+                f"JAVA_HOME points to a non-existent path: {java_home}. "
+                "Fix or unset JAVA_HOME."
+            )
     else:
         output("--> JAVA_HOME is NOT set!")
         advice.append(
             "Activate a conda environment with openjdk installed, "
             "or set JAVA_HOME manually."
         )
+
     java_executable = shutil.which("java")
     output(f"--> Java executable = {java_executable or 'NOT FOUND!'}")
     if not java_executable:
-        advice.append("Install openjdk using conda or your system package manager")
+        advice.append("Install openjdk using conda or your system package manager.")
 
     output(f"$ java -version\n{_execute(['java', '-version'])}")
     output("")
 
-    # TODO: More checks still needed!
-    # - Does java executable match JAVA_HOME?
-    # - Firewall configuration?
-    # - Can mvn retrieve artifacts? (try mvn dependency:copy with suitable timeout?)
-    # - Is Maven Central accessible? Is maven.scijava.org accessible?
-    # - Where is your Maven repository cache?
-    # - Where is jgo caching your environments?
-    # - Are you using mamba? (quality of life advice)
+    # -- Maven artifact cache --
+
+    output("Checking Maven artifact cache:")
+
+    try:
+        import jgo.config
+
+        settings = jgo.config.GlobalSettings()
+        settings_dict = settings.to_dict()
+
+        jgo_cache = settings_dict.get("cache_dir")
+        output(f"--> jgo cache directory = {jgo_cache}")
+        if jgo_cache and not Path(jgo_cache).exists():
+            output("--> jgo cache does not exist yet; it will be created on first use.")
+
+        m2_repo = settings_dict.get("repo_cache")
+        output(f"--> Maven local repository = {m2_repo}")
+        if not m2_repo or not Path(m2_repo).exists():
+            output(
+                "--> Maven local repository does not exist yet; "
+                "it will be populated on first use."
+            )
+    except ImportError:
+        pass  # jgo missing; already reported above
+
+    output("")
+
+    # -- Network --
+
+    output("Checking network access to Maven repositories:")
+
+    maven_repos = [
+        ("Maven Central", "https://repo.maven.apache.org/maven2"),
+        ("SciJava Maven", "https://maven.scijava.org/content/groups/public"),
+    ]
+    for name, url in maven_repos:
+        reachable = _check_url(url)
+        status = "OK" if reachable else "NOT accessible!"
+        output(f"--> {name} ({url}): {status}")
+        if not reachable:
+            advice.append(
+                f"{name} at {url} is not accessible. "
+                "Check your internet connection or firewall/proxy settings."
+            )
+
+    output("")
 
     if advice:
         output("Questions and advice for you:")
