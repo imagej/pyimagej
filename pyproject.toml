@@ -35,7 +35,7 @@ classifiers = [
 requires-python = ">=3.10"
 dependencies = [
     "imglyb>=2.1.0",
-    "jgo>=2.1.0",
+    "jgo>=2.1.1",
     "jpype1>=1.4.0",
     "labeling>=0.1.14",
     "numpy",
