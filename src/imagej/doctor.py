@@ -139,7 +139,7 @@ def checkup(output=print):
     if java_home:
         output(f"--> JAVA_HOME = {java_home}")
         if not Path(java_home).is_dir():
-            output(f"--> JAVA_HOME directory does NOT exist!")
+            output("--> JAVA_HOME directory does NOT exist!")
             advice.append(
                 f"JAVA_HOME points to a non-existent path: {java_home}. "
                 "Fix or unset JAVA_HOME."
