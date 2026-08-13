@@ -190,7 +190,7 @@ def copy_rai_into_ndarray(
 
     # Failed
     failure_msg = "\n".join(failure_exceptions)
-    raise Exception("\n" + failure_msg)
+    raise RuntimeError("\n" + failure_msg)
 
 
 def dtype(image_or_type) -> np.dtype:
@@ -219,9 +219,9 @@ def dtype(image_or_type) -> np.dtype:
 
     # -- ImgLib2 types --
     if isinstance(image_or_type, sj.jimport("net.imglib2.type.Type")):
-        for c in _imglib2_types:
+        for c, np_type in _imglib2_types.items():
             if isinstance(image_or_type, sj.jimport(c)):
-                return np.dtype(_imglib2_types[c])
+                return np.dtype(np_type)
         raise TypeError(f"Unsupported ImgLib2 type: {image_or_type}")
 
     # -- ImgLib2 images --
@@ -241,9 +241,9 @@ def dtype(image_or_type) -> np.dtype:
             # NB: ImageJ's 32-bit type is float32, not uint32.
             jc.ImagePlus.GRAY32: "float32",
         }
-        for t in imagej_types:
+        for t, np_type in imagej_types.items():
             if imagej_type == t:
-                return np.dtype(imagej_types[t])
+                return np.dtype(np_type)
         raise TypeError(f"Unsupported original ImageJ type: {imagej_type}")
 
     raise TypeError("Unsupported Java type: " + str(sj.jclass(image_or_type).getName()))

@@ -6,9 +6,7 @@ import pytest
 import scyjava as sj
 import xarray as xr
 
-import imagej.convert as convert
-import imagej.dims as dims
-import imagej.images as images
+from imagej import convert, dims, images
 from imagej._java import jc
 
 # -- Image helpers --

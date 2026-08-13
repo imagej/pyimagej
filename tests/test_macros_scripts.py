@@ -1,5 +1,5 @@
-import scyjava as sj
 import pytest
+import scyjava as sj
 
 # -- Helpers --
 

@@ -26,13 +26,15 @@ import urllib.error
 import urllib.request
 from pathlib import Path
 
+_logger = logging.getLogger(__name__)
+
 
 def _execute(command):
     try:
         return (
             subprocess.check_output(command, stderr=subprocess.STDOUT).decode().rstrip()
         )
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
         return str(e)
 
 
@@ -48,7 +50,7 @@ def _check_url(url, timeout=5):
         return True
     except urllib.error.HTTPError:
         return True  # Server responded; host is reachable
-    except Exception:
+    except Exception:  # noqa: BLE001
         return False
 
 
@@ -241,7 +243,7 @@ def debug_to_stderr(logger=None, debug_maven=False):
 
                 scyjava.config.set_verbose(2)
             except ImportError:
-                logging.exception("Failed to enable scyjava verbose mode.")
+                _logger.exception("Failed to enable scyjava verbose mode.")
         return
 
     elif type(logger) is str:
@@ -250,7 +252,7 @@ def debug_to_stderr(logger=None, debug_maven=False):
             m = importlib.import_module(module_name)
             logger = getattr(m, logger_attr)
         except ImportError:
-            logging.exception("Failed to enable debug logging for %s.", logger)
+            _logger.exception("Failed to enable debug logging for %s.", logger)
             return
 
     logger.addHandler(logging.StreamHandler(sys.stderr))

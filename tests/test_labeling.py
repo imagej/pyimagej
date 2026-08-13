@@ -1,4 +1,4 @@
-from typing import Any, Dict, List
+from typing import Any
 
 import numpy as np
 import pytest
@@ -50,12 +50,12 @@ def java_labeling(ij):
 
 
 def assert_labels_equality(
-    exp: Dict[str, Any], act: Dict[str, Any], ignored_keys: List[str]
+    exp: dict[str, Any], act: dict[str, Any], ignored_keys: list[str]
 ):
-    for key in exp.keys():
+    for key, value in exp.items():
         if key in ignored_keys:
             continue
-        assert exp[key] == act[key]
+        assert value == act[key]
 
 
 # -- Tests --

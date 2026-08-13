@@ -6,7 +6,8 @@ import ctypes
 import logging
 import os
 import tempfile
-from typing import Dict, List, Sequence, Union
+from collections.abc import Sequence
+from typing import Union
 
 import imglyb
 import numpy as np
@@ -15,8 +16,7 @@ import xarray as xr
 from jpype import JByte, JException, JFloat, JLong, JObject, JShort
 from labeling import Labeling
 
-import imagej.dims as dims
-import imagej.images as images
+from imagej import dims, images
 from imagej._java import jc
 from imagej._java import log_exception as _log_exception
 
@@ -59,7 +59,7 @@ def java_to_dataset(ij: "jc.ImageJ", jobj, dim_order=None) -> "jc.Dataset":
         return _rename_dataset_dims(ds, dim_order)
     except Exception as exc:
         _log_exception(_logger, exc)
-        raise exc
+        raise
     raise TypeError("Cannot convert to Dataset: " + str(type(jobj)))
 
 
@@ -85,7 +85,7 @@ def java_to_img(ij: "jc.ImageJ", jobj) -> "jc.Img":
             return jc.ImgView.wrap(rai)
     except Exception as exc:
         _log_exception(_logger, exc)
-        raise exc
+        raise
     raise TypeError("Cannot convert to img: " + str(type(jobj)))
 
 
@@ -255,7 +255,7 @@ def supports_java_to_ndarray(ij: "jc.ImageJ", obj) -> bool:
     """
     try:
         return ij.convert().supports(obj, jc.RandomAccessibleInterval)
-    except Exception:
+    except Exception:  # noqa: BLE001
         return False
 
 
@@ -272,7 +272,7 @@ def supports_java_to_xarray(ij: "jc.ImageJ", obj) -> bool:
         can_convert = ij.convert().supports(obj, jc.ImgPlus)
         has_axis = dims._has_axis(obj)
         return can_convert and has_axis
-    except Exception:
+    except Exception:  # noqa: BLE001
         return False
 
 
@@ -285,7 +285,7 @@ def supports_java_to_xarray(ij: "jc.ImageJ", obj) -> bool:
 # ctype, as the sizes of some ctypes are platform-dependent. See
 # https://docs.python.org/3/library/ctypes.html#ctypes-fundamental-data-types-2
 # for more information.
-_ctype_map: Dict[type, str] = {
+_ctype_map: dict[type, str] = {
     ctypes.c_bool: "net.imglib2.type.logic.BoolType",
     ctypes.c_int8: "net.imglib2.type.numeric.integer.ByteType",
     ctypes.c_uint8: "net.imglib2.type.numeric.integer.UnsignedByteType",
@@ -301,7 +301,7 @@ _ctype_map: Dict[type, str] = {
 
 # Dict of casters for realtypes that cannot directly take
 # the raw conversion of ctype.value
-_realtype_casters: Dict[str, type] = {
+_realtype_casters: dict[str, type] = {
     "net.imglib2.type.numeric.integer.ByteType": JByte,
     "net.imglib2.type.numeric.integer.UnsignedIntType": JLong,
     "net.imglib2.type.numeric.integer.ShortType": JShort,
@@ -508,7 +508,7 @@ def index_img_to_roi_manager(
 
 def _get_contours(
     ij: "jc.ImageJ", index_img: "jc.RandomAccessibleInterval"
-) -> List["jc.WritablePolygon2D"]:
+) -> list["jc.WritablePolygon2D"]:
     """Compute contours from an index image.
 
     Compute the contours from an index image by converting the image into
@@ -568,10 +568,10 @@ def metadata_wrapper_to_dict(ij: "jc.ImageJ", metadata_wrapper: "jc.MetadataWrap
     :return: A Python dict representing metadata_wrapper
     """
 
-    return dict(
-        impl_cls=type(metadata_wrapper),
-        metadata=metadata_wrapper.unwrap(),
-    )
+    return {
+        "impl_cls": type(metadata_wrapper),
+        "metadata": metadata_wrapper.unwrap(),
+    }
 
 
 ####################
@@ -681,8 +681,8 @@ def _rename_xarray_dims(xarr, new_dims: Sequence[str]):
     return xarr.rename(dim_map)
 
 
-def _dim_order(hints: Dict):
+def _dim_order(hints: dict):
     """
     Extract the dim_order from the hints kwargs.
     """
-    return hints["dim_order"] if "dim_order" in hints else None
+    return hints.get("dim_order", None)

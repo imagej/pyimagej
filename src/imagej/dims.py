@@ -3,7 +3,7 @@ Utility functions for querying and manipulating dimensional axis metadata.
 """
 
 import logging
-from typing import List, Tuple, Union
+from typing import Union
 
 import numpy as np
 import scyjava as sj
@@ -19,7 +19,7 @@ _logger = logging.getLogger(__name__)
 
 def get_axes(
     rai: "jc.RandomAccessibleInterval",
-) -> List["jc.CalibratedAxis"]:
+) -> list["jc.CalibratedAxis"]:
     """
     imagej.dims.get_axes(image) is deprecated. Use image.dim_axes instead.
     """
@@ -32,7 +32,7 @@ def get_axes(
     ]
 
 
-def get_axis_types(rai: "jc.RandomAccessibleInterval") -> List["jc.AxisType"]:
+def get_axis_types(rai: "jc.RandomAccessibleInterval") -> list["jc.AxisType"]:
     """
     imagej.dims.get_axis_types(image) is deprecated. Use this code instead:
 
@@ -60,7 +60,7 @@ def get_axis_types(rai: "jc.RandomAccessibleInterval") -> List["jc.AxisType"]:
         )
 
 
-def get_dims(image) -> List[str]:
+def get_dims(image) -> list[str]:
     """
     imagej.dims.get_dims(image) is deprecated. Use image.shape and image.dims instead.
     """
@@ -83,7 +83,7 @@ def get_dims(image) -> List[str]:
     raise TypeError(f"Unsupported image type: {image}\n No dimensions or shape found.")
 
 
-def get_shape(image) -> List[int]:
+def get_shape(image) -> list[int]:
     """
     imagej.dims.get_shape(image) is deprecated. Use image.shape instead.
     """
@@ -99,11 +99,11 @@ def get_shape(image) -> List[int]:
     if isinstance(image, jc.ImagePlus):
         shape = image.getDimensions()
         return [axis for axis in shape if axis > 1]
-    raise TypeError(f"Unsupported Java type: {str(sj.jclass(image).getName())}")
+    raise TypeError(f"Unsupported Java type: {sj.jclass(image).getName()!s}")
 
 
 def reorganize(
-    rai: "jc.RandomAccessibleInterval", permute_order: List[int]
+    rai: "jc.RandomAccessibleInterval", permute_order: list[int]
 ) -> "jc.ImgPlus":
     """Reorganize the dimension order of a RandomAccessibleInterval.
 
@@ -153,8 +153,8 @@ def reorganize(
 
 
 def prioritize_rai_axes_order(
-    axis_types: List["jc.AxisType"], ref_order: List["jc.AxisType"]
-) -> List[int]:
+    axis_types: list["jc.AxisType"], ref_order: list["jc.AxisType"]
+) -> list[int]:
     """Prioritize the axes order to match a reference order.
 
     The input List of 'AxisType' from the image to be permuted
@@ -180,7 +180,7 @@ def prioritize_rai_axes_order(
 
 def _assign_axes(
     xarr: xr.DataArray,
-) -> List[Union["jc.DefaultLinearAxis", "jc.EnumeratedAxis"]]:
+) -> list[Union["jc.DefaultLinearAxis", "jc.EnumeratedAxis"]]:
     """
     Obtain xarray axes names, origin, scale and convert into ImageJ Axis. Supports both
     DefaultLinearAxis and the newer EnumeratedAxis.
@@ -261,7 +261,7 @@ def _get_axis_num(xarr: xr.DataArray, axis):
 
 
 def _get_axes_coords(
-    axes: List["jc.CalibratedAxis"], dims: List[str], shape: Tuple[int]
+    axes: list["jc.CalibratedAxis"], dims: list[str], shape: tuple[int]
 ) -> dict:
     """
     Get xarray style coordinate list dictionary from a dataset
@@ -316,7 +316,7 @@ def _dataset_to_imgplus(rai: "jc.RandomAccessibleInterval") -> "jc.ImgPlus":
         return rai
 
 
-def _get_axis_labels(axes: List["jc.CalibratedAxis"]) -> List[str]:
+def _get_axis_labels(axes: list["jc.CalibratedAxis"]) -> list[str]:
     """Get the axes labels from a List of 'CalibratedAxis'.
 
     Extract the axis labels from a List of 'CalibratedAxis'.
@@ -324,10 +324,10 @@ def _get_axis_labels(axes: List["jc.CalibratedAxis"]) -> List[str]:
     :param axes: A List of 'CalibratedAxis'.
     :return: A list of the axis labels.
     """
-    return [str((axes[idx].type().getLabel())) for idx in range(len(axes))]
+    return [str(axes[idx].type().getLabel()) for idx in range(len(axes))]
 
 
-def _python_rai_ref_order() -> List["jc.AxisType"]:
+def _python_rai_ref_order() -> list["jc.AxisType"]:
     """Get the Java style numpy reference order.
 
     Get a List of 'AxisType' in the Python/scikitimage
@@ -359,7 +359,7 @@ def _convert_dim(dim: str, direction: str) -> str:
         return dim
 
 
-def _convert_dims(dimensions: List[str], direction: str) -> List[str]:
+def _convert_dims(dimensions: list[str], direction: str) -> list[str]:
     """Convert a List of dimensions to Python/NumPy or ImageJ conventions.
 
     Convert a List of dimensions to Python/Numpy or ImageJ conventions by
@@ -386,7 +386,7 @@ def _convert_dims(dimensions: List[str], direction: str) -> List[str]:
         return dimensions
 
 
-def _validate_dim_order(dim_order: List[str], shape: tuple) -> List[str]:
+def _validate_dim_order(dim_order: list[str], shape: tuple) -> list[str]:
     """
     Validate a List of dimensions. If the dimension list is smaller
     fill the rest of the list with "dim_n" (following xarrray convention).
@@ -412,7 +412,7 @@ def _has_axis(rai: "jc.RandomAccessibleInterval"):
     if sj.isjava(rai):
         return hasattr(rai, "axis")
     else:
-        False
+        return False
 
 
 def _to_pydim(key: str) -> str:

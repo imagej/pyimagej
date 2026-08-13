@@ -2,12 +2,10 @@
 Utility functions for manipulating image stacks.
 """
 
-from typing import List, Tuple
-
 import scyjava as sj
 
 
-def rai_slice(rai, imin: Tuple, imax: Tuple, istep: Tuple):
+def rai_slice(rai, imin: tuple, imax: tuple, istep: tuple):
     """Slice ImgLib2 images.
 
     Slice ImgLib2 images using Python's slice notation to define the
@@ -54,7 +52,7 @@ def rai_slice(rai, imin: Tuple, imax: Tuple, istep: Tuple):
     return dimension_reduced
 
 
-def _index_within_range(query: List[int], source: List[int]) -> bool:
+def _index_within_range(query: list[int], source: list[int]) -> bool:
     """Check if query is within range of source index.
     :param query: List of query int
     :param source: List of soure int

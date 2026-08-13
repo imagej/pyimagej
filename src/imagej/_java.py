@@ -4,7 +4,7 @@ These are not intended for external use in PyImageJ-based scripts!
 """
 
 import logging
-from functools import lru_cache
+from functools import cache
 
 from jpype import JArray, JObject
 from scyjava import JavaClasses, jimport, jstacktrace
@@ -49,18 +49,18 @@ def unlock_modules(logger: logging.Logger) -> None:
                     logger.debug(f"--add-opens {module}/{package}={unnamed}")
                     addExports.invoke(module, package, unnamed)
                     logger.debug(f"--add-exports {module}/{package}={unnamed}")
-                except Exception as e:
+                except Exception as e:  # noqa: BLE001
                     # Continue with other packages
                     log_exception(logger, e)
 
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
         log_exception(logger, e)
 
 
 # Import Java resources on demand.
 
 
-@lru_cache(maxsize=None)
+@cache
 def JObjectArray():
     return JArray(JObject)
 

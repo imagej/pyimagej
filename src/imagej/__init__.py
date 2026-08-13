@@ -40,20 +40,16 @@ import threading
 import time
 from ctypes import cdll
 from enum import Enum
-from functools import lru_cache
+from functools import cache, lru_cache
 from pathlib import Path
 from textwrap import dedent
-from typing import Optional, Tuple, Union
 
 import numpy as np
 import scyjava as sj
 import xarray as xr
 from jpype import JImplementationFor, JVMNotFoundException, setupGuiEnvironment
 
-import imagej.convert as convert
-import imagej.dims as dims
-import imagej.images as images
-import imagej.stack as stack
+from imagej import convert, dims, images, stack
 from imagej._java import JObjectArray, jc
 from imagej._java import log_exception as _log_exception
 from imagej._java import unlock_modules as _unlock_modules
@@ -281,7 +277,7 @@ class ImageJPython:
                 )
         except Exception as exc:
             _log_exception(_logger, exc)
-            raise exc
+            raise
 
     def run_plugin(
         self, plugin: str, args=None, ij1_style: bool = True, imp: "jc.ImagePlus" = None
@@ -515,7 +511,7 @@ class ImageJPython:
 
         except Exception as exc:
             _log_exception(_logger, exc)
-            raise exc
+            raise
 
     def show(self, image, cmap=None):
         """Display a Java or Python 2D image.
@@ -889,7 +885,7 @@ class ImageJPython:
 
 
 @JImplementationFor("net.imagej.ImageJ")
-class GatewayAddons(object):
+class GatewayAddons:
     """ImageJ2 gateway addons.
 
     This class should not be initialized manually. Upon initialization
@@ -900,7 +896,7 @@ class GatewayAddons(object):
     """
 
     @property
-    @lru_cache(maxsize=None)
+    @cache  # noqa: B019
     def py(self):
         """Access the ImageJPython convenience methods.
 
@@ -989,7 +985,7 @@ class GatewayAddons(object):
 
 
 @JImplementationFor("net.imglib2.EuclideanSpace")
-class EuclideanSpaceAddons(object):
+class EuclideanSpaceAddons:
     @property
     def ndim(self):
         """Get the number of dimensions.
@@ -1001,7 +997,7 @@ class EuclideanSpaceAddons(object):
 
 
 @JImplementationFor("net.imglib2.Interval")
-class IntervalAddons(object):
+class IntervalAddons:
     @property
     def shape(self):
         """Get the shape of the interval.
@@ -1013,7 +1009,7 @@ class IntervalAddons(object):
 
 
 @JImplementationFor("net.imglib2.RandomAccessibleInterval")
-class RAIOperators(object):
+class RAIOperators:
     """RandomAccessibleInterval operators.
 
     This class should not be initialized manually. Upon initialization
@@ -1068,7 +1064,7 @@ class RAIOperators(object):
             # Wrap single int into tuple of length 1.
             return self.__getitem__((key,))
         else:
-            raise ValueError(f"Invalid key type: {type(key)}")
+            raise TypeError(f"Invalid key type: {type(key)}")
 
     @property
     def dtype(self):
@@ -1091,7 +1087,7 @@ class RAIOperators(object):
             # Convert int to singleton tuple.
             axis = (axis,)
         if not isinstance(axis, tuple):
-            raise ValueError(f"Invalid type for axis parameter: {type(axis)}")
+            raise TypeError(f"Invalid type for axis parameter: {type(axis)}")
 
         res = self
         for d in range(self.numDimensions() - 1, -1, -1):
@@ -1149,7 +1145,7 @@ class RAIOperators(object):
         return JObjectArray()(list(map(sj.to_java, args)))
 
     @property
-    @lru_cache(maxsize=None)
+    @cache  # noqa: B019
     def _op(self):
         return (
             self.getContext().getService("net.imagej.ops.OpService")
@@ -1198,7 +1194,7 @@ class RAIOperators(object):
 
 
 @JImplementationFor("net.imagej.space.TypedSpace")
-class TypedSpaceAddons(object):
+class TypedSpaceAddons:
     """TypedSpace addons.
 
     This class should not be initialized manually. Upon initialization
@@ -1209,7 +1205,7 @@ class TypedSpaceAddons(object):
     """
 
     @property
-    def dims(self) -> Tuple[str]:
+    def dims(self) -> tuple[str]:
         """Get the axis labels of the dimensional space.
 
         :return: Dimension labels of the space.
@@ -1219,7 +1215,7 @@ class TypedSpaceAddons(object):
 
 
 @JImplementationFor("net.imagej.space.AnnotatedSpace")
-class AnnotatedSpaceAddons(object):
+class AnnotatedSpaceAddons:
     """AnnotatedSpace addons.
 
     This class should not be initialized manually. Upon initialization
@@ -1230,7 +1226,7 @@ class AnnotatedSpaceAddons(object):
     """
 
     @property
-    def dim_axes(self) -> Tuple["jc.Axis"]:
+    def dim_axes(self) -> tuple["jc.Axis"]:
         """Get the axes of the dimensional space.
 
         :return: tuple of net.imagej.axis.Axis objects describing the
@@ -1241,7 +1237,7 @@ class AnnotatedSpaceAddons(object):
 
 
 @JImplementationFor("ij.ImagePlus")
-class ImagePlusAddons(object):
+class ImagePlusAddons:
     """ImagePlus addons.
 
     This class should not be initialized manually. Upon initialization
@@ -1252,7 +1248,7 @@ class ImagePlusAddons(object):
     """
 
     @property
-    def dims(self) -> Tuple[str]:
+    def dims(self) -> tuple[str]:
         """Get the dimensional axis labels of the image.
 
         ImagePlus objects are always ordered XYZCT, although
@@ -1276,7 +1272,7 @@ class ImagePlusAddons(object):
 
 def init(
     ij_dir_or_version_or_endpoint=None,
-    mode: Union[Mode, str] = Mode.HEADLESS,
+    mode: Mode | str = Mode.HEADLESS,
     add_legacy=True,
     headless=None,
 ):
@@ -1363,10 +1359,13 @@ def init(
 
     macos = sys.platform == "darwin"
 
-    if macos and mode == Mode.INTERACTIVE:
-        if not _macos_enable_interactive(force=force):
-            raise EnvironmentError(
-                dedent("""\
+    if (
+        macos
+        and mode == Mode.INTERACTIVE
+        and not _macos_enable_interactive(force=force)
+    ):
+        raise OSError(
+            dedent("""\
                 Cannot enable interactive mode in this environment.
                 On macOS, the CoreFoundation/AppKit event loop must
                 be running on the process's main thread.
@@ -1389,7 +1388,7 @@ def init(
                 PyImageJ's `_macos_enable_interactive()` function
                 to more smartly detect your deployment situation.
             """)
-            )
+        )
 
     if not sj.jvm_started():
         success = _create_jvm(ij_dir_or_version_or_endpoint, mode, add_legacy)
@@ -1463,7 +1462,6 @@ def when_imagej_starts(f) -> None:
         init function before it returns or blocks.
     """
     # Add function to the list of callbacks to invoke upon start_jvm().
-    global _init_callbacks
     _init_callbacks.append(f)
 
 
@@ -1498,7 +1496,7 @@ def _create_gateway():
         ij = ImageJ()
     except Exception as e:
         _log_exception(_logger, e)
-        raise e
+        raise
 
     # Register a Python-side script runner object, used by the
     # org.scijava:scripting-python script language plugin.
@@ -1701,7 +1699,7 @@ def _create_jvm(
     return True
 
 
-def _guess_java_version() -> Optional[int]:
+def _guess_java_version() -> int | None:
     # Ask scyjava what version of Java will be used.
     version_digits = None
     if sj.jvm_started():
@@ -1764,7 +1762,7 @@ def _macos_enable_interactive(force: bool = False) -> bool:
             ipy.enable_gui("osx")
             _logger.debug("Enabled IPython osx gui.")
             return True
-    except Exception as exc:
+    except Exception as exc:  # noqa: BLE001
         _logger.debug("Failed to converse with IPython.")
         _logger.debug(exc)
 
