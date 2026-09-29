@@ -1,8 +1,8 @@
 # Using PyImageJ without a screen
 
 It is an increasingly common scenario to want to do image processing on a cloud
-computing node (e.g. running notebooks on [Binder](https://mybinder.org/) or
-[Google Colab](https://colab.research.google.com)). Unfortunately, the
+computing node (e.g. running notebooks on [Binder](https://mybinder.org/)).
+Unfortunately, the
 original ImageJ was only designed to be a GUI-based desktop application, so it
 does not natively support true
 [headless](https://en.wikipedia.org/wiki/Headless_computer) operation, i.e.
