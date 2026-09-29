@@ -172,6 +172,9 @@ ij = imagej.init('/Applications/Fiji.app')
 
 Replace `/Applications/Fiji.app` with the path to your installation.
 
+If you want to launch Python directly from Fiji instead, see [Using PyImageJ
+from Fiji's Python mode](fiji/README).
+
 ### With more memory available to Java
 
 Java's virtual machine (the JVM) has a "max heap" value limiting how much
