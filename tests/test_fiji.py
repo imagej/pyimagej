@@ -9,6 +9,10 @@ def test_plugins_load_using_pairwise_stitching(ij):
         sj.jimport("plugin.Stitching_Pairwise")
     except TypeError:
         pytest.skip("No Pairwise Stitching plugin available. Skipping test.")
+    except Exception as e:
+        if "UnsupportedClassVersionError" in str(e):
+            pytest.skip("Pairwise Stitching plugin requires a newer Java runtime. Skipping test.")
+        raise
 
     if not ij.legacy:
         pytest.skip("No original ImageJ. Skipping test.")
